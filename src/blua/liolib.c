@@ -280,15 +280,24 @@ static int io_openlocal (lua_State *L) {
 }
 
 static int io_openlump (lua_State *L) {
+  const char *disallowed_chars = "wa+";
+
   const char *filename = luaL_checkstring(L, 1);
   const char *mode = luaL_optstring(L, 2, "r");
+  char *mode_cpy = strdup(mode);
   FILE **pf = NULL;
   MYFILE lumpf;
   UINT16 lumpnum;
 
+  strlwr(mode_cpy); // needs to be lowercase for char checking
+
   // work only with wads and pk3s
   if (wadfiles[numwadfiles - 1]->type != RET_PK3 && wadfiles[numwadfiles - 1]->type != RET_WAD)
     luaL_error(L, "io.openlump() only works with PK3 or WAD files");
+
+  for (size_t i = 0; i < strlen(disallowed_chars); i++)
+    if (strchr(mode, disallowed_chars[i]))
+      luaL_error(L, "writing, appending, and updating lumps is not allowed");
 
   // create new file
   pf = newfile(L);
@@ -314,9 +323,10 @@ static int io_openlump (lua_State *L) {
 
   fwrite(lumpf.data, lumpf.size, 1, *pf); // write data to file
   fseek(*pf, 0, SEEK_SET); // go back to beginning
-  freopen(NULL, mode, *pf); // reopen in requested mode
+  freopen(NULL, mode_cpy, *pf); // reopen in requested mode
 
   lua_pop(L, 1); // pop off file data
+  free(mode_cpy);
 
   return 1;
 }

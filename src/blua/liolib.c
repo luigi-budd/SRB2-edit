@@ -288,34 +288,60 @@ static int io_openlump (lua_State *L) {
   FILE **pf = NULL;
   MYFILE lumpf;
   UINT16 lumpnum;
+  UINT16 wadnum;
+
+  boolean wadvalid = false;
+  boolean lumpvalid = false;
 
   strlwr(mode_cpy); // needs to be lowercase for char checking
-
-  // work only with wads and pk3s
-  if (wadfiles[numwadfiles - 1]->type != RET_PK3 && wadfiles[numwadfiles - 1]->type != RET_WAD)
-    luaL_error(L, "io.openlump() only works with PK3 or WAD files");
 
   for (size_t i = 0; i < strlen(disallowed_chars); i++)
     if (strchr(mode, disallowed_chars[i]))
       luaL_error(L, "writing, appending, and updating lumps is not allowed");
 
-  // create new file
   pf = newfile(L);
-  *pf = tmpfile();
 
-  // no file? bruh moment
-  if (!*pf)
-    return pushresult(L, 0, NULL);
+  // wadnum is unsigned; check for -1 directly.
+  for (wadnum = numwadfiles - 1; wadnum != (UINT16)-1; wadnum--)
+  {
+    // work only with wads and pk3s
+    if (wadfiles[wadnum]->type == RET_PK3 || wadfiles[wadnum]->type == RET_WAD)
+    {
+      wadvalid = true;
 
-  // get lump number
-  lumpnum = W_CheckNumForFullNamePK3(filename, numwadfiles - 1, 0);
+      // create new file
+      *pf = tmpfile();
 
-  // lump doesn't exist? bruh moment
-  if (lumpnum == INT16_MAX)
+      // no file? bruh moment
+      if (!*pf)
+        return pushresult(L, 0, NULL);
+
+      // get lump number
+      lumpnum = W_CheckNumForFullNamePK3(filename, wadnum, 0);
+
+      // lump exists? nice
+      if (lumpnum != INT16_MAX)
+      {
+        lumpvalid = true;
+        break;
+      }
+
+      // above check failed, free stuff
+      fclose(*pf);
+    }
+  }
+
+  if (!wadvalid)
+    luaL_error(L, "io.openlump() only works with PK3 or WAD files, and none are loaded");
+
+  if (!lumpvalid)
     return luaL_error(L, "can't find lump " LUA_QS, filename);
 
+  // get lump number
+  lumpnum = W_CheckNumForFullNamePK3(filename, wadnum, 0);
+
   // read lump data
-  lumpf.wad = numwadfiles - 1;
+  lumpf.wad = wadnum;
   lumpf.size = W_LumpLengthPwad(lumpf.wad, lumpnum);
   lumpf.data = lua_newuserdata(L, lumpf.size);
   W_ReadLumpPwad(lumpf.wad, lumpnum, lumpf.data);

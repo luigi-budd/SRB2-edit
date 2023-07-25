@@ -26,6 +26,7 @@
 #include "../lua_script.h"
 #include "../m_misc.h"
 #include "../i_time.h"
+#include "../dehacked.h"
 
 
 #define IO_INPUT	1
@@ -278,6 +279,47 @@ static int io_openlocal (lua_State *L) {
 	return (*pf == NULL) ? pushresult(L, 0, filename) : 1;
 }
 
+static int io_openlump (lua_State *L) {
+  const char *filename = luaL_checkstring(L, 1);
+  const char *mode = luaL_optstring(L, 2, "r");
+  FILE **pf = NULL;
+  MYFILE lumpf;
+  UINT16 lumpnum;
+
+  // work only with wads and pk3s
+  if (wadfiles[numwadfiles - 1]->type != RET_PK3 && wadfiles[numwadfiles - 1]->type != RET_WAD)
+    luaL_error(L, "io.openlump() only works with PK3 or WAD files");
+
+  // create new file
+  pf = newfile(L);
+  *pf = tmpfile();
+
+  // no file? bruh moment
+  if (!*pf)
+    return pushresult(L, 0, NULL);
+
+  // get lump number
+  lumpnum = W_CheckNumForFullNamePK3(filename, numwadfiles - 1, 0);
+
+  // lump doesn't exist? bruh moment
+  if (lumpnum == INT16_MAX)
+    return luaL_error(L, "can't find lump " LUA_QS, filename);
+
+  // read lump data
+  lumpf.wad = numwadfiles - 1;
+  lumpf.size = W_LumpLengthPwad(lumpf.wad, lumpnum);
+  lumpf.data = lua_newuserdata(L, lumpf.size);
+  W_ReadLumpPwad(lumpf.wad, lumpnum, lumpf.data);
+  lumpf.curpos = lumpf.data;
+
+  fwrite(lumpf.data, lumpf.size, 1, *pf); // write data to file
+  fseek(*pf, 0, SEEK_SET); // go back to beginning
+  freopen(NULL, mode, *pf); // reopen in requested mode
+
+  lua_pop(L, 1); // pop off file data
+
+  return 1;
+}
 
 void Got_LuaFile(UINT8 **cp, INT32 playernum)
 {
@@ -600,6 +642,7 @@ static const luaL_Reg iolib[] = {
   {"close", io_close},
   {"open", io_open},
   {"openlocal", io_openlocal},
+  {"openlump", io_openlump},
   {"tmpfile", io_tmpfile},
   {"type", io_type},
   {NULL, NULL}

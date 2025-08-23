@@ -1446,19 +1446,20 @@ static menuitem_t OP_OpenGLOptionsMenu[] =
 	{IT_HEADER, NULL, "General", NULL, 51},
 	{IT_STRING|IT_CVAR,         NULL, "Shaders",             &cv_glshaders,            63},
 	{IT_STRING|IT_CVAR,         NULL, "Palette rendering",   &cv_glpaletterendering,   73},
-	{IT_STRING|IT_CVAR,         NULL, "Lack of perspective", &cv_glshearing,           83},
-	{IT_STRING|IT_CVAR,         NULL, "Field of view",       &cv_fov,                  93},
+	{IT_STRING | IT_CVAR, 	    NULL, "Light Dithering",     &cv_gllightdither,        83},
+	{IT_STRING|IT_CVAR,         NULL, "Lack of perspective", &cv_glshearing,           93},
+	{IT_STRING|IT_CVAR,         NULL, "Field of view",       &cv_fov,                  103},
 
-	{IT_HEADER, NULL, "Miscellaneous", NULL, 112},
-	{IT_STRING|IT_CVAR,         NULL, "Bit depth",           &cv_scr_depth,           124},
-	{IT_STRING|IT_CVAR,         NULL, "Texture filter",      &cv_glfiltermode,        134},
-	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",         &cv_glanisotropicmode,   144},
-	{IT_STRING|IT_CVAR,         NULL, "Render distance",     &cv_glrenderdistance,    154},
+	{IT_HEADER, NULL, "Miscellaneous", NULL, 122},
+	{IT_STRING|IT_CVAR,         NULL, "Bit depth",           &cv_scr_depth,           134},
+	{IT_STRING|IT_CVAR,         NULL, "Texture filter",      &cv_glfiltermode,        144},
+	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",         &cv_glanisotropicmode,   154},
+	{IT_STRING|IT_CVAR,         NULL, "Render distance",     &cv_glrenderdistance,    164},
 #ifdef ALAM_LIGHTING
-	{IT_SUBMENU|IT_STRING,      NULL, "Lighting...",         &OP_OpenGLLightingDef,   164},
+	{IT_SUBMENU|IT_STRING,      NULL, "Lighting...",         &OP_OpenGLLightingDef,   174},
 #endif
 #if defined (_WINDOWS) && (!(defined (__unix__) || defined (UNIXCOMMON) || defined (HAVE_SDL)))
-	{IT_STRING|IT_CVAR,         NULL, "Fullscreen",          &cv_fullscreen,          174},
+	{IT_STRING|IT_CVAR,         NULL, "Fullscreen",          &cv_fullscreen,          184},
 #endif
 };
 

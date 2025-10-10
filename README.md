@@ -29,7 +29,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 ## Visual
 - Toggable mobj pitch/roll functional (3d rotation for models on slopes, like DRRR). Option located in Video Settings -> Level -> "Pitch/Roll Rotation"
 - Ring-Racers-styled screen quakes! ("rr_quakes" in console)
-- Toggleable Screenshake effects! ("earthquake", @archiNiko)
+- Toggleable Screenshake effects! ("earthquake", ported from SRB2Classic by @archiNiko)
 - Better "Fake Contrast"! (https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2680)
 - View rollangle is interpolated!
 - Experimental translation support for models! ("gl_modeltranslations")

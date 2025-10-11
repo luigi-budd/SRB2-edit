@@ -2502,15 +2502,15 @@ static void HU_Draw32TabRankings(INT32 x, INT32 y, playersort_t *tab, INT32 scor
 			if (circuitmap)
 			{
 				if (players[tab[i].num].exiting)
-					V_DrawRightAlignedThinString(x+128, y, 0, va("%i:%02i.%02i", G_TicsToMinutes(players[tab[i].num].realtime,true), G_TicsToSeconds(players[tab[i].num].realtime), G_TicsToCentiseconds(players[tab[i].num].realtime)));
+					V_DrawRightAlignedThinString(x+116, y, 0, va("%i:%02i.%02i", G_TicsToMinutes(players[tab[i].num].realtime,true), G_TicsToSeconds(players[tab[i].num].realtime), G_TicsToCentiseconds(players[tab[i].num].realtime)));
 				else
-					V_DrawRightAlignedThinString(x+128, y, (greycheck ? V_TRANSLUCENT : 0), va("%u", tab[i].count));
+					V_DrawRightAlignedThinString(x+120, y, (greycheck ? V_TRANSLUCENT : 0), va("%u", tab[i].count));
 			}
 			else
-				V_DrawRightAlignedThinString(x+128, y, (greycheck ? V_TRANSLUCENT : 0), va("%i:%02i.%02i", G_TicsToMinutes(tab[i].count,true), G_TicsToSeconds(tab[i].count), G_TicsToCentiseconds(tab[i].count)));
+				V_DrawRightAlignedThinString(x+116, y, (greycheck ? V_TRANSLUCENT : 0), va("%i:%02i.%02i", G_TicsToMinutes(tab[i].count,true), G_TicsToSeconds(tab[i].count), G_TicsToCentiseconds(tab[i].count)));
 		}
 		else
-			V_DrawRightAlignedThinString(x+128, y, (greycheck ? V_TRANSLUCENT : 0), va("%u", tab[i].count));
+			V_DrawRightAlignedThinString(x+120, y, (greycheck ? V_TRANSLUCENT : 0), va("%u", tab[i].count));
 
 		y += 9;
 		if (i == 16)

@@ -3,6 +3,7 @@ If you want to use code from my repo, please contact me beforehand. (because mos
 ## Compiling
 
 See [SRB2 Wiki/Source code compiling](http://wiki.srb2.org/wiki/Source_code_compiling)
+
 If you get compilation errors referring to booleans and/or pointers, try reverting [this commit](https://github.com/luigi-budd/SRB2-edit/commit/8b70f986a65a735030e611c0bcf36161b4cdd505) and/or [this commit](https://github.com/luigi-budd/SRB2-edit/commit/2160051f055eed0fa1cdf0f4034534f60dfe2c0a) and [this commit](https://github.com/luigi-budd/SRB2-edit/commit/0cb43b90763d58386bf97ab6fcf732636cb5d48e) (or [this one](https://github.com/luigi-budd/SRB2-edit/commit/6acca940af796845b64ec6a3db74451735c9c023))
 
 # Installation:

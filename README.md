@@ -12,46 +12,46 @@ You can compile the source code normally (see "Compiling") and put the binary in
 # Changes
 
 ## HUD
-- CEchos/CSays print message into console ("showcsays")
+- CEchos/CSays print message into console ("`showcsays`")
 - Joining netgame shows progress bar on "checking files" ([Lugent's PR](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2446) [Lugent's PR](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2556))
 - Easily rejoin servers you've played before! (Multiplayer -> Rejoin Previous Servers...)
-- Draw gif information to hud ("moviemodeinfo")
-- Crosshairs can invert pixels behind, to improve their visibility ("crosshair_invert")
+- Draw gif information to hud ("`moviemodeinfo`")
+- Crosshairs can invert pixels behind, to improve their visibility ("`crosshair_invert`")
 - Thin captions and thin FPS! (Load "tinyfontfix.pk3" for music note on thin captions)
 - Countdown beep isn't ear piercingly loud!
 - Snake download game background fixed!
 - Master Server list background for better readability!
 - Server Menu before joining! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
-- See your ping in frame delay instead of milliseconds! ("pingmeasurement")
-- Tics per second counter! ("showtps") (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
-- Compact FPS/TPS info! ("compactinfo")
+- See your ping in frame delay instead of milliseconds! ("`pingmeasurement`")
+- Tics per second counter! ("`showtps`") (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic) and TSoURDt3rd)
+- Compact FPS/TPS info! ("`compactinfo`")
 
 ## Visual
 - Toggable mobj pitch/roll functional (3d rotation for models on slopes, like DRRR). Option located in Video Settings -> Level -> "Pitch/Roll Rotation"
-- Ring-Racers-styled screen quakes! ("rr_quakes" in console)
-- Toggleable Screenshake effects! ("earthquake", ported from SRB2Classic by @archiNiko)
-- Better "Fake Contrast"! (https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2680)
+- Ring-Racers-styled screen quakes! ("`rr_quakes`" in console)
+- Toggleable Screenshake effects! ("`earthquake`", ported from SRB2Classic by @archiNiko)
+- Better "Fake Contrast"! (https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2680, @GLideKS)
 - View rollangle is interpolated!
-- Experimental translation support for models! ("gl_modeltranslations")
-- Render distance for OpenGL! ("gr_renderdistance", @GLideKS)
+- Experimental translation support for models! ("`gl_modeltranslations`")
+- Render distance for OpenGL! ("`gr_renderdistance`", @GLideKS)
 
 ## Gameplay / Netplay
 - Skin change at any time
-- Addfilelocal from SRB2K Saturn! (use "addfilelocal" command or press R-ALT in the addons menu)
-- Minimum input delay & "Gentleman's Delay" option from SRB2Kart Saturn/Ring Racers! (mindelay and gentlemensdelay respectively)
+- Addfilelocal from SRB2K Saturn! (use "`addfilelocal`" command or press R-ALT in the addons menu)
+- Minimum input delay from SRB2Kart Saturn/Ring Racers! (`mindelay`)
 - Improved startup times! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
 
 ## Modding and Debugging
-- renderhitbox in multiplayer
+- `renderhitbox` in multiplayer
 - Lua HUD interpolation from SRB2K Saturn
-- "freezelevel" debug command (Be careful using when clients are connected!)
+- "`freezelevel`" debug command (Be careful using when clients are connected!)
 - HUD camera struct updates position in first person! (credits [Jiskster](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2629) & [Hanicef](https://git.do.srb2.org/Hanicef/SRB2Classic/-/commit/681bd160f5be3925a97d798d00e67b32a8c1df71))
-- v.cachePatch accepts a second parameter for rotation! (https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2662)
+- `v.cachePatch` accepts a second parameter for rotation! (https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2662)
 - Added "`TR`" as an alias to "`TICRATE`" in Lua
 
 ## GIFs
-- Adjustable gif size cap, toggable too! (gif_maxsize, "Max GIF Size (MB)")
-    - ^ When gif is capped, gif_rolling allows for another gif to immediately start! (gif_rolling, "Keep recording when capped")
+- Adjustable gif size cap, toggable too! (`gif_maxsize`, "Max GIF Size (MB)")
+    - ^ When gif is capped, gif_rolling allows for another gif to immediately start! (`gif_rolling`, "Keep recording when capped")
 - Pause GIFs *WHILE* Recording! (Bound to F2 by default)
 
 # Lua Additions

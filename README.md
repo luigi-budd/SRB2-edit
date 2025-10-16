@@ -1,5 +1,3 @@
-If you want to use code from my repo, please contact me beforehand. (because most of it isnt mine Lul!!!)
-
 ## Compiling
 
 See [SRB2 Wiki/Source code compiling](http://wiki.srb2.org/wiki/Source_code_compiling)
@@ -125,12 +123,16 @@ end)
 - `player.ipaddress` (string) (read only): For use in moderation addons, this only returns a string for the server of the players IP address. Clients _cannot_ see other clients' IP addresses. The only way for other clients to know is if the server sends a command with them or something :p
 - `player.muted` (boolean) (read + write): Returns whether or not the player is muted. (though changes may not be reflected in servers not running edit)
 
+
 ## renderflags_t
 - `RF_ALWAYSONTOP` : The sprite always draws on top of level geometry and other sprites. Not supported for models, and culled sprites wont be rendered. Note that in OpenGL, anything transparent will render on any `RF_ALWAYSONTOP` sprites
 - `RF_HIDEINSKYBOX` : The sprite will be hidden in the skybox.
+- `RF_NOMODEL` : The sprite will be forced to not use a model in OpenGL.
+
 
 ## eflags_t
 - `MFE_NOPITCHROLLEASING` : When "pitchroll-easing" is toggled, adding this eflag will not ease the pitch/roll axis this tic. Removed at the end of MobjThinker.
+
 
 # Sonic Robo Blast 2
 [![latest release](https://badgen.net/github/release/STJr/SRB2/stable)](https://github.com/STJr/SRB2/releases/latest)

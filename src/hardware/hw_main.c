@@ -4272,7 +4272,11 @@ static void HWR_DrawSprites(void)
 
 			if (spr->mobj && spr->mobj->skin && spr->mobj->sprite == SPR_PLAY)
 			{
-				if (!cv_glmodels.value || !md2_playermodels[((skin_t*)spr->mobj->skin)->skinnum].found || md2_playermodels[((skin_t*)spr->mobj->skin)->skinnum].scale < 0.0f)
+				if (!cv_glmodels.value
+				    || !md2_playermodels[((skin_t*)spr->mobj->skin)->skinnum].found
+					|| md2_playermodels[((skin_t*)spr->mobj->skin)->skinnum].scale < 0.0f
+					|| (spr->renderflags & RF_NOMODEL)
+				)
 					HWR_DrawSprite(spr);
 				else
 				{

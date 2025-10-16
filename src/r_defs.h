@@ -955,6 +955,9 @@ typedef enum
 
 	RF_ALWAYSONTOP		= 0x00010000,  // Sprite is drawn on top of level geometry
 	RF_HIDEINSKYBOX		= 0x00020000,  // do not render in skybox
+#ifdef HWRENDER
+	RF_NOMODEL          = 0x00040000,  // do not draw a model for this mobj in opengl, use a sprite instead
+#endif
 } renderflags_t;
 
 typedef enum

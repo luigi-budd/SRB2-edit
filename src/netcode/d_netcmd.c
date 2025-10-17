@@ -407,6 +407,9 @@ consvar_t cv_freedemocamera = CVAR_INIT("freedemocamera", "Off", CV_SAVE, CV_OnO
 // NOTE: this should be in hw_main.c, but we can't put it there as it breaks dedicated build
 consvar_t cv_glallowshaders = CVAR_INIT ("gr_allowcustomshaders", "On", CV_NETVAR, CV_OnOff, NULL);
 
+consvar_t cv_returnfromconnect = CVAR_INIT ("returnfromconnect", "On", CV_SAVE, CV_OnOff, NULL);
+consvar_t cv_showserverinfo = CVAR_INIT ("showserverinfo", "On", CV_SAVE, CV_OnOff, NULL);
+
 char timedemo_name[256];
 boolean timedemo_csv;
 char timedemo_csv_id[256];
@@ -546,6 +549,10 @@ void D_RegisterServerCommands(void)
 	AddMServCommands();
 
 	CV_RegisterVar(&cv_glallowshaders);
+
+    // server info
+	CV_RegisterVar(&cv_returnfromconnect);
+    CV_RegisterVar(&cv_showserverinfo);
 
 	// p_mobj.c
 	CV_RegisterVar(&cv_itemrespawntime);

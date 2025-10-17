@@ -125,6 +125,9 @@ extern boolean timedemo_quit;
 
 extern consvar_t cv_freedemocamera;
 
+extern consvar_t cv_returnfromconnect;
+extern consvar_t cv_showserverinfo;
+
 typedef enum
 {
 	XD_NAMEANDCOLOR = 1,

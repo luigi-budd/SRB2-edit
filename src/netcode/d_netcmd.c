@@ -549,6 +549,8 @@ void D_RegisterServerCommands(void)
 	AddMServCommands();
 
 	CV_RegisterVar(&cv_glallowshaders);
+
+    // server info
 	CV_RegisterVar(&cv_returnfromconnect);
     CV_RegisterVar(&cv_showserverinfo);
 

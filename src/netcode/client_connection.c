@@ -869,7 +869,7 @@ static void AbortConnection(void)
 	D_StartTitle();
 	if (attemptingrejoin)
 		M_RejoinMenu(-1);
-	else
+	else if (cv_returnfromconnect.value)
 		M_ConnectMenu(-1);
 
 	// Will be reset by caller. Signals refusal.
@@ -1283,7 +1283,7 @@ static boolean CL_ServerConnectionSearchTicker(tic_t *asksent)
 				return true;
 			}
 
-			cl_mode = CL_VIEWSERVER;
+			cl_mode = cv_showserverinfo.value ? CL_VIEWSERVER : CL_CHECKFILES;
 			ChangeServMusic(servmus_1, true,false);
 		}
 		else
@@ -1365,7 +1365,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 		case CL_ASKFULLFILELIST:
 			if (cl_lastcheckedfilecount == UINT16_MAX) // All files retrieved
 			{
-				cl_mode = CL_VIEWSERVER;
+				cl_mode = cv_showserverinfo.value ? CL_VIEWSERVER : CL_CHECKFILES;
 				ChangeServMusic(servmus_1, true,false);
 			}
 			else if (fileneedednum != cl_lastcheckedfilecount || I_GetTime() >= *asksent)

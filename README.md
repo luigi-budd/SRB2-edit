@@ -78,15 +78,15 @@ You can compile the source code normally (see "Compiling") and put the binary in
 
   Example:
   ```lua
-	local f = io.openlump("lua/main.lua","r")
-
-	if f
-		local dat = f:read("*a")
-		print("length: "..dat:len())
-		f:close()
-	else
-		print("could not read "..tostring(lump))
-	end
+  local f = io.openlump("lua/main.lua","r")
+  
+  if f
+  	local dat = f:read("*a")
+  	print("length: "..dat:len())
+  	f:close()
+  else
+  	print("could not read "..tostring(lump))
+  end
   ```
 
 - `v.interpolate/v.interpLatch(boolean/int)` : See [SRB2K Saturn's documentation](https://github.com/Indev450/SRB2Kart-Saturn/blob/Saturn/LUASTUFF.md)

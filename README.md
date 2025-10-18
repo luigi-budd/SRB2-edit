@@ -75,7 +75,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - `P_GetLocalAiming(player_t player)` : Returns the angle_t `aiming` of `player` if they are a local player. Returns 0 otherwise.
 - `P_GetLocalAngle(player_t player)` : Returns the angle_t `angle` of `player` if they are a local player. Returns 0 otherwise.
 
-- `io.openlump(string filename, [string mode, [UINT32 wadnum]])` : Similar to `io.openlocal`, but reads a lump inside any WAD/PK3 file loaded (no addfolders). Folder paths must be included in PK3s. The 3rd argument can be obtained from `takis_wadnum`.
+- `io.openlump(string filename, [string mode, [UINT32 wadnum]])` : Similar to `io.openlocal`, but reads a lump inside any WAD/PK3 file loaded. The `wadnum` argument can be obtained from `takis_wadnum`, otherwise it will scan addons from end to start.
 
   Example:
   ```lua

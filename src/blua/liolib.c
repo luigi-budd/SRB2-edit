@@ -290,7 +290,7 @@ static int io_openlump (lua_State *L) {
   FILE *tmp = NULL;
   MYFILE lumpf;
   UINT16 lumpnum;
-  UINT16 wadnum;
+  UINT16 wadnum = luaL_optinteger(L, 3, numwadfiles - 1);
 
   boolean wadvalid = false;
   boolean lumpvalid = false;
@@ -301,6 +301,10 @@ static int io_openlump (lua_State *L) {
     if (strchr(mode, disallowed_chars[i]))
       luaL_error(L, "writing, appending, and updating lumps is not allowed");
 
+  // no out of range wadnums (uint means no negative check is required)
+  if (wadnum > numwadfiles - 1)
+	return luaL_error(L, "wadnum %d out of range (0 - %d)", wadnum, numwadfiles-1);
+
   // no empty inputs
   if (filename[0] == '\0')
 	return luaL_error(L, "filename cannot be empty");
@@ -308,10 +312,10 @@ static int io_openlump (lua_State *L) {
   pf = newfile(L);
 
   // wadnum is unsigned; check for -1 directly.
-  for (wadnum = numwadfiles - 1; wadnum != (UINT16)-1; wadnum--)
+  for (wadnum = wadnum; wadnum != (UINT16)-1; wadnum--)
   {
-    // work only with wads and pk3s
-    if (wadfiles[wadnum]->type == RET_PK3 || wadfiles[wadnum]->type == RET_WAD)
+    // work only with wads and pk3s (and folders)
+    if (wadfiles[wadnum]->type == RET_PK3 || wadfiles[wadnum]->type == RET_WAD || wadfiles[wadnum]->type == RET_FOLDER)
     {
       wadvalid = true;
 
@@ -338,10 +342,14 @@ static int io_openlump (lua_State *L) {
 		*pf = NULL;
 	  }
     }
+
+    // stop if we only want to search one wad
+    if (lua_isnumber(L, 3))
+      break;
   }
 
   if (!wadvalid)
-    luaL_error(L, "io.openlump() only works with PK3 or WAD files, and none are loaded");
+    luaL_error(L, "io.openlump() only works with PK3s, WADs, and folders, and none were specified");
 
   if (!lumpvalid) {
     if (pf && *pf) {

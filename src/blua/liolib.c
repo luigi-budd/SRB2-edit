@@ -327,15 +327,24 @@ static int io_openlump (lua_State *L) {
       }
 
       // above check failed, free stuff
-      fclose(*pf);
+      if (*pf) {
+		fclose(*pf);
+		*pf = NULL;
+	  }
     }
   }
 
   if (!wadvalid)
     luaL_error(L, "io.openlump() only works with PK3 or WAD files, and none are loaded");
 
-  if (!lumpvalid)
+  if (!lumpvalid) {
+    if (pf && *pf) {
+        fclose(*pf);
+        *pf = NULL;
+    }
+    free(mode_cpy);
     return luaL_error(L, "can't find lump " LUA_QS, filename);
+  }
 
   // get lump number
   lumpnum = W_CheckNumForFullNamePK3(filename, wadnum, 0);
@@ -349,7 +358,18 @@ static int io_openlump (lua_State *L) {
 
   fwrite(lumpf.data, lumpf.size, 1, *pf); // write data to file
   fseek(*pf, 0, SEEK_SET); // go back to beginning
-  freopen(NULL, mode_cpy, *pf); // reopen in requested mode
+  FILE *tmp = freopen(NULL, mode_cpy, *pf); // reopen in requested mode
+  if (!tmp) {
+  	perror("freopen failed");
+  	if (*pf) {
+	  fclose(*pf);
+	  *pf = NULL;
+	}
+  	*pf = NULL;
+  	free(mode_cpy);
+  	return pushresult(L, 0, "freopen");
+  }
+  *pf = tmp;
 
   lua_pop(L, 1); // pop off file data
   free(mode_cpy);

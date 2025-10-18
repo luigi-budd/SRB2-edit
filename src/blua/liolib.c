@@ -326,7 +326,7 @@ static int io_openlump (lua_State *L) {
       lumpnum = W_CheckNumForFullNamePK3(filename, wadnum, 0);
 
       // lump exists? nice
-      if (lumpnum != INT16_MAX)
+      if (lumpnum != INT16_MAX && !W_IsLumpFolder(wadnum, lumpnum))
       {
         lumpvalid = true;
         break;

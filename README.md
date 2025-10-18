@@ -78,14 +78,14 @@ You can compile the source code normally (see "Compiling") and put the binary in
 
   Example:
   ```lua
-  local f = io.openlump("lua/main.lua","r")
+  local file = io.openlump("lua/main.lua","r")
   
-  if f
-  	local dat = f:read("*a")
+  if file
+  	local dat = file:read("*a")
   	print("length: "..dat:len())
-  	f:close()
+  	file:close()
   else
-  	print("could not read "..tostring(lump))
+  	print("could not read lump")
   end
   ```
 

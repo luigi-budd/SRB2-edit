@@ -285,7 +285,9 @@ static int io_openlump (lua_State *L) {
   const char *filename = luaL_checkstring(L, 1);
   const char *mode = luaL_optstring(L, 2, "r");
   char *mode_cpy = strdup(mode);
+
   FILE **pf = NULL;
+  FILE *tmp = NULL;
   MYFILE lumpf;
   UINT16 lumpnum;
   UINT16 wadnum;
@@ -298,6 +300,10 @@ static int io_openlump (lua_State *L) {
   for (size_t i = 0; i < strlen(disallowed_chars); i++)
     if (strchr(mode, disallowed_chars[i]))
       luaL_error(L, "writing, appending, and updating lumps is not allowed");
+
+  // no empty inputs
+  if (filename[0] == '\0')
+	return luaL_error(L, "filename cannot be empty");
 
   pf = newfile(L);
 
@@ -358,7 +364,7 @@ static int io_openlump (lua_State *L) {
 
   fwrite(lumpf.data, lumpf.size, 1, *pf); // write data to file
   fseek(*pf, 0, SEEK_SET); // go back to beginning
-  FILE *tmp = freopen(NULL, mode_cpy, *pf); // reopen in requested mode
+  tmp = freopen(NULL, mode_cpy, *pf); // reopen in requested mode
   if (!tmp) {
   	perror("freopen failed");
   	if (*pf) {

@@ -290,10 +290,7 @@ static int io_openlump (lua_State *L) {
   FILE *tmp = NULL;
   MYFILE lumpf;
   UINT16 lumpnum;
-  // UINT16 inputwadnum = lua_isnumber(L, 3);
-  // UINT16 wadnum = inputwadnum ? luaL_checkinteger(L, 3) : numwadfiles - 1;
   UINT16 wadnum = numwadfiles - 1;
-  INT32 i;
 
   boolean wadvalid = false;
   boolean lumpvalid = false;
@@ -314,8 +311,7 @@ static int io_openlump (lua_State *L) {
       switch(c) {
         case 'f': // scan Forwards
           direction = 1;
-          // if (!inputwadnum)
-            wadnum = 0;
+          wadnum = 0;
           break;
         case 'm': // no game-Modifying addons
           localaddons = false;
@@ -358,7 +354,7 @@ static int io_openlump (lua_State *L) {
       if (subfolders) {
         lumpinfo_t *lump_p = wadfiles[wadnum]->lumpinfo + 0;
         lumpnum = INT16_MAX;
-        for (i = 0; i < wadfiles[wadnum]->numlumps; i++, lump_p++)
+        for (INT32 i = 0; i < wadfiles[wadnum]->numlumps; i++, lump_p++)
         {
           const char *fullname = strrchr(lump_p->fullname, '/');
           fullname = fullname ? fullname + 1 : lump_p->fullname;
@@ -386,10 +382,6 @@ static int io_openlump (lua_State *L) {
     		*pf = NULL;
   	  }
     }
-
-    // stop if we only want to search one wad
-    // if (inputwadnum)
-    //   break;
   }
 
   if (!wadvalid)

@@ -290,32 +290,60 @@ static int io_openlump (lua_State *L) {
   FILE *tmp = NULL;
   MYFILE lumpf;
   UINT16 lumpnum;
-  UINT16 wadnum = luaL_optinteger(L, 3, numwadfiles - 1);
+  // UINT16 inputwadnum = lua_isnumber(L, 3);
+  // UINT16 wadnum = inputwadnum ? luaL_checkinteger(L, 3) : numwadfiles - 1;
+  UINT16 wadnum = numwadfiles - 1;
+  INT32 i;
 
   boolean wadvalid = false;
   boolean lumpvalid = false;
 
+  int direction = -1;
+  boolean localaddons = true;
+  boolean subfolders = (strchr(filename, '/') == NULL);
+
   strlwr(mode_cpy); // needs to be lowercase for char checking
 
-  for (size_t i = 0; i < strlen(disallowed_chars); i++)
-    if (strchr(mode, disallowed_chars[i]))
+  for (size_t i = 0; i < strlen(mode); i++) {
+    char c = mode[i];
+
+    if (strchr(disallowed_chars, c)) {
       luaL_error(L, "writing, appending, and updating lumps is not allowed");
+    }
+    else {
+      switch(c) {
+        case 'f': // scan Forwards
+          direction = 1;
+          // if (!inputwadnum)
+            wadnum = 0;
+          break;
+        case 'm': // no game-Modifying addons
+          localaddons = false;
+          break;
+        default:
+          break;
+      }
+    }
+  }
 
   // no out of range wadnums (uint means no negative check is required)
   if (wadnum > numwadfiles - 1)
-	return luaL_error(L, "wadnum %d out of range (0 - %d)", wadnum, numwadfiles-1);
+    return luaL_error(L, "wadnum %d out of range (0 - %d)", wadnum, numwadfiles-1);
 
   // no empty inputs
   if (filename[0] == '\0')
-	return luaL_error(L, "filename cannot be empty");
+    return luaL_error(L, "filename cannot be empty");
 
   pf = newfile(L);
 
   // wadnum is unsigned; check for -1 directly.
-  for (wadnum = wadnum; wadnum != (UINT16)-1; wadnum--)
+  for (; wadnum != (UINT16)-1 && wadnum <= numwadfiles-1; wadnum += direction)
   {
-    // work only with wads and pk3s (and folders)
-    if (wadfiles[wadnum]->type == RET_PK3 || wadfiles[wadnum]->type == RET_WAD || wadfiles[wadnum]->type == RET_FOLDER)
+    // ignore luas and socs
+    if ((wadfiles[wadnum]->type == RET_PK3
+      || wadfiles[wadnum]->type == RET_WAD
+      || wadfiles[wadnum]->type == RET_FOLDER)
+      && (wadfiles[wadnum]->important || localaddons))
     {
       wadvalid = true;
 
@@ -327,7 +355,23 @@ static int io_openlump (lua_State *L) {
         return pushresult(L, 0, NULL);
 
       // get lump number
-      lumpnum = W_CheckNumForFullNamePK3(filename, wadnum, 0);
+      if (subfolders) {
+        lumpinfo_t *lump_p = wadfiles[wadnum]->lumpinfo + 0;
+        lumpnum = INT16_MAX;
+        for (i = 0; i < wadfiles[wadnum]->numlumps; i++, lump_p++)
+        {
+          const char *fullname = strrchr(lump_p->fullname, '/');
+          fullname = fullname ? fullname + 1 : lump_p->fullname;
+          if (!strnicmp(filename, fullname, strlen(filename)))
+          {
+            lumpnum = i;
+            break;
+          }
+        }
+      }
+      else {
+        lumpnum = W_CheckNumForFullNamePK3(filename, wadnum, 0);
+      }
 
       // lump exists? nice
       if (lumpnum != INT16_MAX && !W_IsLumpFolder(wadnum, lumpnum))
@@ -338,30 +382,27 @@ static int io_openlump (lua_State *L) {
 
       // above check failed, free stuff
       if (*pf) {
-		fclose(*pf);
-		*pf = NULL;
-	  }
+    		fclose(*pf);
+    		*pf = NULL;
+  	  }
     }
 
     // stop if we only want to search one wad
-    if (lua_isnumber(L, 3))
-      break;
+    // if (inputwadnum)
+    //   break;
   }
 
   if (!wadvalid)
-    luaL_error(L, "io.openlump() only works with PK3s, WADs, and folders, and none were specified");
+    luaL_error(L, "io.openlump() only works with PK3s, WADs, and folders, but none were specified");
 
   if (!lumpvalid) {
     if (pf && *pf) {
-        fclose(*pf);
-        *pf = NULL;
+      fclose(*pf);
+      *pf = NULL;
     }
     free(mode_cpy);
     return luaL_error(L, "can't find lump " LUA_QS, filename);
   }
-
-  // get lump number
-  lumpnum = W_CheckNumForFullNamePK3(filename, wadnum, 0);
 
   // read lump data
   lumpf.wad = wadnum;
@@ -373,20 +414,19 @@ static int io_openlump (lua_State *L) {
   fwrite(lumpf.data, lumpf.size, 1, *pf); // write data to file
   fseek(*pf, 0, SEEK_SET); // go back to beginning
   tmp = freopen(NULL, mode_cpy, *pf); // reopen in requested mode
+
+  free(mode_cpy);
   if (!tmp) {
   	perror("freopen failed");
-  	if (*pf) {
-	  fclose(*pf);
-	  *pf = NULL;
-	}
+  	if (*pf)
+  	  fclose(*pf);
+
   	*pf = NULL;
-  	free(mode_cpy);
   	return pushresult(L, 0, "freopen");
   }
   *pf = tmp;
 
   lua_pop(L, 1); // pop off file data
-  free(mode_cpy);
 
   return 1;
 }

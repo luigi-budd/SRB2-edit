@@ -20,7 +20,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Countdown beep isn't ear piercingly loud!
 - Snake download game background fixed!
 - Master Server list background for better readability!
-- Server Menu before joining! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
+- Server Menu before joining! ("`showserverinfo`") (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
 - See your ping in frame delay instead of milliseconds! ("`pingmeasurement`")
 - Tics per second counter! ("`showtps`") (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic) and TSoURDt3rd)
 - Compact FPS/TPS info! ("`compactinfo`")
@@ -59,6 +59,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - "`takis_custombuild`" (Read only) (boolean) :  Global to detect if the client is using this build
 - "`takis_complexlocaladdons`" (Read only) (boolean) : Global to detect if the client has loaded local addons with lua in them
 - "`takis_locallyloading`" (Read only) (boolean) : Only set during script loading, detects whether the script is being loaded locally
+
   Example:
   ```lua
   if (takis_locallyloading) then
@@ -72,6 +73,21 @@ You can compile the source code normally (see "Compiling") and put the binary in
 ## Functions
 - `P_GetLocalAiming(player_t player)` : Returns the angle_t `aiming` of `player` if they are a local player. Returns 0 otherwise.
 - `P_GetLocalAngle(player_t player)` : Returns the angle_t `angle` of `player` if they are a local player. Returns 0 otherwise.
+
+- `io.openlump(string filename, [string mode])` : Similar to `io.openlocal`, but reads a lump inside any WAD/PK3 file loaded. Two new options are supported: `f` to scan addons forwards from start to end, and `m`, to exclude any game-modifying or local addons.
+
+  Example:
+  ```lua
+  local file = io.openlump("lua/main.lua","r")
+  
+  if file
+  	local dat = file:read("*a")
+  	print("length: "..dat:len())
+  	file:close()
+  else
+  	print("could not read lump")
+  end
+  ```
 
 - `v.interpolate/v.interpLatch(boolean/int)` : See [SRB2K Saturn's documentation](https://github.com/Indev450/SRB2Kart-Saturn/blob/Saturn/LUASTUFF.md)
 - `v.drawFixedFill` : Same as `v.drawFill`, but x, y, width, and height arguments are all in fixed point scale.

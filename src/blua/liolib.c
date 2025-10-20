@@ -26,6 +26,7 @@
 #include "../lua_script.h"
 #include "../m_misc.h"
 #include "../i_time.h"
+#include "../dehacked.h"
 
 
 #define IO_INPUT	1
@@ -278,6 +279,149 @@ static int io_openlocal (lua_State *L) {
 	return (*pf == NULL) ? pushresult(L, 0, filename) : 1;
 }
 
+static int io_openlump (lua_State *L) {
+  const char *disallowed_chars = "wa+";
+
+  const char *filename = luaL_checkstring(L, 1);
+  const char *mode = luaL_optstring(L, 2, "r");
+  char *mode_cpy = strdup(mode);
+
+  FILE **pf = NULL;
+  FILE *tmp = NULL;
+  MYFILE lumpf;
+  UINT16 lumpnum;
+  UINT16 wadnum = numwadfiles - 1;
+
+  boolean wadvalid = false;
+  boolean lumpvalid = false;
+
+  int direction = -1;
+  boolean localaddons = true;
+  boolean subfolders = (strchr(filename, '/') == NULL);
+
+  strlwr(mode_cpy); // needs to be lowercase for char checking
+
+  for (size_t i = 0; i < strlen(mode); i++) {
+    char c = mode[i];
+
+    if (strchr(disallowed_chars, c)) {
+      luaL_error(L, "writing, appending, and updating lumps is not allowed");
+    }
+    else {
+      switch(c) {
+        case 'f': // scan Forwards
+          direction = 1;
+          wadnum = 0;
+          break;
+        case 'm': // no game-Modifying addons
+          localaddons = false;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  // no out of range wadnums (uint means no negative check is required)
+  if (wadnum > numwadfiles - 1)
+    return luaL_error(L, "wadnum %d out of range (0 - %d)", wadnum, numwadfiles-1);
+
+  // no empty inputs
+  if (filename[0] == '\0')
+    return luaL_error(L, "filename cannot be empty");
+
+  pf = newfile(L);
+
+  // wadnum is unsigned; check for -1 directly.
+  for (; wadnum != (UINT16)-1 && wadnum <= numwadfiles-1; wadnum += direction)
+  {
+    // ignore luas and socs
+    if ((wadfiles[wadnum]->type == RET_PK3
+      || wadfiles[wadnum]->type == RET_WAD
+      || wadfiles[wadnum]->type == RET_FOLDER)
+      && (wadfiles[wadnum]->important || localaddons))
+    {
+      wadvalid = true;
+
+      // create new file
+      *pf = tmpfile();
+
+      // no file? bruh moment
+      if (!*pf)
+        return pushresult(L, 0, NULL);
+
+      // get lump number
+      if (subfolders) {
+        lumpinfo_t *lump_p = wadfiles[wadnum]->lumpinfo + 0;
+        lumpnum = INT16_MAX;
+        for (INT32 i = 0; i < wadfiles[wadnum]->numlumps; i++, lump_p++)
+        {
+          const char *fullname = strrchr(lump_p->fullname, '/');
+          fullname = fullname ? fullname + 1 : lump_p->fullname;
+          if (!strnicmp(filename, fullname, strlen(filename)))
+          {
+            lumpnum = i;
+            break;
+          }
+        }
+      }
+      else {
+        lumpnum = W_CheckNumForFullNamePK3(filename, wadnum, 0);
+      }
+
+      // lump exists? nice
+      if (lumpnum != INT16_MAX && !W_IsLumpFolder(wadnum, lumpnum))
+      {
+        lumpvalid = true;
+        break;
+      }
+
+      // above check failed, free stuff
+      if (*pf) {
+    		fclose(*pf);
+    		*pf = NULL;
+  	  }
+    }
+  }
+
+  if (!wadvalid)
+    luaL_error(L, "io.openlump() only works with PK3s, WADs, and folders, but none were specified");
+
+  if (!lumpvalid) {
+    if (pf && *pf) {
+      fclose(*pf);
+      *pf = NULL;
+    }
+    free(mode_cpy);
+    return luaL_error(L, "can't find lump " LUA_QS, filename);
+  }
+
+  // read lump data
+  lumpf.wad = wadnum;
+  lumpf.size = W_LumpLengthPwad(lumpf.wad, lumpnum);
+  lumpf.data = lua_newuserdata(L, lumpf.size);
+  W_ReadLumpPwad(lumpf.wad, lumpnum, lumpf.data);
+  lumpf.curpos = lumpf.data;
+
+  fwrite(lumpf.data, lumpf.size, 1, *pf); // write data to file
+  fseek(*pf, 0, SEEK_SET); // go back to beginning
+  tmp = freopen(NULL, mode_cpy, *pf); // reopen in requested mode
+
+  free(mode_cpy);
+  if (!tmp) {
+  	perror("freopen failed");
+  	if (*pf)
+  	  fclose(*pf);
+
+  	*pf = NULL;
+  	return pushresult(L, 0, "freopen");
+  }
+  *pf = tmp;
+
+  lua_pop(L, 1); // pop off file data
+
+  return 1;
+}
 
 void Got_LuaFile(UINT8 **cp, INT32 playernum)
 {
@@ -600,6 +744,7 @@ static const luaL_Reg iolib[] = {
   {"close", io_close},
   {"open", io_open},
   {"openlocal", io_openlocal},
+  {"openlump", io_openlump},
   {"tmpfile", io_tmpfile},
   {"type", io_type},
   {NULL, NULL}

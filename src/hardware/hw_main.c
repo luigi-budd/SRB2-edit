@@ -285,8 +285,8 @@ static FUINT HWR_CalcSlopeLight(FUINT lightnum, pslope_t *slope)
 
 static UINT8 HWR_SideLightLevel(side_t *side, INT16 base_lightlevel)
 {
-	return max(0, min(255, side->light +
-		((side->lightabsolute) ? 0 : base_lightlevel)));
+	return (cv_fullbrite_hack.value ? 255 : max(0, min(255, side->light +
+		((side->lightabsolute) ? 0 : base_lightlevel))));
 }
 
 /* TODO: implement per-texture lighting
@@ -362,6 +362,9 @@ static void HWR_RenderPlane(subsector_t *subsector, extrasubsector_t *xsub, bool
 
 	if (nrPlaneVerts < 3) // not even a triangle?
 		return;
+
+	if (cv_fullbrite_hack.value)
+		lightlevel = 255;
 
 	// Get the slope pointer to simplify future code
 	if (FOFsector)
@@ -3217,7 +3220,7 @@ static void HWR_SplitSprite(gl_vissprite_t *spr)
 	i = 0;
 	temp = FLOAT_TO_FIXED(realtop);
 
-	if (R_ThingIsFullBright(spr->mobj))
+	if (R_ThingIsFullBright(spr->mobj) || cv_fullbrite_hack.value)
 		lightlevel = 255;
 	else if (R_ThingIsFullDark(spr->mobj))
 		lightlevel = 0;
@@ -3615,7 +3618,7 @@ static void HWR_DrawSprite(gl_vissprite_t *spr)
 		boolean lightset = true;
 		extracolormap_t *colormap = NULL;
 
-		if (R_ThingIsFullBright(spr->mobj))
+		if (R_ThingIsFullBright(spr->mobj) || cv_fullbrite_hack.value)
 			lightlevel = 255;
 		else if (R_ThingIsFullDark(spr->mobj))
 			lightlevel = 0;
@@ -3790,7 +3793,7 @@ static inline void HWR_DrawPrecipitationSprite(gl_vissprite_t *spr)
 			// Always use the light at the top instead of whatever I was doing before
 			INT32 light = R_GetPlaneLight(sector, spr->mobj->z + spr->mobj->height, false);
 
-			if (!R_ThingIsFullBright(spr->mobj))
+			if (!(R_ThingIsFullBright(spr->mobj) || cv_fullbrite_hack.value))
 				lightlevel = *sector->lightlist[light].lightlevel > 255 ? 255 : *sector->lightlist[light].lightlevel;
 
 			if (*sector->lightlist[light].extra_colormap)
@@ -3798,7 +3801,7 @@ static inline void HWR_DrawPrecipitationSprite(gl_vissprite_t *spr)
 		}
 		else
 		{
-			if (!R_ThingIsFullBright(spr->mobj))
+			if (!(R_ThingIsFullBright(spr->mobj) || cv_fullbrite_hack.value))
 				lightlevel = sector->lightlevel > 255 ? 255 : sector->lightlevel;
 
 			if (sector->extra_colormap)

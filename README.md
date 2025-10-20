@@ -69,17 +69,16 @@ You can compile the source code normally (see "Compiling") and put the binary in
   --normal, gameplay editing code
   ```
 - "`demoplayback`" (Read only) (boolean) : True if viewing a demo.
-- "`takis_wadnum`" (Read only) (int) : Only set during script loading/AddonLoaded hook, returns the number of the addon currently being loaded. (numwadfiles - 1)
 
 ## Functions
 - `P_GetLocalAiming(player_t player)` : Returns the angle_t `aiming` of `player` if they are a local player. Returns 0 otherwise.
 - `P_GetLocalAngle(player_t player)` : Returns the angle_t `angle` of `player` if they are a local player. Returns 0 otherwise.
 
-- `io.openlump(string filename, [string mode, [UINT32 wadnum]])` : Similar to `io.openlocal`, but reads a lump inside any WAD/PK3 file loaded. The `wadnum` argument can be obtained from `takis_wadnum`, otherwise it will scan addons from end to start.
+- `io.openlump(string filename, [string mode])` : Similar to `io.openlocal`, but reads a lump inside any WAD/PK3 file loaded. Two new options are supported: `f` to scan addons forwards from start to end, and `m`, to exclude any game-modifying or local addons.
 
   Example:
   ```lua
-  local file = io.openlump("lua/main.lua","r",6)
+  local file = io.openlump("lua/main.lua","r")
   
   if file
   	local dat = file:read("*a")

@@ -4519,6 +4519,19 @@ static void HWR_ProjectSprite(mobj_t *thing)
 #ifdef ROTSPRITE
 		sprinfo = P_GetSkinSpriteInfo(thing->skin, thing->sprite2);
 #endif
+
+		if (rot >= sprdef->numframes)
+		{
+			CONS_Alert(CONS_ERROR, M_GetText("HWR_ProjectSprite: invalid skins[\"%s\"].sprites[SPR2_%s] %sframe %s\n"),
+				((skin_t *)thing->skin)->name, spr2names[thing->sprite2 & SPR2F_MASK], (thing->sprite2 & SPR2F_SUPER) ? "super ": "", sizeu5(rot));
+			thing->sprite = states[S_UNKNOWN].sprite;
+			thing->frame = states[S_UNKNOWN].frame;
+			sprdef = &sprites[thing->sprite];
+#ifdef ROTSPRITE
+			sprinfo = &spriteinfo[thing->sprite];
+#endif
+			rot = thing->frame&FF_FRAMEMASK;
+		}
 	}
 	else
 	{
@@ -4526,23 +4539,24 @@ static void HWR_ProjectSprite(mobj_t *thing)
 #ifdef ROTSPRITE
 		sprinfo = &spriteinfo[thing->sprite];
 #endif
-	}
 
-	if (rot >= sprdef->numframes)
-	{
-		CONS_Alert(CONS_ERROR, M_GetText("HWR_ProjectSprite: invalid sprite frame %s/%s for %s\n"),
-			sizeu1(rot), sizeu2(sprdef->numframes), sprnames[thing->sprite]);
-		thing->sprite = states[S_UNKNOWN].sprite;
-		thing->frame = states[S_UNKNOWN].frame;
-		sprdef = &sprites[thing->sprite];
-#ifdef ROTSPRITE
-		sprinfo = &spriteinfo[thing->sprite];
-#endif
-		rot = thing->frame&FF_FRAMEMASK;
-		thing->state->sprite = thing->sprite;
-		thing->state->frame = thing->frame;
-	}
+		if (rot >= sprdef->numframes)
+		{
+			CONS_Alert(CONS_ERROR, M_GetText("HWR_ProjectSprite: invalid sprite frame %s/%s for %s\n"),
+				sizeu1(rot), sizeu2(sprdef->numframes), sprnames[thing->sprite]);
+			if (thing->sprite == thing->state->sprite && thing->frame == thing->state->frame)
+			{
+				thing->state->sprite = states[S_UNKNOWN].sprite;
+				thing->state->frame = states[S_UNKNOWN].frame;
+			}
+			thing->sprite = states[S_UNKNOWN].sprite;
+			thing->frame = states[S_UNKNOWN].frame;
+			sprdef = &sprites[thing->sprite];
+			sprinfo = &spriteinfo[thing->sprite];
+			rot = thing->frame&FF_FRAMEMASK;
+		}
 
+	}
 	sprframe = &sprdef->spriteframes[rot];
 
 #ifdef PARANOIA

@@ -2290,8 +2290,11 @@ void V_DrawFontStringAtFixed(fixed_t x, fixed_t y, INT32 option, fixed_t pscale,
 		dupx = pscale;
 		dupy = vscale;
 		scrwidth = FixedDiv(vid.width<<FRACBITS, vid.dup);
-		left = (scrwidth - (BASEVIDWIDTH << FRACBITS))/2;
-		scrwidth -= left;
+		if (!(option & V_MONOSPACE))
+		{
+			left = (scrwidth - (BASEVIDWIDTH << FRACBITS))/2;
+			scrwidth -= left;
+		}
 	}
 
 	if (option & V_NOSCALEPATCH)
@@ -2336,7 +2339,7 @@ void V_DrawFontStringAtFixed(fixed_t x, fixed_t y, INT32 option, fixed_t pscale,
 			continue;
 		}
 
-		if (charwidth)
+		if (charwidth && !(option & V_MONOSPACE))
 		{
 			w = FixedMul((charwidth<<FRACBITS), dupx);
 			center = w/2 - FixedMul(font.chars[c]->width<<FRACBITS, (dupx/2));

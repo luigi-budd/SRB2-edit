@@ -4524,6 +4524,8 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		{
 			CONS_Alert(CONS_ERROR, M_GetText("HWR_ProjectSprite: invalid skins[\"%s\"].sprites[SPR2_%s] %sframe %s\n"),
 				((skin_t *)thing->skin)->name, spr2names[thing->sprite2 & SPR2F_MASK], (thing->sprite2 & SPR2F_SUPER) ? "super ": "", sizeu5(rot));
+			thing->state->sprite = states[S_UNKNOWN].sprite;
+			thing->state->frame = states[S_UNKNOWN].frame;
 			thing->sprite = states[S_UNKNOWN].sprite;
 			thing->frame = states[S_UNKNOWN].frame;
 			sprdef = &sprites[thing->sprite];
@@ -4544,11 +4546,8 @@ static void HWR_ProjectSprite(mobj_t *thing)
 		{
 			CONS_Alert(CONS_ERROR, M_GetText("HWR_ProjectSprite: invalid sprite frame %s/%s for %s\n"),
 				sizeu1(rot), sizeu2(sprdef->numframes), sprnames[thing->sprite]);
-			if (thing->sprite == thing->state->sprite && thing->frame == thing->state->frame)
-			{
-				thing->state->sprite = states[S_UNKNOWN].sprite;
-				thing->state->frame = states[S_UNKNOWN].frame;
-			}
+			thing->state->sprite = states[S_UNKNOWN].sprite;
+			thing->state->frame = states[S_UNKNOWN].frame;
 			thing->sprite = states[S_UNKNOWN].sprite;
 			thing->frame = states[S_UNKNOWN].frame;
 			sprdef = &sprites[thing->sprite];

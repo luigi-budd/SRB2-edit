@@ -32,7 +32,7 @@
 #include "b_bot.h" // B_UpdateBotleader
 #include "netcode/d_clisrv.h" // CL_RemovePlayer
 #include "i_system.h" // I_GetPreciseTime, I_GetPrecisePrecision
-#include "r_translation.h" // AddNewTranslation etc
+#include "r_translation.h" // R_MakeTranslation etc
 
 #include "lua_script.h"
 #include "lua_libs.h"

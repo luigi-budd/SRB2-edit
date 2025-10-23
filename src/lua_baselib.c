@@ -32,6 +32,7 @@
 #include "b_bot.h" // B_UpdateBotleader
 #include "netcode/d_clisrv.h" // CL_RemovePlayer
 #include "i_system.h" // I_GetPreciseTime, I_GetPrecisePrecision
+#include "r_translation.h" // AddNewTranslation etc
 
 #include "lua_script.h"
 #include "lua_libs.h"
@@ -3304,6 +3305,21 @@ static int lib_rGetNameByColor(lua_State *L)
 	return 1;
 }
 
+// R_TRANSLATION
+////////////
+// Lua exclusive function, adds a translation without requiring the TRNSLATE lump
+static int lib_rAddCustomTranslation(lua_State *L)
+{
+	const char* name = luaL_checkstring(L, 1);
+	const char* remap = luaL_checkstring(L, 2);
+	// if (!colornum || colornum >= numskincolors)
+	// 	return luaL_error(L, "skincolor %d out of range (1 - %d).", colornum, numskincolors-1);
+	// lua_pushstring(L, skincolors[colornum].name);
+
+	R_MakeTranslation(name, remap);
+	return 0;
+}
+
 // S_SOUND
 ////////////
 static int GetValidSoundOrigin(lua_State *L, void **origin)
@@ -4673,6 +4689,9 @@ static luaL_Reg lib[] = {
 	{"R_GetColorByName", lib_rGetColorByName},
 	{"R_GetSuperColorByName", lib_rGetSuperColorByName},
 	{"R_GetNameByColor", lib_rGetNameByColor},
+
+	// r_translation
+	{"R_AddCustomTranslation", lib_rAddCustomTranslation},
 
 	// s_sound
 	{"S_StartSound",lib_sStartSound},

@@ -909,6 +909,36 @@ static void PrepareNewTranslations(struct NewTranslation *list, size_t count)
 	Z_Free(list);
 }
 
+void R_MakeTranslation(const char* name, const char* remap)
+{
+	struct NewTranslation *list = NULL;
+	char *base_translation_name = NULL;
+    char* name2;
+	size_t list_count = 0;
+
+	int existing_id = R_FindCustomTranslation(name);
+	name2 = (char *)Z_Malloc(strlen(name) + 1, PU_STATIC, NULL);
+	strcpy(name2,name);
+
+	// Parse all of the translations
+	struct PaletteRemapParseResult *parse_result = PaletteRemap_ParseTranslation(remap, strlen(remap));
+	if (parse_result->error)
+	{
+		PrintError(name2, "%s", parse_result->error);
+		Z_Free(parse_result->error);
+	}
+	else
+	{
+				CONS_Printf("%s,%d,%s",name, existing_id, base_translation_name);
+		AddNewTranslation(&list, &list_count, name2, existing_id, base_translation_name, parse_result);
+	}
+
+	if (list)
+		PrepareNewTranslations(list, list_count);
+
+	Z_Free(name2);
+}
+
 void R_ParseTrnslate(INT32 wadNum, UINT16 lumpnum)
 {
 	tokenizer_t *sc = NULL;
@@ -974,6 +1004,7 @@ void R_ParseTrnslate(INT32 wadNum, UINT16 lumpnum)
 			}
 			else
 			{
+				CONS_Printf("%s,%d,%s",name, existing_id, base_translation_name);
 				AddNewTranslation(&list, &list_count, name, existing_id, base_translation_name, parse_result);
 			}
 

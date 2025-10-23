@@ -2232,17 +2232,17 @@ static void R_ProjectSprite(mobj_t *thing)
 			mobj_t *caster = thing->target;
 			interpmobjstate_t casterinterp = { 0 }; // MSVC compatibility - SSNTails
 
-			if (R_UsingFrameInterpolation() && !paused)
-			{
-				R_InterpolateMobjState(caster, rendertimefrac, &casterinterp);
-			}
-			else
-			{
-				R_InterpolateMobjState(caster, FRACUNIT, &casterinterp);
-			}
-
 			if (caster && !P_MobjWasRemoved(caster))
 			{
+				if (R_UsingFrameInterpolation() && !paused)
+				{
+					R_InterpolateMobjState(caster, rendertimefrac, &casterinterp);
+				}
+				else
+				{
+					R_InterpolateMobjState(caster, FRACUNIT, &casterinterp);
+				}
+
 				fixed_t floordiff;
 
 				if (abs(groundz-viewz)/tz > 4)

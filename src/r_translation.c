@@ -132,6 +132,13 @@ boolean PaletteRemap_IsIdentity(remaptable_t *tr)
 
 unsigned PaletteRemap_Add(remaptable_t *tr)
 {
+	// check for holes
+	for (UINT16 i = 0; i < numpaletteremaps; i++)
+		if (paletteremaps[i] == NULL) {
+			paletteremaps[i] = tr;
+			return i;
+		}
+
 	numpaletteremaps++;
 	paletteremaps = Z_Realloc(paletteremaps, sizeof(remaptable_t *) * numpaletteremaps, PU_STATIC, NULL);
 	paletteremaps[numpaletteremaps - 1] = tr;
@@ -518,15 +525,17 @@ void R_LoadParsedTranslations(void)
 
 		remaptable_t *tr = node->remap;
 
-		PaletteRemap_SetIdentity(tr);
+		if (tr) {
+			PaletteRemap_SetIdentity(tr);
 
-		if (node->baseTranslation)
-			memcpy(tr, node->baseTranslation, sizeof(remaptable_t));
+			if (node->baseTranslation)
+				memcpy(tr, node->baseTranslation, sizeof(remaptable_t));
 
-		for (unsigned i = 0; i < tr->num_sources; i++)
-			PaletteRemap_Apply(tr->remap, &tr->sources[i]);
+			for (unsigned i = 0; i < tr->num_sources; i++)
+				PaletteRemap_Apply(tr->remap, &tr->sources[i]);
 
-		Z_Free(node);
+			Z_Free(node);
+		}
 
 		node = next;
 	}
@@ -1024,10 +1033,25 @@ typedef struct CustomTranslation
 	char *name;
 	unsigned id;
 	UINT32 hash;
+	boolean removed;
+	boolean lua;
 } customtranslation_t;
 
 static customtranslation_t *customtranslations = NULL;
 static unsigned numcustomtranslations = 0;
+
+static int R_FindRealCustomTranslation(const char *name)
+{
+	UINT32 hash = quickncasehash(name, strlen(name));
+
+	for (unsigned i = 0; i < numcustomtranslations; i++)
+	{
+		if (!customtranslations[i].removed && (hash == customtranslations[i].hash && strcmp(name, customtranslations[i].name) == 0))
+			return i;
+	}
+
+	return -1;
+}
 
 int R_FindCustomTranslation(const char *name)
 {
@@ -1062,7 +1086,7 @@ void R_AddCustomTranslation(const char *name, int trnum)
 	for (unsigned i = 0; i < numcustomtranslations; i++)
 	{
 		customtranslation_t *lookup = &customtranslations[i];
-		if (hash == lookup->hash && strcmp(name, lookup->name) == 0)
+		if (lookup->removed || (hash == lookup->hash && strcmp(name, lookup->name) == 0))
 		{
 			tr = lookup;
 			break;
@@ -1076,9 +1100,14 @@ void R_AddCustomTranslation(const char *name, int trnum)
 		tr = &customtranslations[numcustomtranslations - 1];
 	}
 
+	if (tr->name)
+		Z_Free(tr->name);
+
 	tr->id = trnum;
 	tr->name = Z_StrDup(name);
-	tr->hash = quickncasehash(name, strlen(name));
+	tr->hash = hash;
+	tr->removed = false;
+	tr->lua = false; // later overwritten
 }
 
 const char *R_GetCustomTranslationName(unsigned id)
@@ -1180,4 +1209,105 @@ remaptable_t *R_GetBuiltInTranslation(SINT8 tc)
 		return R_GetTranslationByID(dashModeRemap);
 	}
 	return NULL;
+}
+
+int R_MakeLuaTranslation(const char *inputname, char **remaps, UINT16 numremaps)
+{
+	struct NewTranslation *list = NULL;
+    char* name = Z_StrDup(inputname);
+	size_t list_count = 0;
+
+	int existing_id = R_FindCustomTranslation(name);
+
+	if (existing_id == -1) { // does the translation not already exist?
+		// Parse all of the translations
+		for (UINT16 i = 0; i < numremaps; i++) {
+			struct PaletteRemapParseResult *parse_result = PaletteRemap_ParseTranslation(remaps[i], strlen(remaps[i]));
+			if (parse_result->error)
+			{
+				PrintError(name, "%s", parse_result->error);
+				Z_Free(parse_result->error);
+				break;
+				// return 0;
+			}
+			else
+			{
+				AddNewTranslation(&list, &list_count, name, existing_id, NULL, parse_result);
+			}
+		}
+
+		if (list) {
+			PrepareNewTranslations(list, list_count); // PrepareNewTranslations frees the name later
+			R_LoadParsedTranslations(); // update lists properly
+			existing_id = R_FindRealCustomTranslation(name);
+
+			if (existing_id > -1)
+				customtranslations[existing_id].lua = true;
+		} else {
+			Z_Free(name);
+			return 0;
+		}
+	} else {
+		Z_Free(name);
+		return 0;
+	}
+
+	// for (unsigned i = 0; i < numcustomtranslations; i++) {
+	//     // if (customtranslations[i].name)
+	//         CONS_Printf("%d %d: %s (removed=%d)\n", i, customtranslations[i].id, customtranslations[i].name, customtranslations[i].removed);
+	// }
+	// CONS_Printf("added\n");
+	return 1;
+}
+
+int R_RemoveLuaTranslation(const char* inputname)
+{
+	int existing_id = R_FindRealCustomTranslation(inputname);
+
+	if (existing_id > -1 && customtranslations[existing_id].lua)
+	{
+		unsigned id = customtranslations[existing_id].id;
+
+		if (id < numpaletteremaps && paletteremaps[id]) {
+			if (paletteremaps[id]->skincolor_remaps) {
+				for (unsigned i = 0; i <= sizeof(paletteremaps[id]->skincolor_remaps); i++)
+					if (paletteremaps[id]->skincolor_remaps[i]) {
+						for (unsigned ii = 0; ii <= (MAXSKINCOLORS - 1); ii++)
+							if (paletteremaps[id]->skincolor_remaps[i][ii])
+								Z_Free(paletteremaps[id]->skincolor_remaps[i][ii]);
+						Z_Free(paletteremaps[id]->skincolor_remaps[i]);
+					}
+				Z_Free(paletteremaps[id]->skincolor_remaps);
+			}
+
+			if (paletteremaps[id]->sources) {
+				// for (unsigned i = 0; i <= paletteremaps[id]->num_sources; i++)
+				// 	if (paletteremaps[id]->sources[i])
+				// 		Z_Free(paletteremaps[id]->sources[i]);
+				Z_Free(paletteremaps[id]->sources);
+				paletteremaps[id]->num_sources = 0;
+			}
+
+			Z_Free(paletteremaps[id]);
+			paletteremaps[id] = NULL;
+		}
+
+		if (customtranslations[existing_id].name) {
+			Z_Free(customtranslations[existing_id].name);
+			customtranslations[existing_id].name = NULL;
+		}
+
+		customtranslations[existing_id].removed = true;
+		customtranslations[existing_id].hash = 0;
+		// for (unsigned i = 0; i < numcustomtranslations; i++) {
+		//     // if (customtranslations[i].name)
+		//         CONS_Printf("%d %d: %s (removed=%d)\n", i, customtranslations[i].id, customtranslations[i].name, customtranslations[i].removed);
+		// }
+		// CONS_Printf("%d\n",numcustomtranslations);
+		// CONS_Printf("deleted\n");
+
+		return 1;
+	}
+
+	return 0;
 }

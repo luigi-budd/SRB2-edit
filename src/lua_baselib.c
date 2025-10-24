@@ -32,7 +32,7 @@
 #include "b_bot.h" // B_UpdateBotleader
 #include "netcode/d_clisrv.h" // CL_RemovePlayer
 #include "i_system.h" // I_GetPreciseTime, I_GetPrecisePrecision
-#include "r_translation.h" // R_MakeTranslation etc
+#include "r_translation.h" // R_MakeLuaTranslation etc
 
 #include "lua_script.h"
 #include "lua_libs.h"
@@ -3310,13 +3310,39 @@ static int lib_rGetNameByColor(lua_State *L)
 // Lua exclusive function, adds a translation without requiring the TRNSLATE lump
 static int lib_rAddCustomTranslation(lua_State *L)
 {
-	const char* name = luaL_checkstring(L, 1);
-	const char* remap = luaL_checkstring(L, 2);
+	const char *name = luaL_checkstring(L, 1);
+	// const char* remap = luaL_checkstring(L, 2);
+	char **remaps = NULL;
+	UINT16 numremaps = 0;
+	
+	int args = lua_gettop(L);
+	for (UINT16 i = 2; i <= args; i++){
+		if (lua_isstring(L, i)) {
+			numremaps++;
+			remaps = Z_Realloc(remaps, sizeof(char *) * numremaps, PU_STATIC, NULL);
+
+			remaps[numremaps-1] = Z_StrDup(luaL_checkstring(L,i));
+		}
+	}
+
+	R_MakeLuaTranslation(name, remaps, numremaps);
+
+	for (UINT16 i = 0; i < numremaps; i++)
+		Z_Free(remaps[i]);
+	Z_Free(remaps);
+
+	return 0;
+}
+
+static int lib_rRemoveCustomTranslation(lua_State *L)
+{
+	const char *name = luaL_checkstring(L, 1);
+	// const char* remap = luaL_checkstring(L, 2);
 	// if (!colornum || colornum >= numskincolors)
 	// 	return luaL_error(L, "skincolor %d out of range (1 - %d).", colornum, numskincolors-1);
 	// lua_pushstring(L, skincolors[colornum].name);
 
-	R_MakeTranslation(name, remap);
+	R_RemoveLuaTranslation(name);
 	return 0;
 }
 
@@ -4692,6 +4718,7 @@ static luaL_Reg lib[] = {
 
 	// r_translation
 	{"R_AddCustomTranslation", lib_rAddCustomTranslation},
+	{"R_RemoveCustomTranslation", lib_rRemoveCustomTranslation},
 
 	// s_sound
 	{"S_StartSound",lib_sStartSound},

@@ -3325,25 +3325,23 @@ static int lib_rAddCustomTranslation(lua_State *L)
 		}
 	}
 
-	R_MakeLuaTranslation(name, remaps, numremaps);
+	lua_pushinteger(L, R_MakeLuaTranslation(name, remaps, numremaps));
 
 	for (UINT16 i = 0; i < numremaps; i++)
 		Z_Free(remaps[i]);
 	Z_Free(remaps);
 
-	return 0;
+	return 1;
 }
 
+// removes a lua translation
 static int lib_rRemoveCustomTranslation(lua_State *L)
 {
 	const char *name = luaL_checkstring(L, 1);
-	// const char* remap = luaL_checkstring(L, 2);
-	// if (!colornum || colornum >= numskincolors)
-	// 	return luaL_error(L, "skincolor %d out of range (1 - %d).", colornum, numskincolors-1);
 	// lua_pushstring(L, skincolors[colornum].name);
 
-	R_RemoveLuaTranslation(name);
-	return 0;
+	lua_pushinteger(L, R_RemoveLuaTranslation(name));
+	return 1;
 }
 
 // S_SOUND

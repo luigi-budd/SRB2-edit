@@ -525,15 +525,17 @@ void R_LoadParsedTranslations(void)
 
 		remaptable_t *tr = node->remap;
 
-		PaletteRemap_SetIdentity(tr);
+		if (tr) {
+			PaletteRemap_SetIdentity(tr);
 
-		if (node->baseTranslation)
-			memcpy(tr, node->baseTranslation, sizeof(remaptable_t));
+			if (node->baseTranslation)
+				memcpy(tr, node->baseTranslation, sizeof(remaptable_t));
 
-		for (unsigned i = 0; i < tr->num_sources; i++)
-			PaletteRemap_Apply(tr->remap, &tr->sources[i]);
+			for (unsigned i = 0; i < tr->num_sources; i++)
+				PaletteRemap_Apply(tr->remap, &tr->sources[i]);
 
-		Z_Free(node);
+			Z_Free(node);
+		}
 
 		node = next;
 	}
@@ -1236,6 +1238,7 @@ int R_MakeLuaTranslation(const char *inputname, char **remaps, UINT16 numremaps)
 
 		if (list) {
 			PrepareNewTranslations(list, list_count); // PrepareNewTranslations frees the name later
+			R_LoadParsedTranslations(); // update lists properly
 			existing_id = R_FindRealCustomTranslation(name);
 
 			if (existing_id > -1)
@@ -1277,8 +1280,13 @@ int R_RemoveLuaTranslation(const char* inputname)
 				Z_Free(paletteremaps[id]->skincolor_remaps);
 			}
 
-			if (paletteremaps[id]->sources)
+			if (paletteremaps[id]->sources) {
+				// for (unsigned i = 0; i <= paletteremaps[id]->num_sources; i++)
+				// 	if (paletteremaps[id]->sources[i])
+				// 		Z_Free(paletteremaps[id]->sources[i]);
 				Z_Free(paletteremaps[id]->sources);
+				paletteremaps[id]->num_sources = 0;
+			}
 
 			Z_Free(paletteremaps[id]);
 			paletteremaps[id] = NULL;

@@ -3311,7 +3311,6 @@ static int lib_rGetNameByColor(lua_State *L)
 static int lib_rAddCustomTranslation(lua_State *L)
 {
 	const char *name = luaL_checkstring(L, 1);
-	// const char* remap = luaL_checkstring(L, 2);
 	char **remaps = NULL;
 	UINT16 numremaps = 0;
 	
@@ -3338,17 +3337,14 @@ static int lib_rAddCustomTranslation(lua_State *L)
 static int lib_rRemoveCustomTranslation(lua_State *L)
 {
 	const char *name = luaL_checkstring(L, 1);
-	// lua_pushstring(L, skincolors[colornum].name);
 
-	lua_pushboolean(L, R_RemoveLuaTranslation(name));
-	return 1;
+	return R_RemoveLuaTranslation(name);
 }
 
 // Checks for a translation
 static int lib_rCustomTranslationExists(lua_State *L)
 {
 	const char *name = luaL_checkstring(L, 1);
-	// lua_pushstring(L, skincolors[colornum].name);
 
 	lua_pushboolean(L, R_FindCustomTranslation(name) > -1);
 	return 1;

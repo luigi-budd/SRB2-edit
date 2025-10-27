@@ -1251,44 +1251,57 @@ int R_MakeLuaTranslation(const char *inputname, char **remaps, UINT16 numremaps)
 	return 1;
 }
 
-int R_RemoveLuaTranslation(const char* inputname)
+int R_RemoveLuaTranslation(lua_State *L, const char* inputname)
 {
 	int existing_id = R_FindCustomTranslationID(inputname);
 
-	if (existing_id > -1 && customtranslations[existing_id].lua)
+	if (existing_id > -1)
 	{
-		unsigned id = customtranslations[existing_id].id;
+		if (customtranslations[existing_id].lua)
+		{
+			unsigned id = customtranslations[existing_id].id;
 
-		if (id < numpaletteremaps && paletteremaps[id]) {
-			if (paletteremaps[id]->skincolor_remaps) {
-				for (unsigned i = 0; i < TT_CACHE_SIZE; i++)
-					if (paletteremaps[id]->skincolor_remaps[i]) {
-						for (unsigned ii = 0; ii <= (MAXSKINCOLORS - 1); ii++)
-							if (paletteremaps[id]->skincolor_remaps[i][ii])
-								Z_Free(paletteremaps[id]->skincolor_remaps[i][ii]);
-						Z_Free(paletteremaps[id]->skincolor_remaps[i]);
-					}
-				Z_Free(paletteremaps[id]->skincolor_remaps);
+			if (id < numpaletteremaps && paletteremaps[id])
+			{
+				if (paletteremaps[id]->skincolor_remaps)
+				{
+					for (unsigned i = 0; i < TT_CACHE_SIZE; i++)
+						if (paletteremaps[id]->skincolor_remaps[i])
+						{
+							for (unsigned ii = 0; ii <= (MAXSKINCOLORS - 1); ii++)
+								if (paletteremaps[id]->skincolor_remaps[i][ii])
+									Z_Free(paletteremaps[id]->skincolor_remaps[i][ii]);
+							Z_Free(paletteremaps[id]->skincolor_remaps[i]);
+						}
+					Z_Free(paletteremaps[id]->skincolor_remaps);
+				}
+
+				if (paletteremaps[id]->sources) {
+					Z_Free(paletteremaps[id]->sources);
+					paletteremaps[id]->num_sources = 0;
+				}
+
+				Z_Free(paletteremaps[id]);
+				paletteremaps[id] = NULL;
 			}
 
-			if (paletteremaps[id]->sources) {
-				Z_Free(paletteremaps[id]->sources);
-				paletteremaps[id]->num_sources = 0;
+			if (customtranslations[existing_id].name)
+			{
+				Z_Free(customtranslations[existing_id].name);
+				customtranslations[existing_id].name = NULL;
 			}
 
-			Z_Free(paletteremaps[id]);
-			paletteremaps[id] = NULL;
+			customtranslations[existing_id].removed = true;
+			customtranslations[existing_id].hash = 0;
 		}
-
-		if (customtranslations[existing_id].name) {
-			Z_Free(customtranslations[existing_id].name);
-			customtranslations[existing_id].name = NULL;
+		else
+		{
+			return luaL_error(L, "translation '%s' was not made from Lua.", inputname);
 		}
-
-		customtranslations[existing_id].removed = true;
-		customtranslations[existing_id].hash = 0;
-
-		return 1;
+	}
+	else
+	{
+		return luaL_error(L, "invalid translation '%s'.", inputname);
 	}
 
 	return 0;

@@ -3334,13 +3334,23 @@ static int lib_rAddCustomTranslation(lua_State *L)
 	return 1;
 }
 
-// removes a lua translation
+// Removes a Lua translation
 static int lib_rRemoveCustomTranslation(lua_State *L)
 {
 	const char *name = luaL_checkstring(L, 1);
 	// lua_pushstring(L, skincolors[colornum].name);
 
 	lua_pushboolean(L, R_RemoveLuaTranslation(name));
+	return 1;
+}
+
+// Checks for a translation
+static int lib_rCustomTranslationExists(lua_State *L)
+{
+	const char *name = luaL_checkstring(L, 1);
+	// lua_pushstring(L, skincolors[colornum].name);
+
+	lua_pushboolean(L, R_FindCustomTranslation(name) > -1);
 	return 1;
 }
 
@@ -4717,6 +4727,7 @@ static luaL_Reg lib[] = {
 	// r_translation
 	{"R_AddCustomTranslation", lib_rAddCustomTranslation},
 	{"R_RemoveCustomTranslation", lib_rRemoveCustomTranslation},
+	{"R_CustomTranslationExists", lib_rCustomTranslationExists},
 
 	// s_sound
 	{"S_StartSound",lib_sStartSound},

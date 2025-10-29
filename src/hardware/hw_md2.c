@@ -1059,12 +1059,14 @@ skippixel:
 								gray_match = (abs(p_gray - b_gray) <= 5);
 
 								// failed, so we need to match even harder...
+								/*
 								if (!gray_match && !oversized_blendimage)
 								{
 									UINT8 id1 = NearestPaletteColor(p_gray,p_gray,p_gray,NULL);
 									UINT8 id2 = NearestPaletteColor(b_gray,b_gray,b_gray,NULL);
 									gray_match = (abs(id2 - id1) <= 3);
 								}
+								*/
 							}
 
 							if (!(p1_match || p2_match || gray_match))

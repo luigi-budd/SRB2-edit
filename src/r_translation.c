@@ -18,6 +18,7 @@
 #include "w_wad.h"
 #include "m_tokenizer.h"
 #include "m_misc.h"
+#include "lua_script.h"
 
 #include <errno.h>
 
@@ -1033,7 +1034,6 @@ typedef struct CustomTranslation
 	char *name;
 	unsigned id;
 	UINT32 hash;
-	boolean removed;
 	boolean lua;
 } customtranslation_t;
 
@@ -1046,7 +1046,7 @@ static int R_FindCustomTranslationID(const char *name)
 
 	for (unsigned i = 0; i < numcustomtranslations; i++)
 	{
-		if (!customtranslations[i].removed && (hash == customtranslations[i].hash && strcmp(name, customtranslations[i].name) == 0))
+		if (customtranslations[i].name && (hash == customtranslations[i].hash && strcmp(name, customtranslations[i].name) == 0))
 			return i;
 	}
 
@@ -1083,7 +1083,7 @@ void R_AddCustomTranslation(const char *name, int trnum)
 	for (unsigned i = 0; i < numcustomtranslations; i++)
 	{
 		customtranslation_t *lookup = &customtranslations[i];
-		if (lookup->removed || (hash == lookup->hash && strcmp(name, lookup->name) == 0))
+		if (!lookup->name || (hash == lookup->hash && strcmp(name, lookup->name) == 0))
 		{
 			tr = lookup;
 			break;
@@ -1103,7 +1103,6 @@ void R_AddCustomTranslation(const char *name, int trnum)
 	tr->id = trnum;
 	tr->name = Z_StrDup(name);
 	tr->hash = hash;
-	tr->removed = false;
 	tr->lua = false; // later overwritten
 }
 
@@ -1208,7 +1207,7 @@ remaptable_t *R_GetBuiltInTranslation(SINT8 tc)
 	return NULL;
 }
 
-int R_MakeLuaTranslation(const char *inputname, char **remaps, UINT16 numremaps)
+int R_MakeLuaTranslation(lua_State *L, const char *inputname, char **remaps, UINT16 numremaps)
 {
 	struct NewTranslation *list = NULL;
     char* name = Z_StrDup(inputname);
@@ -1216,9 +1215,11 @@ int R_MakeLuaTranslation(const char *inputname, char **remaps, UINT16 numremaps)
 
 	int existing_id = R_FindCustomTranslation(name);
 
-	if (existing_id == -1) {
+	if (existing_id == -1)
+	{
 		// Parse all of the translations
-		for (UINT16 i = 0; i < numremaps; i++) {
+		for (UINT16 i = 0; i < numremaps; i++)
+		{
 			struct PaletteRemapParseResult *parse_result = PaletteRemap_ParseTranslation(remaps[i], strlen(remaps[i]));
 			if (parse_result->error)
 			{
@@ -1232,20 +1233,25 @@ int R_MakeLuaTranslation(const char *inputname, char **remaps, UINT16 numremaps)
 			}
 		}
 
-		if (list) {
+		if (list)
+		{
 			PrepareNewTranslations(list, list_count); // PrepareNewTranslations frees the name later
 			R_LoadParsedTranslations(); // Update lists properly
 			existing_id = R_FindCustomTranslationID(name);
 
 			if (existing_id > -1)
 				customtranslations[existing_id].lua = true;
-		} else {
-			Z_Free(name);
-			return 0;
 		}
-	} else {
+		else
+		{
+			Z_Free(name);
+			return luaL_error(L, "no translations given.");
+		}
+	}
+	else
+	{
 		Z_Free(name);
-		return 0;
+		return luaL_error(L, "translation already exists.");
 	}
 
 	return 1;
@@ -1266,6 +1272,7 @@ int R_RemoveLuaTranslation(lua_State *L, const char* inputname)
 				if (paletteremaps[id]->skincolor_remaps)
 				{
 					for (unsigned i = 0; i < TT_CACHE_SIZE; i++)
+					{
 						if (paletteremaps[id]->skincolor_remaps[i])
 						{
 							for (unsigned ii = 0; ii <= (MAXSKINCOLORS - 1); ii++)
@@ -1273,10 +1280,12 @@ int R_RemoveLuaTranslation(lua_State *L, const char* inputname)
 									Z_Free(paletteremaps[id]->skincolor_remaps[i][ii]);
 							Z_Free(paletteremaps[id]->skincolor_remaps[i]);
 						}
+					}
 					Z_Free(paletteremaps[id]->skincolor_remaps);
 				}
 
-				if (paletteremaps[id]->sources) {
+				if (paletteremaps[id]->num_sources)
+				{
 					Z_Free(paletteremaps[id]->sources);
 					paletteremaps[id]->num_sources = 0;
 				}
@@ -1291,7 +1300,6 @@ int R_RemoveLuaTranslation(lua_State *L, const char* inputname)
 				customtranslations[existing_id].name = NULL;
 			}
 
-			customtranslations[existing_id].removed = true;
 			customtranslations[existing_id].hash = 0;
 		}
 		else

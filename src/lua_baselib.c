@@ -3324,7 +3324,7 @@ static int lib_rAddCustomTranslation(lua_State *L)
 		}
 	}
 
-	lua_pushboolean(L, R_MakeLuaTranslation(name, remaps, numremaps));
+	lua_pushboolean(L, R_MakeLuaTranslation(L, name, remaps, numremaps));
 
 	for (UINT16 i = 0; i < numremaps; i++)
 		Z_Free(remaps[i]);
@@ -3338,7 +3338,7 @@ static int lib_rRemoveCustomTranslation(lua_State *L)
 {
 	const char *name = luaL_checkstring(L, 1);
 
-	return R_RemoveLuaTranslation(name);
+	return R_RemoveLuaTranslation(L, name);
 }
 
 // Checks for a translation

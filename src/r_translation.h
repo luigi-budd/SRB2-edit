@@ -16,6 +16,7 @@
 #include "doomdef.h"
 
 #include "r_draw.h"
+#include "lua_script.h"
 
 typedef enum
 {
@@ -91,11 +92,11 @@ UINT8 *R_GetTranslationRemap(int id, skincolornum_t skincolor, INT32 skinnum);
 void R_UpdateTranslationRemaps(skincolornum_t skincolor, INT32 skinnum);
 boolean R_TranslationIsValid(int id);
 
-int R_MakeLuaTranslation(const char *inputname, char **remaps, UINT16 numremaps);
-int R_RemoveLuaTranslation(const char *inputname);
 void R_ParseTrnslate(INT32 wadNum, UINT16 lumpnum);
 void R_LoadParsedTranslations(void);
 
 remaptable_t *R_GetBuiltInTranslation(SINT8 tc);
+int R_MakeLuaTranslation(lua_State *L, const char *inputname, char **remaps, UINT16 numremaps);
+int R_RemoveLuaTranslation(lua_State *L, const char *inputname);
 
 #endif

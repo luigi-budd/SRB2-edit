@@ -635,7 +635,6 @@ static void HWR_CreateBlendedTexture(patch_t *gpatch, patch_t *blendgpatch, GLMi
 	UINT8 i;
 	UINT8 new_r,new_g,new_b = 0;
 	UINT8 old_r,old_g,old_b = 0;
-	boolean oversized_blendimage = false;
 	boolean translationsallowed = cv_glmodeltranslations.value != 0;
 	
 	remaptable_t *cur_translation = R_GetTranslationByID(translationid);
@@ -670,10 +669,6 @@ static void HWR_CreateBlendedTexture(patch_t *gpatch, patch_t *blendgpatch, GLMi
 
 	image = hwrPatch->mipmap->data;
 	blendimage = hwrBlendPatch->mipmap->data;
-	if (blendimage != NULL && (hwrBlendPatch->mipmap->height >= 500 || hwrBlendPatch->mipmap->width >= 500))
-	{
-		oversized_blendimage = true;
-	}
 
 	// TC_METALSONIC includes an actual skincolor translation, on top of its flashing.
 	if (skinnum == TC_METALSONIC)
@@ -1058,13 +1053,6 @@ skippixel:
 
 								gray_match = (abs(p_gray - b_gray) <= 5);
 
-								// failed, so we need to match even harder...
-								if (!gray_match && !oversized_blendimage)
-								{
-									UINT8 id1 = NearestPaletteColor(p_gray,p_gray,p_gray,NULL);
-									UINT8 id2 = NearestPaletteColor(b_gray,b_gray,b_gray,NULL);
-									gray_match = (abs(id2 - id1) <= 3);
-								}
 							}
 
 							if (!(p1_match || p2_match || gray_match))

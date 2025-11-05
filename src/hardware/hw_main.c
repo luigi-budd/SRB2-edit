@@ -4289,7 +4289,11 @@ static void HWR_DrawSprites(void)
 			}
 			else
 			{
-				if (!cv_glmodels.value || !md2_models[spr->mobj->sprite].found || md2_models[spr->mobj->sprite].scale < 0.0f)
+				if (!cv_glmodels.value
+					|| !md2_models[spr->mobj->sprite].found
+					|| md2_models[spr->mobj->sprite].scale < 0.0f
+					|| (spr->renderflags & RF_NOMODEL)
+				)
 					HWR_DrawSprite(spr);
 				else
 				{

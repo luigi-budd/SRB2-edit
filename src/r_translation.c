@@ -526,17 +526,15 @@ void R_LoadParsedTranslations(void)
 
 		remaptable_t *tr = node->remap;
 
-		if (tr) {
-			PaletteRemap_SetIdentity(tr);
+		PaletteRemap_SetIdentity(tr);
 
-			if (node->baseTranslation)
-				memcpy(tr, node->baseTranslation, sizeof(remaptable_t));
+		if (node->baseTranslation)
+			memcpy(tr, node->baseTranslation, sizeof(remaptable_t));
 
-			for (unsigned i = 0; i < tr->num_sources; i++)
-				PaletteRemap_Apply(tr->remap, &tr->sources[i]);
+		for (unsigned i = 0; i < tr->num_sources; i++)
+			PaletteRemap_Apply(tr->remap, &tr->sources[i]);
 
-			Z_Free(node);
-		}
+		Z_Free(node);
 
 		node = next;
 	}

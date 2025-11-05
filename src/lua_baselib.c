@@ -32,7 +32,7 @@
 #include "b_bot.h" // B_UpdateBotleader
 #include "netcode/d_clisrv.h" // CL_RemovePlayer
 #include "i_system.h" // I_GetPreciseTime, I_GetPrecisePrecision
-#include "r_translation.h" // R_MakeLuaTranslation etc
+#include "r_translation.h" // Translation functions
 
 #include "lua_script.h"
 #include "lua_libs.h"
@@ -3307,7 +3307,7 @@ static int lib_rGetNameByColor(lua_State *L)
 
 // R_TRANSLATION
 ////////////
-// Lua exclusive function, adds a translation without requiring the TRNSLATE lump
+// Adds a custom translation without requiring the TRNSLATE lump
 static int lib_rAddCustomTranslation(lua_State *L)
 {
 	const char *name = luaL_checkstring(L, 1);

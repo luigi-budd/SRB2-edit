@@ -74,7 +74,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - `P_GetLocalAiming(player_t player)` : Returns the angle_t `aiming` of `player` if they are a local player. Returns 0 otherwise.
 - `P_GetLocalAngle(player_t player)` : Returns the angle_t `angle` of `player` if they are a local player. Returns 0 otherwise.
 
-- `R_CreateTranslation(string name, string translations...)` : Adds a custom translation, using the same parser that TRNSLATE uses.
+- `R_CreateTranslation(string name, string translations...)` : Adds a custom translation, using the same parser as TRNSLATE.
 - `R_RemoveTranslation(string name)` : Removes a custom translation. Can only remove translations made by Lua.
 - `R_TranslationExists(string name)` : Returns true if a custom translation with a given name exists, false if not.
 

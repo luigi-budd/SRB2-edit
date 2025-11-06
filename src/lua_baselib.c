@@ -3342,7 +3342,7 @@ static int lib_rRemoveTranslation(lua_State *L)
 }
 
 // Checks for a translation
-static int lib_rCustomTranslationExists(lua_State *L)
+static int lib_rTranslationExists(lua_State *L)
 {
 	const char *name = luaL_checkstring(L, 1);
 

@@ -3308,7 +3308,7 @@ static int lib_rGetNameByColor(lua_State *L)
 // R_TRANSLATION
 ////////////
 // Adds a custom translation without requiring the TRNSLATE lump
-static int lib_rAddCustomTranslation(lua_State *L)
+static int lib_rCreateTranslation(lua_State *L)
 {
 	const char *name = luaL_checkstring(L, 1);
 	char **remaps = NULL;
@@ -3334,7 +3334,7 @@ static int lib_rAddCustomTranslation(lua_State *L)
 }
 
 // Removes a Lua translation
-static int lib_rRemoveCustomTranslation(lua_State *L)
+static int lib_rRemoveTranslation(lua_State *L)
 {
 	const char *name = luaL_checkstring(L, 1);
 
@@ -4721,9 +4721,9 @@ static luaL_Reg lib[] = {
 	{"R_GetNameByColor", lib_rGetNameByColor},
 
 	// r_translation
-	{"R_AddCustomTranslation", lib_rAddCustomTranslation},
-	{"R_RemoveCustomTranslation", lib_rRemoveCustomTranslation},
-	{"R_CustomTranslationExists", lib_rCustomTranslationExists},
+	{"R_CreateTranslation", lib_rCreateTranslation},
+	{"R_RemoveTranslation", lib_rRemoveTranslation},
+	{"R_TranslationExists", lib_rTranslationExists},
 
 	// s_sound
 	{"S_StartSound",lib_sStartSound},

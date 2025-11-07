@@ -247,63 +247,64 @@ static void CL_DrawConnectionStatus(void)
 		}
 		else if (cl_mode == CL_VIEWSERVER)
 		{
-			V_DrawFill(8, 16, BASEVIDWIDTH - 16, 54, 159);
+			const INT32 ypos = 6;
+			V_DrawFill(8, ypos, BASEVIDWIDTH - 16, 54, 159);
 			
-			V_DrawThinString(12 + 80, 18, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.servername));
+			V_DrawThinString(12 + 80, ypos+2, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.servername));
 			
 			const char *map = va("%sP", serverlist[joinnode].info.mapname);
 			patch_t *current_map = W_LumpExists(map) ? W_CachePatchName(map, PU_CACHE) : W_CachePatchName("BLANKLVL", PU_CACHE);
-			V_DrawSmallScaledPatch(10, 18, 0, current_map);
+			V_DrawSmallScaledPatch(10, ypos+2, 0, current_map);
 			if (!W_LumpExists(map))
 			{
-				M_DrawStaticBox(10, 18, V_80TRANS, 80, 50);
+				M_DrawStaticBox(10, ypos+2, V_80TRANS, 80, 50);
 			}
 			
 			UINT32 ping = (UINT32)serverlist[joinnode].info.time;
 			if (cv_pingmeasurement.value)
-				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, 18, V_ALLOWLOWERCASE, va("%s%.1f delay",
+				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+2, V_ALLOWLOWERCASE, va("%s%.1f delay",
 					(ping < 128 ? "\x83" : (ping < 256 ? "\x82" : "\x85")),
 					HU_pingMSToDelay(ping)
 				));
 			else
-				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, 18, V_ALLOWLOWERCASE, va("%s%ums",
+				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+2, V_ALLOWLOWERCASE, va("%s%ums",
 					(ping < 128 ? "\x83" : (ping < 256 ? "\x82" : "\x85")),
 					ping
 				));
 			
-			V_DrawThinString(12 + 80, 38, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.maptitle));
-			V_DrawThinString(12 + 80, 48, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.gametypename));
+			V_DrawThinString(12 + 80, ypos+22, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.maptitle));
+			V_DrawThinString(12 + 80, ypos+32, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.gametypename));
 			
 			if (fileneedednum > 0)
 			{
-				V_DrawThinString(12 + 80, 58, V_ALLOWLOWERCASE|V_ORANGEMAP, va("%i Addons", fileneedednum));
+				V_DrawThinString(12 + 80, ypos+42, V_ALLOWLOWERCASE|V_ORANGEMAP, va("%i Addons", fileneedednum));
 			}
 			else
 			{
-				V_DrawThinString(12 + 80, 58, V_ALLOWLOWERCASE|V_YELLOWMAP, "Vanilla");
+				V_DrawThinString(12 + 80, ypos+42, V_ALLOWLOWERCASE|V_YELLOWMAP, "Vanilla");
 			}
 			
 			if (serverlist[joinnode].info.flags & SV_DEDICATED)
-				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, 58, V_ALLOWLOWERCASE|V_ORANGEMAP, "Dedicated");
+				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+42, V_ALLOWLOWERCASE|V_ORANGEMAP, "Dedicated");
 			else
-				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, 58, V_ALLOWLOWERCASE|V_GREENMAP, "Listen Server");
+				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+42, V_ALLOWLOWERCASE|V_GREENMAP, "Listen Server");
 			
 			if (serverlist[joinnode].info.cheatsenabled)
 			{
-				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, 48, V_ALLOWLOWERCASE|V_GREENMAP, "Cheats");
+				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+32, V_ALLOWLOWERCASE|V_GREENMAP, "Cheats");
 			}
 			
-			V_DrawFill(8, 72, BASEVIDWIDTH - 16, 112, 159);
+			V_DrawFill(8, ypos+56, BASEVIDWIDTH - (ypos + 10), 112, 159);
 			
 			if (!cl_vs_showaddons)
 			{
-				V_DrawString(12, 74, V_ALLOWLOWERCASE|V_YELLOWMAP, "Players");
-				V_DrawRightAlignedString(BASEVIDWIDTH - 12, 74, V_ALLOWLOWERCASE|V_YELLOWMAP, va("%i / %i", serverlist[joinnode].info.numberofplayer, serverlist[joinnode].info.maxplayer));
+				V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|V_YELLOWMAP, "Players");
+				V_DrawRightAlignedString(BASEVIDWIDTH - 12, ypos+58, V_ALLOWLOWERCASE|V_YELLOWMAP, va("%i / %i", serverlist[joinnode].info.numberofplayer, serverlist[joinnode].info.maxplayer));
 				
 				INT32 i;
 				INT32 count = 0;
 				INT32 x = 14;
-				INT32 y = 84;
+				INT32 y = ypos + 68;
 				INT32 statuscolor = 1;
 				char player_name[MAXPLAYERNAME+1];
 				if (serverlist[joinnode].info.numberofplayer > 0)
@@ -338,14 +339,14 @@ static void CL_DrawConnectionStatus(void)
 			}
 			else
 			{
-				V_DrawString(12, 74, V_ALLOWLOWERCASE|V_YELLOWMAP, "Addons");
+				V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|V_YELLOWMAP, "Addons");
 
 #define charsonside (18)
 #define maxcharlen ((charsonside*2) + 3) // 3 for the 3 dots
 				INT32 i;
 				INT32 count = 0;
 				INT32 x = 14;
-				INT32 y = 84;
+				INT32 y = ypos + 68;
 				char file_name[MAX_WADPATH+1];
 				for (i = cl_vs_sa_scroll; i < fileneedednum; i++)
 				{
@@ -421,7 +422,7 @@ static void CL_DrawConnectionStatus(void)
 					totalsize /= 1024.0f;
 				}
 				
-				V_DrawRightAlignedThinString(BASEVIDWIDTH - 18, 75,
+				V_DrawRightAlignedThinString(BASEVIDWIDTH - 18, ypos + 59,
 					V_ALLOWLOWERCASE|V_YELLOWMAP,
 					va("~%.1f%s total", (float)totalsize, size_mode == 0 ? "b" : (size_mode == 2 ? "kb" : "mb"))
 				);
@@ -433,7 +434,7 @@ static void CL_DrawConnectionStatus(void)
 					// up arrow
 					if (cl_vs_sa_scroll)
 						V_DrawRightAlignedThinString(BASEVIDWIDTH - 10,
-							74 - (cl_vs_sa_animcount/5), V_YELLOWMAP,
+							(ypos+58) - (cl_vs_sa_animcount/5), V_YELLOWMAP,
 							"\x1A"
 						);
 					
@@ -448,21 +449,21 @@ static void CL_DrawConnectionStatus(void)
 #undef charsonside
 
 			// Buttons
-			V_DrawFill(8, BASEVIDHEIGHT - 14, BASEVIDWIDTH - 16, 13, 159);
+			V_DrawFill(8, BASEVIDHEIGHT - (ypos+18), BASEVIDWIDTH - 16, 13, 159);
 			V_DrawThinString(
-				16, BASEVIDHEIGHT - 11,
+				16, BASEVIDHEIGHT - (ypos+15),
 				V_ALLOWLOWERCASE, "[""\x82""ESC""\x80""] = Back"
 			);
 			if (fileneedednum > 0)
 			{
 				V_DrawCenteredThinString(
-					BASEVIDWIDTH/2, BASEVIDHEIGHT - 11,
+					BASEVIDWIDTH/2, BASEVIDHEIGHT - (ypos+15),
 					V_ALLOWLOWERCASE,
 					va("[""\x82""SPACE""\x80""] = %s", (cl_vs_showaddons ? "Players" : "Addons"))
 				);
 			}
 			V_DrawRightAlignedThinString(
-				BASEVIDWIDTH - 12, BASEVIDHEIGHT - 11,
+				BASEVIDWIDTH - 12, BASEVIDHEIGHT - (ypos+15),
 				V_ALLOWLOWERCASE, "[""\x82""ENTER""\x80""] = Join"
 			);			
 		}
@@ -1592,7 +1593,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 
 		*oldtic = I_GetTime();
 
-		if (client && cl_mode != CL_CONNECTED && cl_mode != CL_ABORTED)
+		if (client && !(cl_mode == CL_CONNECTED || cl_mode == CL_ABORTED))
 		{
 			if (!snake)
 			{

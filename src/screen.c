@@ -615,6 +615,8 @@ void SCR_ClosedCaptions(void)
 		 || (cv_powerupdisplay.value == 1 && !camera.chase))) // "First-person only"
 			basey -= 16;
 	}
+	else if (menuactive || gamestate == GS_WAITINGPLAYERS) // GS_WAITINGPLAYERS is the server view apparently
+		basey += 4;
 
 	for (i = 0; i < NUMCAPTIONS; i++)
 	{
@@ -636,7 +638,7 @@ void SCR_ClosedCaptions(void)
 
 		if (closedcaptions[i].b)
 		{
-			if (renderisnewtic)
+			if (renderisnewtic || (gamestate == GS_WAITINGPLAYERS)) // stupid hack to make captions scroll in server view
 				closedcaptions[i].b--;
 
 			if (closedcaptions[i].b) // If the caption hasn't reached its final destination...

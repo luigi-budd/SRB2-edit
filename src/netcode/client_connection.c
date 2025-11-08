@@ -331,7 +331,7 @@ static void CL_DrawConnectionStatus(void)
 							if ((count == 11) || (count == 22))
 							{
 								x += 104;
-								y = 84;
+								y = ypos + 68;
 							}
 						}
 					}

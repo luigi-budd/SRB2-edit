@@ -1250,7 +1250,7 @@ static UINT8 ArchiveValue(save_t *save_p, int TABLESINDEX, int myindex)
 			if (!player)
 			{
 				P_WriteUINT8(save_p, ARCH_NULL);
-				return 3
+				return 3;
 			}
 			else {
 				P_WriteUINT8(save_p, ARCH_PLAYER);

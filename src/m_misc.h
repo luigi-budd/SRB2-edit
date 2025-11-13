@@ -63,6 +63,7 @@ extern boolean attemptingrejoin;
 
 void M_InitJoinedIPArray(void);
 void M_AddToJoinedIPs(char *address, char *servname);
+boolean M_RemoveJoinedIP(UINT8 index);
 void M_SaveJoinedIPs(void);
 void M_LoadJoinedIPs(void);
 

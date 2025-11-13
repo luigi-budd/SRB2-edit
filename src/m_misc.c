@@ -179,7 +179,7 @@ static INT32 movieframesrecorded = 0;
 char joinedIPlist[NUMLOGIP][2][MAX_LOGIP];
 char joinedIP[MAX_LOGIP];
 
-// This initializes the above array to have NULL evrywhere it should.
+// This initializes the above array to have NULL everywhere it should.
 void M_InitJoinedIPArray(void)
 {
 	UINT8 i;
@@ -227,6 +227,18 @@ void M_AddToJoinedIPs(char *address, char *servname)
 	attemptingrejoin = false;
 }
 
+boolean M_RemoveJoinedIP(UINT8 index)
+{
+	// Nothing in this slot
+	if (!(joinedIPlist[index][0][0] && joinedIPlist[index][1][0]))
+	{
+		return false;
+	}
+
+	joinedIPlist[index][0][0] = joinedIPlist[index][1][0] = '\0';
+	M_SaveJoinedIPs();
+	return true;
+}
 
 /** Returns the map number for a map identified by the last two characters in
   * its name.

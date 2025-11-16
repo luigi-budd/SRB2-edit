@@ -1,6 +1,6 @@
 name: Debian stable:arm64 Makefile
 on:
-  workflow_dispatch:
+  push:
   pull_request:
 
 jobs:

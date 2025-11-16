@@ -1,6 +1,6 @@
 name: Windows x86 Makefile
 on:
-  workflow_dispatch:
+  push:
   pull_request:
 
 jobs:

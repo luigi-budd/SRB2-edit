@@ -22,6 +22,10 @@ Debian stable:arm64 Makefile:
 
   script:
     - - |
+          sudo add-apt-repository -y universe || true
+          sudo dpkg --add-architecture arm64
+          sudo apt-get update -y
+    - - |
           # apt_toolchain
           echo -e "\e[0Ksection_start:`date +%s`:apt_toolchain[collapsed=true]\r\e[0KInstalling toolchain packages"
       - apt-get install gcc-aarch64-linux-gnu || apt-get install gcc

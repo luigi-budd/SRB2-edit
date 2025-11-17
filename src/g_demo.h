@@ -48,6 +48,7 @@ extern mobj_t *metalplayback;
 // Only called by startup code.
 void G_RecordDemo(const char *name);
 void G_RecordMetal(void);
+void G_StopDemoRecording2(void);
 void G_BeginRecording(void);
 void G_BeginMetal(void);
 

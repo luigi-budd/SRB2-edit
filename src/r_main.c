@@ -1730,6 +1730,7 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_cam_saveheight[1][1]);
 
 	CV_RegisterVar(&cv_earthquake);
+	CV_RegisterVar(&cv_mpdemo);
 
 	CV_RegisterVar(&cv_showhud);
 	CV_RegisterVar(&cv_translucenthud);

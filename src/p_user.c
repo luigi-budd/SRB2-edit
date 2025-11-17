@@ -9853,6 +9853,7 @@ consvar_t cv_cam2_turnmultiplier = CVAR_INIT ("cam2_turnmultiplier", "0.75", CV_
 consvar_t cv_cam2_orbit = CVAR_INIT ("cam2_orbit", "Off", CV_SAVE|CV_ALLOWLUA, CV_OnOff, NULL);
 consvar_t cv_cam2_adjust = CVAR_INIT ("cam2_adjust", "On", CV_SAVE|CV_ALLOWLUA, CV_OnOff, NULL);
 consvar_t cv_earthquake = CVAR_INIT("earthquake", "On", CV_SAVE, CV_OnOff, NULL);
+consvar_t cv_mpdemo = CVAR_INIT("mpdemo", "Off", CV_SAVE, CV_OnOff, NULL);
 
 
 // [standard vs simple][p1 or p2]

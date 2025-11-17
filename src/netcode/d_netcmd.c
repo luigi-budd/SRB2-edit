@@ -19,6 +19,7 @@
 #include "../i_time.h"
 #include "../i_system.h"
 #include "../g_game.h"
+#include "../g_demo.h" // demoplayback and demo_start
 #include "../hu_stuff.h"
 #include "../g_input.h"
 #include "../m_menu.h"
@@ -117,6 +118,7 @@ static boolean Skin2_CanChange(const char *valstr);
 static void Fishcake_OnChange(void);
 #endif
 
+static void Command_Recorddemo_f(void);
 static void Command_Playdemo_f(void);
 static void Command_Timedemo_f(void);
 static void Command_Stopdemo_f(void);
@@ -704,6 +706,7 @@ void D_RegisterClientCommands(void)
 	COM_AddCommand("changeteam", Command_Teamchange_f, COM_LUA);
 	COM_AddCommand("changeteam2", Command_Teamchange2_f, COM_LUA);
 
+	COM_AddCommand("recdemo", Command_Recorddemo_f, 0);
 	COM_AddCommand("playdemo", Command_Playdemo_f, 0);
 	COM_AddCommand("timedemo", Command_Timedemo_f, 0);
 	COM_AddCommand("stopdemo", Command_Stopdemo_f, COM_LUA);
@@ -1588,6 +1591,35 @@ void D_SendPlayerConfig(void)
 static void Command_ResetCamera_f(void)
 {
 	P_ResetCamera(&players[displayplayer], &camera);
+}
+
+
+static void Command_Recorddemo_f(void)
+{
+	if (demorecording) { // literally just G_CheckDemoStatus but manual
+		G_StopDemoRecording2();
+		return;
+	}
+
+	if (gamestate != GS_LEVEL) {
+		CONS_Printf("You must be in a level to use this command.\n");
+		return;
+	}
+
+	if (!demo_start) {
+		CONS_Printf("Please wait until the level loads.\n");
+		return;
+	} else { // level ready
+	if (!netgame || (netgame && cv_mpdemo.value)) {
+		G_RecordDemo(((G_BuildMapName(gamemap)))); // why does this only accept mapname...
+		G_BeginRecording();
+		CONS_Printf("Recording started.\n\x84NOTE: Please rename the demo after it's done to something else!\n");
+	}
+		else if (!cv_mpdemo.value) {
+			CONS_Alert(CONS_WARNING, "This is very unstable. If you're sure, do \"mpdemo 1\" and execute this again.\n");
+			return;
+		}
+	}
 }
 
 // ========================================================================

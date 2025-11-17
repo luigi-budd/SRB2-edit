@@ -41,6 +41,20 @@
         "initializer_list": "c",
         "locale": "c",
         "cstdlib": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "d_net.h": "c",
+        "concepts": "c",
+        "functional": "c",
+        "iterator": "c",
+        "memory_resource": "c",
+        "optional": "c",
+        "string_view": "c",
+        "random": "c",
+        "istream": "c",
+        "numeric": "c",
+        "ostream": "c",
+        "streambuf": "c",
+        "typeinfo": "c",
+        "time.h": "c"
     }
 }

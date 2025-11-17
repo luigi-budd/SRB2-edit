@@ -2076,7 +2076,8 @@ static boolean ViewpointSwitchResponder(event_t *ev)
 			continue;
 
 		// Call ViewpointSwitch hooks here.
-		canSwitchView = LUA_HookViewpointSwitch(&players[consoleplayer], &players[displayplayer], false);
+		// [SRB2-Edit] OR, if its a demo, just allow viewpoint switch anyway.
+		canSwitchView = demoplayback ? 1 : LUA_HookViewpointSwitch(&players[consoleplayer], &players[displayplayer], false); // if this ternary fails somehow, ill go insane
 		if (canSwitchView == 1) // Set viewpoint to this player
 			break;
 		else if (canSwitchView == 2) // Skip this player

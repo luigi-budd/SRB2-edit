@@ -1458,6 +1458,7 @@ void G_BeginRecording(void)
 
 	demo_p = demobuffer;
 	demoflags = DF_GHOST|(modeattacking<<DF_ATTACKSHIFT);
+	demorecording = true; // i think we need this here for Command_Recorddemo_f... not sure
 
 	// Setup header.
 	M_Memcpy(demo_p, DEMOHEADER, 12); demo_p += 12;
@@ -2786,6 +2787,10 @@ static void G_StopDemoRecording(void)
 		else
 			CONS_Alert(CONS_WARNING, M_GetText("Demo %s not saved\n"), demoname);
 	}
+}
+
+void G_StopDemoRecording2(void) {
+	G_StopDemoRecording(); // not sure if i should make G_StopDemoRecording non-static. Wrapping it instead.
 }
 
 // Stops metal sonic's demo. Separate from other functions because metal + replays can coexist

@@ -2127,13 +2127,19 @@ static boolean ViewpointSwitchResponder(event_t *ev)
 boolean G_Responder(event_t *ev)
 {
 	// any other key pops up menu if in demos
+	// [SRB2-edit] except viewpoint
 	if (gameaction == ga_nothing && !singledemo &&
 		((demoplayback && !modeattacking && !titledemo) || gamestate == GS_TITLESCREEN))
 	{
 		if (ev->type == ev_keydown && ev->key != 301 && !(gamestate == GS_TITLESCREEN && finalecount < (cv_tutorialprompt.value ? TICRATE : 0)))
 		{
+			if (!(ev->key == gamecontrol[GC_VIEWPOINTNEXT][0]) || (ev->key == gamecontrol[GC_VIEWPOINTPREV][0]) || (ev->key == gamecontrol[GC_VIEWPOINTNEXT][1]) || (ev->key == gamecontrol[GC_VIEWPOINTPREV][1])) {
 			M_StartControlPanel();
 			return true;
+			}
+			else {
+			return false;
+			}
 		}
 		return false;
 	}

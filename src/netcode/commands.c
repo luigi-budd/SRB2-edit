@@ -398,6 +398,7 @@ void Command_connect(void)
 		CONS_Printf(M_GetText(
 			"Connect <serveraddress> (port): connect to a server\n"
 			"Connect ANY: connect to the first lan server found\n"
+			"Connect LAST: connect to the last server in the previously joined list\n"
 			//"Connect SELF: connect to your own server.\n"
 			));
 		return;
@@ -423,6 +424,14 @@ void Command_connect(void)
 	else
 */
 	{
+
+		// quickly reconnect to the last joined server
+		if (!stricmp(COM_Argv(1), "last"))
+		{
+			COM_BufAddText(va("connect %s\n", joinedIPlist[0][0]));
+			return;
+		}
+
 		if (netgame && !stricmp(COM_Argv(1), "rejoin"))
 		{
 			attemptingrejoin = true;

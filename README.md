@@ -13,7 +13,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 ## HUD
 - CEchos/CSays print message into console ("`showcsays`")
 - Joining netgame shows progress bar on "checking files" ([Lugent's PR](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2446) [Lugent's PR](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2556))
-- Easily rejoin servers you've played before! (Multiplayer -> Rejoin Previous Servers...)
+- Easily rejoin servers you've played before! ("`connect last`", Multiplayer -> Rejoin Previous Servers...)
 - Draw gif information to hud ("`moviemodeinfo`")
 - Crosshairs can invert pixels behind, to improve their visibility ("`crosshair_invert`")
 - Thin captions and thin FPS! (Load "tinyfontfix.pk3" for music note on thin captions)

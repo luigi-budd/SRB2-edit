@@ -22,6 +22,7 @@ jobs:
         run: |
           # apt_toolchain
           echo -e "\e[0Ksection_start:`date +%s`:apt_toolchain[collapsed=true]\r\e[0KInstalling toolchain packages"
+          sudo apt-get update
           sudo apt-get install gcc-x86-64-linux-gnu || apt-get install gcc
           # apt_toolchain
           echo -e "\e[0Ksection_end:`date +%s`:apt_toolchain\r\e[0K"
@@ -39,7 +40,7 @@ jobs:
           echo -e "\e[0Ksection_end:`date +%s`:make\r\e[0K"
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-${{ github.ref_name }}-${{ github.sha }}-x86-64-makefile
+          name: ${{ github.event.repository.name }}-${{ github.sha }}-x86-64-makefile
           path: |
             bin/
             src/comptime.h

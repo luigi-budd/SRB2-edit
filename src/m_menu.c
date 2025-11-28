@@ -1284,6 +1284,7 @@ static menuitem_t OP_CameraExtendedOptionsMenu[] =
 
 	{IT_HEADER,            NULL, "Display Options", NULL, 120},
 	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair, 126},
+	{IT_STRING  | IT_CVAR, NULL, "Inverted Crosshair", &cv_crosshair_invert, 131},
 };
 
 static menuitem_t OP_Camera2ExtendedOptionsMenu[] =
@@ -1314,6 +1315,7 @@ static menuitem_t OP_Camera2ExtendedOptionsMenu[] =
 
 	{IT_HEADER,            NULL, "Display Options", NULL, 120},
 	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair2, 126},
+	{IT_STRING  | IT_CVAR, NULL, "Inverted Crosshair", &cv_crosshair2_invert, 131},
 };
 
 enum

@@ -5420,7 +5420,7 @@ static void HWR_SetShaderState(void)
 	HWD.pfnSetSpecialState(HWD_SET_SHADERS, (INT32)HWR_UseShader());
 }
 
-static void HWR_SetupView(player_t *player, INT32 viewnumber, float fpov, boolean skybox)
+static void HWR_SetupView(player_t *player, INT32 viewnumber, boolean skybox)
 {
 	postimg_t *type;
 
@@ -5448,6 +5448,7 @@ static void HWR_SetupView(player_t *player, INT32 viewnumber, float fpov, boolea
 		R_SkyboxFrame(player);
 	else
 		R_SetupFrame(player);
+	float fpov = FixedToFloat(R_GetPlayerFov());
 
 	current_bsp_culling_distance = 0;
 
@@ -5509,9 +5510,8 @@ static void HWR_SetupView(player_t *player, INT32 viewnumber, float fpov, boolea
 // ==========================================================================
 void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 {
-	const float fpov = FixedToFloat(R_GetPlayerFov(player));
-
-	HWR_SetupView(player, viewnumber, fpov, true);
+	HWR_SetupView(player, viewnumber, true);
+	const float fpov = FixedToFloat(R_GetPlayerFov());
 
 	// check for new console commands.
 	NetUpdate();
@@ -5603,8 +5603,6 @@ void HWR_RenderSkyboxView(INT32 viewnumber, player_t *player)
 // ==========================================================================
 void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 {
-	const float fpov = FixedToFloat(R_GetPlayerFov(player));
-
 	const boolean skybox = (skyboxmo[0] && cv_skybox.value); // True if there's a skybox object and skyboxes are on
 
 	FRGBAFloat ClearColor;
@@ -5627,7 +5625,10 @@ void HWR_RenderPlayerView(INT32 viewnumber, player_t *player)
 	r_inskybox = false;
 	PS_STOP_TIMING(ps_hw_skyboxtime);
 
-	HWR_SetupView(player, viewnumber, fpov, false);
+	HWR_SetupView(player, viewnumber, false);
+	// This is probably the best place to put this, since we need
+	// viewfovadd to be interpolated before we do anything with FOV
+	const float fpov = FixedToFloat(R_GetPlayerFov());
 
 	framecount++; // timedemo
 

@@ -61,7 +61,7 @@ size_t framecount;
 size_t loopcount;
 
 fixed_t viewx, viewy, viewz;
-angle_t viewangle, aimingangle, viewroll;
+angle_t viewangle, aimingangle, viewroll, viewfovadd;
 fixed_t viewcos, viewsin;
 sector_t *viewsector;
 player_t *viewplayer;
@@ -944,9 +944,9 @@ void R_ExecuteSetViewSize(void)
 	am_recalc = true;
 }
 
-fixed_t R_GetPlayerFov(player_t *player)
+fixed_t R_GetPlayerFov(void)
 {
-	fixed_t fov = cv_fov.value + player->fovadd;
+	fixed_t fov = cv_fov.value + viewfovadd;
 	return max(MINFOV*FRACUNIT, min(fov, MAXFOV*FRACUNIT));
 }
 
@@ -1110,6 +1110,7 @@ void R_SetupFrame(player_t *player)
 
 	newview->sky = false;
 	newview->roll = player->viewrollangle;
+	newview->fovadd = player->fovadd;
 
 	if (player->awayviewtics)
 	{
@@ -1264,6 +1265,7 @@ void R_SkyboxFrame(player_t *player)
 	// cut-away view stuff
 	newview->sky = true;
 	newview->roll = player->viewrollangle;
+	newview->fovadd = player->fovadd;
 	r_viewmobj = skyboxmo[0];
 #ifdef PARANOIA
 	if (!r_viewmobj)
@@ -1531,7 +1533,11 @@ void R_RenderPlayerView(player_t *player)
 			V_DrawFill(0, 0, BASEVIDWIDTH, BASEVIDHEIGHT, 32+(timeinmap&15));
 	}
 
-	fixed_t fov = R_GetPlayerFov(player);
+	R_SetupFrame(player);
+	framecount++;
+	validcount++;
+
+	fixed_t fov = R_GetPlayerFov();
 
 	if (player == &players[displayplayer] && viewfov[0] != fov)
 	{
@@ -1543,10 +1549,6 @@ void R_RenderPlayerView(player_t *player)
 		viewfov[1] = fov;
 		R_SetFov(fov);
 	}
-
-	R_SetupFrame(player);
-	framecount++;
-	validcount++;
 
 	// Clear buffers.
 	R_ClearPlanes();

@@ -208,6 +208,7 @@ void R_InterpolateView(fixed_t frac)
 	viewangle = R_LerpAngle(prevview->angle, newview->angle, frac);
 	aimingangle = R_LerpAngle(prevview->aim, newview->aim, frac);
 	viewroll = R_LerpAngle(prevview->roll, newview->roll, frac);
+	viewfovadd = R_LerpFixed(prevview->fovadd, newview->fovadd, frac);
 
 	viewsin = FINESINE(viewangle>>ANGLETOFINESHIFT);
 	viewcos = FINECOSINE(viewangle>>ANGLETOFINESHIFT);

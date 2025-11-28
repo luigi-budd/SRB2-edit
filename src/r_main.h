@@ -150,7 +150,7 @@ void R_SetViewSize(void);
 // do it (sometimes explicitly called)
 void R_ExecuteSetViewSize(void);
 
-fixed_t R_GetPlayerFov(player_t *player);
+fixed_t R_GetPlayerFov(void);
 
 void R_SetupFrame(player_t *player);
 void R_SkyboxFrame(player_t *player);

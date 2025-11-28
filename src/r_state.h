@@ -85,7 +85,7 @@ extern side_t *spawnsides;
 // POV data.
 //
 extern fixed_t viewx, viewy, viewz;
-extern angle_t viewangle, aimingangle, viewroll;
+extern angle_t viewangle, aimingangle, viewroll, viewfovadd;
 extern sector_t *viewsector;
 extern player_t *viewplayer;
 extern mobj_t *r_viewmobj;

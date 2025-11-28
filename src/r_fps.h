@@ -49,6 +49,7 @@ typedef struct {
 	fixed_t cos;
 	fixed_t sin;
 	angle_t roll;
+	fixed_t fovadd;
 	mobj_t *mobj;
 } viewvars_t;
 

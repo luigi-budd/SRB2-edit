@@ -5123,7 +5123,9 @@ struct int_const_s const INT_CONST[] = {
 	{"RF_DROPSHADOW",RF_DROPSHADOW},
 	{"RF_ALWAYSONTOP",RF_ALWAYSONTOP},
 	{"RF_HIDEINSKYBOX",RF_HIDEINSKYBOX},
+	#ifdef HWRENDER
 	{"RF_NOMODEL",RF_NOMODEL},
+	#endif
 	
 	// Animation flags
 	{"SPR2F_MASK",SPR2F_MASK},

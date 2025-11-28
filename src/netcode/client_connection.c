@@ -1202,7 +1202,7 @@ static const char * InvalidServerReason (serverinfo_pak *info)
 		case REFUSE_SLOTS_FULL:
 			return va(
 					"Maximum players reached: %d\n" EOT,
-					info->maxplayer - D_NumBots());
+					info->maxplayer);
 		default:
 			if (info->refusereason)
 			{

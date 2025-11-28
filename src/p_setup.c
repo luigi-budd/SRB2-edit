@@ -7984,7 +7984,7 @@ boolean P_LoadLevel(boolean fromnetsave, boolean reloadinggamestate)
 
 	// Let's fade to black here
 	// But only if we didn't do the special stage wipe
-	if (rendermode != render_none && !(ranspecialwipe || reloadinggamestate))
+	if (!(ranspecialwipe || reloadinggamestate))
 		P_RunLevelWipe();
 
 	if (!(reloadinggamestate || titlemapinaction))

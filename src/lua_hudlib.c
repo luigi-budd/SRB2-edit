@@ -336,6 +336,10 @@ static int camera_get(lua_State *L)
 	camera_t *cam = *((camera_t **)luaL_checkudata(L, 1, META_CAMERA));
 	enum cameraf field = Lua_optoption(L, 2, -1, camera_fields_ref);
 
+	// something has gone horribly wrong...
+	if (cam == NULL || !(stplyr && stplyr->mo))
+		return LUA_ErrInvalid(L, "camera_t");
+
 	// cameras should always be valid unless I'm a nutter
 	I_Assert(cam != NULL);
 	boolean awayvalid = (r_viewmobj != NULL && !P_MobjWasRemoved(r_viewmobj) && (stplyr && stplyr->mo != NULL && r_viewmobj != stplyr->mo));

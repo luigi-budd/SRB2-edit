@@ -32,7 +32,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Better "Fake Contrast"! (https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2680, @GLideKS)
 - View rollangle is interpolated!
 - Experimental translation support for models! ("`gl_modeltranslations`")
-- Render distance for OpenGL! ("`gr_renderdistance`", @GLideKS)
+- Render distance for OpenGL! ("`gr_renderdistance`", https://git.srb2.org/Hanicef/SRB2Classic/-/merge_requests/4, @GLideKS)
 
 ## Gameplay / Netplay
 - Skin change at any time

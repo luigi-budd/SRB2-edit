@@ -3653,7 +3653,7 @@ static void Command_Addfolder(void)
 			}
 
 		// Add file on your client directly if you aren't in a netgame.
-		if (!(netgame || multiplayer))
+		if (!(netgame || multiplayer) || server)
 		{
 			P_AddFolder(fn);
 			AddedFilesAdd(&addedfolders, fn);

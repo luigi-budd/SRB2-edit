@@ -123,6 +123,8 @@ end,"uncappedgame")
 
 ## mobj_t
 - `mobj.pitch/roll` : Now rotates mobjs in 3D space, including models
+- `mobj.resetinterp` : Resets ALL interpolation values. (`P_SetOrigin` only resets positional interpolation values)
+
 
 Example that tilts your character in their 3D direction:
 ```lua

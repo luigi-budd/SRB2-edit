@@ -103,7 +103,8 @@ enum mobj_e {
 	mobj_colorized,
 	mobj_mirrored,
 	mobj_shadowscale,
-	mobj_dispoffset
+	mobj_dispoffset,
+	mobj_resetinterp
 };
 
 static const char *const mobj_opt[] = {
@@ -186,6 +187,7 @@ static const char *const mobj_opt[] = {
 	"mirrored",
 	"shadowscale",
 	"dispoffset",
+	"resetinterp",
 	NULL};
 
 #define UNIMPLEMENTED luaL_error(L, LUA_QL("mobj_t") " field " LUA_QS " is not implemented for Lua and cannot be accessed.", mobj_opt[field])
@@ -485,6 +487,10 @@ static int mobj_get(lua_State *L)
 		break;
 	case mobj_dispoffset:
 		lua_pushinteger(L, mo->dispoffset);
+		break;
+	case mobj_resetinterp:
+		// this doesnt seem like a safe variable to push, but whatever!
+		lua_pushboolean(L, mo->resetinterp);
 		break;
 	default: // extra custom variables in Lua memory
 		lua_getfield(L, LUA_REGISTRYINDEX, LREG_EXTVARS);
@@ -890,6 +896,9 @@ static int mobj_set(lua_State *L)
 		break;
 	case mobj_dispoffset:
 		mo->dispoffset = luaL_checkinteger(L, 3);
+		break;
+	case mobj_resetinterp:
+		mo->resetinterp = luaL_checkboolean(L, 3);
 		break;
 	default:
 		lua_getfield(L, LUA_REGISTRYINDEX, LREG_EXTVARS);

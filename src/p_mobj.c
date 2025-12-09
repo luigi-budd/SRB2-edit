@@ -10240,6 +10240,13 @@ void P_MobjThinker(mobj_t *mobj)
 	}
 	mobj->eflags &= ~MFE_NOPITCHROLLEASING;
 
+	// possibly also a bad place to do this, but Lua has
+	// no other way to reset all mobj interpolation
+	if (mobj->resetinterp)
+	{
+		R_ResetMobjInterpolationState(mobj);
+	}
+
 	// Special thinker for scenery objects
 	if (mobj->flags & MF_SCENERY)
 	{

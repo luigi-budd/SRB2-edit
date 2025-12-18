@@ -1154,7 +1154,8 @@ static void HWR_GetBlendedTexture(patch_t *patch, patch_t *blendpatch, INT32 ski
 static boolean HWR_AllowModel(mobj_t *mobj)
 {
 	// Signpost overlay. Not needed.
-	if (mobj->sprite2 == SPR2_SIGN || mobj->state-states == S_PLAY_SIGN)
+	// XTRA as well, mainly for frame C (the little continue guy)
+	if (mobj->sprite2 == SPR2_SIGN || mobj->state-states == S_PLAY_SIGN || mobj->sprite2 == SPR2_XTRA)
 		return false;
 
 	// Otherwise, render the model.

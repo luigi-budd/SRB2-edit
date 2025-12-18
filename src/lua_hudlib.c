@@ -340,7 +340,13 @@ static int camera_get(lua_State *L)
 	if (cam == NULL /*|| !(stplyr && stplyr->mo)*/)
 		return LUA_ErrInvalid(L, "camera_t");
 
-	boolean awayvalid = (r_viewmobj != NULL && !P_MobjWasRemoved(r_viewmobj) && (stplyr && stplyr->mo != NULL && r_viewmobj != stplyr->mo));
+	boolean awayvalid = false;
+	if (r_viewmobj && !P_MobjWasRemoved(r_viewmobj))
+	{
+		// only if this is a separate camera
+		if (stplyr && (stplyr->mo && !P_MobjWasRemoved(stplyr->mo)) && stplyr->mo != r_viewmobj)
+			awayvalid = true;
+	}
 
 	switch (field)
 	{

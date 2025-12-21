@@ -1017,6 +1017,7 @@ static void COM_Help_f(void)
 			CONS_Printf("%s ", cvar->name);
 			i++;
 		}
+		foundflag = false;
 		CONS_Printf("\n\x82""Addons: ");
 		for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		{

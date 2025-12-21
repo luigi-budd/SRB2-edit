@@ -884,6 +884,7 @@ static void COM_Help_f(void)
 {
 	xcommand_t *cmd;
 	consvar_t *cvar;
+	boolean foundflag;
 	INT32 i = 0;
 
 	if (COM_Argc() > 1)
@@ -1000,7 +1001,7 @@ static void COM_Help_f(void)
 	else
 	{
 		// variables
-		CONS_Printf("\x82""Variables:\nVanilla:");
+		CONS_Printf("\x82""Variables:\nVanilla: ");
 		for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		{
 			if (cvar->flags & (CV_NOSHOWHELP | CV_CLIENT | CV_LUAVAR))
@@ -1008,7 +1009,7 @@ static void COM_Help_f(void)
 			CONS_Printf("%s ", cvar->name);
 			i++;
 		}
-		CONS_Printf("\n\x82""Client:");
+		CONS_Printf("\n\x82""Client: ");
 		for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		{
 			if (cvar->flags & (CV_NOSHOWHELP | CV_LUAVAR) || !(cvar->flags & CV_CLIENT))
@@ -1016,15 +1017,19 @@ static void COM_Help_f(void)
 			CONS_Printf("%s ", cvar->name);
 			i++;
 		}
-		CONS_Printf("\n\x82""Addons:");
+		CONS_Printf("\n\x82""Addons: ");
 		for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		{
 			if (cvar->flags & (CV_NOSHOWHELP | CV_CLIENT) || !(cvar->flags & CV_LUAVAR))
 				continue;
 			CONS_Printf("%s ", cvar->name);
+			foundflag = true;
 			i++;
 		}
-        CONS_Printf("\x82""\nCommands:\nVanilla:");
+		if (!foundflag)
+			CONS_Printf("\x82""(no variables have been created by addons)");
+
+        CONS_Printf("\x82""\nCommands:\nVanilla: ");
         for (cmd = com_commands; cmd; cmd = cmd->next)
         {
             if (cmd->flags & COM_LUACOM || cmd->flags & COM_CLIENT)
@@ -1032,7 +1037,7 @@ static void COM_Help_f(void)
             CONS_Printf("%s ",cmd->name);
             i++;
         }
-        CONS_Printf("\n\x82""Client:");
+        CONS_Printf("\n\x82""Client: ");
         for (cmd = com_commands; cmd; cmd = cmd->next)
         {
             if (!(cmd->flags & COM_CLIENT))
@@ -1040,14 +1045,18 @@ static void COM_Help_f(void)
             CONS_Printf("%s ",cmd->name);
             i++;
         }
-        CONS_Printf("\n\x82""Addons:");
+		foundflag = false;
+        CONS_Printf("\n\x82""Addons: ");
         for (cmd = com_commands; cmd; cmd = cmd->next)
         {
             if (!(cmd->flags & COM_LUACOM))
                 continue;
             CONS_Printf("%s ",cmd->name);
+			foundflag = true;
             i++;
         }
+		if (!foundflag)
+			CONS_Printf("\x82""(no commands have been created by addons)");
 
 		CONS_Printf("\x82""\nCheck wiki.srb2.org for more or type help <command or variable>\n");
 

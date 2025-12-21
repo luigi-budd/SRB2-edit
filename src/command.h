@@ -33,6 +33,8 @@ typedef enum
 	// COM_AddCommand: without this flag, the command
 	// CANNOT be run from Lua.
 	COM_LUA         = 8,
+	COM_LUACOM = 16, // Command is by Lua
+	COM_CLIENT = 32 // Command isnt from vanilla SRB2
 } com_flags_t;
 
 typedef void (*com_func_t)(void);
@@ -125,6 +127,8 @@ typedef enum
                    // used on menus
 	CV_CHEAT = 2048, // Don't let this be used in multiplayer unless cheats are on.
 	CV_ALLOWLUA = 4096,/* Let this be called from Lua */
+	CV_LUAVAR = 8192, // CV created by Lua
+	CV_CLIENT = 16384, // CV isnt a vanilla SRB2 client variable
 } cvflags_t;
 
 typedef struct CV_PossibleValue_s

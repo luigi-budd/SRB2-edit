@@ -125,8 +125,8 @@ consvar_t cv_idletime = CVAR_INIT ("idletime", "3", CV_SAVE|CV_NETVAR, CV_Unsign
 consvar_t cv_httpsource = CVAR_INIT ("http_source", "", CV_SAVE, NULL, NULL);
 
 static CV_PossibleValue_t mindelay_cons_t[] = {{0, "MIN"}, {30, "MAX"}, {0, NULL}};
-consvar_t cv_mindelay = CVAR_INIT ("mindelay", "0", CV_SAVE, mindelay_cons_t, NULL);
-consvar_t cv_gentlemens = CVAR_INIT ("gentlemensdelay", "Off", CV_SAVE|CV_CALL|CV_NOINIT, CV_OnOff, NULL); // this should be a netvar Zzz...
+consvar_t cv_mindelay = CVAR_INIT ("mindelay", "0", CV_SAVE|CV_CLIENT, mindelay_cons_t, NULL);
+consvar_t cv_gentlemens = CVAR_INIT ("gentlemensdelay", "Off", CV_SAVE|CV_CALL|CV_NOINIT|CV_CLIENT, CV_OnOff, NULL); // this should be a netvar Zzz...
 
 void ResetNode(INT32 node)
 {

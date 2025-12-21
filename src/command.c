@@ -550,7 +550,7 @@ int COM_AddLuaCommand(const char *name)
 	cmd = ZZ_Alloc(sizeof *cmd);
 	cmd->name = name;
 	cmd->function = COM_Lua_f;
-	cmd->flags = COM_LUA;
+	cmd->flags = COM_LUA | COM_LUACOM;
 	cmd->next = com_commands;
 	com_commands = cmd;
 	return 0;
@@ -884,9 +884,16 @@ static void COM_Help_f(void)
 {
 	xcommand_t *cmd;
 	consvar_t *cvar;
+	boolean foundflag = false;
+	// should just concat to a string instead of having 3 booleans...
+	// ... but this is a lot shorter.
+	boolean parmv = COM_CheckParm("-v") || COM_CheckParm("-vanilla");
+	boolean parmc = COM_CheckParm("-c") || COM_CheckParm("-client");
+	boolean parma = COM_CheckParm("-a") || COM_CheckParm("-addon");
+
 	INT32 i = 0;
 
-	if (COM_Argc() > 1)
+	if (COM_Argc() > 1 && !(parmv || parmc || parma))
 	{
 		const char *help = COM_Argv(1);
 		cvar = CV_FindVar(help);
@@ -999,23 +1006,69 @@ static void COM_Help_f(void)
 	}
 	else
 	{
-		// variables
-		CONS_Printf("\x82""Variables:\n");
+		// this is really dirty...
+		if ((!parmc && !parma) || parmv) {
+		CONS_Printf("\x83""Vanilla:""\x82""\n\tVariables: ");
 		for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		{
-			if (cvar->flags & CV_NOSHOWHELP)
+			if (cvar->flags & (CV_NOSHOWHELP | CV_CLIENT | CV_LUAVAR))
 				continue;
 			CONS_Printf("%s ", cvar->name);
 			i++;
 		}
-
-		// commands
-		CONS_Printf("\x82""\nCommands:\n");
-		for (cmd = com_commands; cmd; cmd = cmd->next)
+        CONS_Printf("\x82""\n\tCommands: ");
+        for (cmd = com_commands; cmd; cmd = cmd->next)
+        {
+            if (cmd->flags & COM_LUACOM || cmd->flags & COM_CLIENT)
+                continue;
+            CONS_Printf("%s ",cmd->name);
+            i++;
+        }
+		}
+		if ((!parmv && !parma) || parmc) {
+		CONS_Printf(parmc ? "\x83""Client:""\x82""\n\tVariables: " : "\n\x83""Client:""\x82""\n\tVariables: ");
+		for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		{
-			CONS_Printf("%s ",cmd->name);
+			if (cvar->flags & (CV_NOSHOWHELP | CV_LUAVAR) || !(cvar->flags & CV_CLIENT))
+				continue;
+			CONS_Printf("%s ", cvar->name);
 			i++;
 		}
+        CONS_Printf("\n\x82""\tCommands: ");
+        for (cmd = com_commands; cmd; cmd = cmd->next)
+        {
+            if (!(cmd->flags & COM_CLIENT))
+                continue;
+            CONS_Printf("%s ",cmd->name);
+            i++;
+        }
+	}
+		if ((!parmv && !parmc) || parma) {
+		CONS_Printf(parma ? "\x83""Addons:""\x82""\n\tVariables: " : "\n\x83""Addons:""\x82""\n\tVariables: ");
+		for (cvar = consvar_vars; cvar; cvar = cvar->next)
+		{
+			if (cvar->flags & (CV_NOSHOWHELP | CV_CLIENT) || !(cvar->flags & CV_LUAVAR))
+				continue;
+			CONS_Printf("%s ", cvar->name);
+			foundflag = true;
+			i++;
+		}
+		if (!foundflag)
+			CONS_Printf("(no variables have been created by addons)");
+
+		foundflag = false;
+        CONS_Printf("\n\x82""\tCommands: ");
+        for (cmd = com_commands; cmd; cmd = cmd->next)
+        {
+            if (!(cmd->flags & COM_LUACOM))
+                continue;
+            CONS_Printf("%s ",cmd->name);
+			foundflag = true;
+            i++;
+        }
+		if (!foundflag)
+			CONS_Printf("(no commands have been created by addons)");
+	}
 
 		CONS_Printf("\x82""\nCheck wiki.srb2.org for more or type help <command or variable>\n");
 

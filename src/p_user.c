@@ -9848,7 +9848,7 @@ consvar_t cv_cam2_rotspeed = CVAR_INIT ("cam2_rotspeed", "10", CV_SAVE|CV_ALLOWL
 consvar_t cv_cam2_turnmultiplier = CVAR_INIT ("cam2_turnmultiplier", "0.75", CV_FLOAT|CV_SAVE|CV_ALLOWLUA, multiplier_cons_t, NULL);
 consvar_t cv_cam2_orbit = CVAR_INIT ("cam2_orbit", "Off", CV_SAVE|CV_ALLOWLUA, CV_OnOff, NULL);
 consvar_t cv_cam2_adjust = CVAR_INIT ("cam2_adjust", "On", CV_SAVE|CV_ALLOWLUA, CV_OnOff, NULL);
-consvar_t cv_earthquake = CVAR_INIT("earthquake", "On", CV_SAVE, CV_OnOff, NULL);
+consvar_t cv_earthquake = CVAR_INIT("earthquake", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 
 
 // [standard vs simple][p1 or p2]

@@ -152,14 +152,14 @@ consvar_t cv_chasecam = CVAR_INIT ("chasecam", "On", CV_CALL, CV_OnOff, ChaseCam
 consvar_t cv_chasecam2 = CVAR_INIT ("chasecam2", "On", CV_CALL, CV_OnOff, ChaseCam2_OnChange);
 consvar_t cv_flipcam = CVAR_INIT ("flipcam", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam_OnChange);
 consvar_t cv_flipcam2 = CVAR_INIT ("flipcam2", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam2_OnChange);
-consvar_t cv_ringracers_quakes = CVAR_INIT ("rr_quakes", "Yes", CV_SAVE|CV_CALL, CV_YesNo, NULL);
+consvar_t cv_ringracers_quakes = CVAR_INIT ("rr_quakes", "Yes", CV_SAVE|CV_CALL|CV_CLIENT, CV_YesNo, NULL);
 
 consvar_t cv_shadow = CVAR_INIT ("shadow", "On", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_skybox = CVAR_INIT ("skybox", "On", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_allowmlook = CVAR_INIT ("allowmlook", "Yes", CV_NETVAR|CV_ALLOWLUA, CV_YesNo, NULL);
 consvar_t cv_showhud = CVAR_INIT ("showhud", "Yes", CV_CALL|CV_ALLOWLUA,  CV_YesNo, R_SetViewSize);
 consvar_t cv_translucenthud = CVAR_INIT ("translucenthud", "10", CV_SAVE, translucenthud_cons_t, NULL);
-consvar_t cv_moviemodeinfo = CVAR_INIT ("moviemodeinfo", "Yes", CV_CALL|CV_ALLOWLUA,  CV_YesNo, NULL);
+consvar_t cv_moviemodeinfo = CVAR_INIT ("moviemodeinfo", "Yes", CV_CALL|CV_ALLOWLUA|CV_CLIENT,  CV_YesNo, NULL);
 
 consvar_t cv_translucency = CVAR_INIT ("translucency", "On", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_drawdist = CVAR_INIT ("drawdist", "Infinite", CV_SAVE, drawdist_cons_t, NULL);
@@ -168,8 +168,8 @@ consvar_t cv_drawdist_precip = CVAR_INIT ("drawdist_precip", "1024", CV_SAVE, dr
 consvar_t cv_fov = CVAR_INIT ("fov", "90", CV_SAVE|CV_FLOAT|CV_CALL, fov_cons_t, Fov_OnChange);
 consvar_t cv_fovchange = CVAR_INIT ("fovchange", "Off", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_maxportals = CVAR_INIT ("maxportals", "2", CV_SAVE, maxportals_cons_t, NULL);
-consvar_t cv_pitchroll_rotation = CVAR_INIT ("pitchroll-tation", "On", CV_SAVE, CV_OnOff, NULL);
-consvar_t cv_pitchroll_easing = CVAR_INIT ("pitchroll-easing", "On", CV_SAVE, CV_OnOff, NULL);
+consvar_t cv_pitchroll_rotation = CVAR_INIT ("pitchroll-tation", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
+consvar_t cv_pitchroll_easing = CVAR_INIT ("pitchroll-easing", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 
 consvar_t cv_renderview = CVAR_INIT ("renderview", "On", 0, CV_OnOff, NULL);
 consvar_t cv_renderwalls = CVAR_INIT ("r_renderwalls", "On", 0, CV_OnOff, NULL);
@@ -179,7 +179,7 @@ consvar_t cv_ffloorclip = CVAR_INIT ("r_ffloorclip", "On", 0, CV_OnOff, NULL);
 consvar_t cv_spriteclip = CVAR_INIT ("r_spriteclip", "On", 0, CV_OnOff, NULL);
 
 consvar_t cv_homremoval = CVAR_INIT ("homremoval", "No", CV_SAVE, homremoval_cons_t, NULL);
-consvar_t cv_fullbrite_hack = CVAR_INIT ("fullbrite", "No", CV_NOINIT, CV_OnOff, NULL);
+consvar_t cv_fullbrite_hack = CVAR_INIT ("fullbrite", "No", CV_NOINIT|CV_CLIENT, CV_OnOff, NULL);
 
 consvar_t cv_renderstats = CVAR_INIT ("renderstats", "Off", 0, CV_OnOff, NULL);
 

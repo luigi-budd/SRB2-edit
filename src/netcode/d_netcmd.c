@@ -364,8 +364,8 @@ consvar_t cv_pingtimeout = CVAR_INIT ("pingtimeout", "10", CV_SAVE|CV_NETVAR, pi
 static CV_PossibleValue_t showping_cons_t[] = {{0, "Off"}, {1, "Always"}, {2, "Warning"}, {0, NULL}};
 consvar_t cv_showping = CVAR_INIT ("showping", "Warning", CV_SAVE, showping_cons_t, NULL);
 static CV_PossibleValue_t pingmeasurement_cons_t[] = {{0, "Milliseconds"}, {1, "Frames"}, {0, NULL}};
-consvar_t cv_pingmeasurement = CVAR_INIT ("pingmeasurement", "Milliseconds", CV_SAVE, pingmeasurement_cons_t, NULL);
-consvar_t cv_showcsays = CVAR_INIT ("showcsays", "Yes", CV_SAVE, CV_YesNo, NULL);
+consvar_t cv_pingmeasurement = CVAR_INIT ("pingmeasurement", "Milliseconds", CV_SAVE|CV_CLIENT, pingmeasurement_cons_t, NULL);
+consvar_t cv_showcsays = CVAR_INIT ("showcsays", "Yes", CV_SAVE|CV_CLIENT, CV_YesNo, NULL);
 
 // Intermission time Tails 04-19-2002
 static CV_PossibleValue_t inttime_cons_t[] = {{0, "MIN"}, {3600, "MAX"}, {0, NULL}};
@@ -407,8 +407,8 @@ consvar_t cv_freedemocamera = CVAR_INIT("freedemocamera", "Off", CV_SAVE, CV_OnO
 // NOTE: this should be in hw_main.c, but we can't put it there as it breaks dedicated build
 consvar_t cv_glallowshaders = CVAR_INIT ("gr_allowcustomshaders", "On", CV_NETVAR, CV_OnOff, NULL);
 
-consvar_t cv_returnfromconnect = CVAR_INIT ("returnfromconnect", "On", CV_SAVE, CV_OnOff, NULL);
-consvar_t cv_showserverinfo = CVAR_INIT ("showserverinfo", "On", CV_SAVE, CV_OnOff, NULL);
+consvar_t cv_returnfromconnect = CVAR_INIT ("returnfromconnect", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
+consvar_t cv_showserverinfo = CVAR_INIT ("showserverinfo", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 
 char timedemo_name[256];
 boolean timedemo_csv;
@@ -949,7 +949,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_ps_samplesize);
 	CV_RegisterVar(&cv_ps_descriptor);
 
-	COM_AddCommand("freezelevel", Command_FreezeLevel_f, COM_LUA);
+	COM_AddCommand("freezelevel", Command_FreezeLevel_f, COM_LUA|COM_CLIENT);
 
 	// ingame object placing
 	COM_AddCommand("objectplace", Command_ObjectPlace_f, COM_LUA);

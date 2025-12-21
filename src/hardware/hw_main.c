@@ -5844,7 +5844,7 @@ consvar_t cv_glcoronasize = CVAR_INIT ("gr_coronasize", "1", CV_SAVE|CV_FLOAT, 0
 consvar_t cv_glmodels = CVAR_INIT ("gr_models", "Off", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_glmodelinterpolation = CVAR_INIT ("gr_modelinterpolation", "Sometimes", CV_SAVE, glmodelinterpolation_cons_t, NULL);
 consvar_t cv_glmodellighting = CVAR_INIT ("gr_modellighting", "Off", CV_SAVE|CV_CALL, CV_OnOff, CV_glmodellighting_OnChange);
-consvar_t cv_glmodeltranslations = CVAR_INIT ("gr_modeltranslations", "On", CV_SAVE, CV_OnOff, NULL);
+consvar_t cv_glmodeltranslations = CVAR_INIT ("gr_modeltranslations", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 
 consvar_t cv_glshearing = CVAR_INIT ("gr_shearing", "Off", CV_SAVE, glshearing_cons_t, NULL);
 consvar_t cv_glspritebillboarding = CVAR_INIT ("gr_spritebillboarding", "Off", CV_SAVE, CV_OnOff, NULL);
@@ -5859,7 +5859,7 @@ consvar_t cv_glsolvetjoin = CVAR_INIT ("gr_solvetjoin", "On", 0, CV_OnOff, NULL)
 
 consvar_t cv_glbatching = CVAR_INIT ("gr_batching", "On", 0, CV_OnOff, NULL);
 
-consvar_t cv_glrenderdistance = CVAR_INIT("gr_renderdistance", "Max", CV_SAVE, glrenderdistance_cons_t, NULL);
+consvar_t cv_glrenderdistance = CVAR_INIT("gr_renderdistance", "Max", CV_SAVE|CV_CLIENT, glrenderdistance_cons_t, NULL);
 
 static CV_PossibleValue_t glpalettedepth_cons_t[] = {{16, "16 bits"}, {24, "24 bits"}, {0, NULL}};
 

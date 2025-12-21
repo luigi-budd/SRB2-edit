@@ -44,8 +44,8 @@ UINT8 *screens[5];
 
 static CV_PossibleValue_t ticrate_cons_t[] = {{0, "No"}, {1, "Full"}, {2, "Compact"}, {3, "Thin Compacted"}, {0, NULL}};
 consvar_t cv_ticrate = CVAR_INIT ("showfps", "No", CV_SAVE, ticrate_cons_t, NULL);
-consvar_t cv_tpscounter = CVAR_INIT ("showtps", "No", CV_SAVE, ticrate_cons_t, NULL);
-consvar_t cv_compactinfo = CVAR_INIT ("compactinfo", "No", CV_SAVE, CV_YesNo, NULL);
+consvar_t cv_tpscounter = CVAR_INIT ("showtps", "No", CV_SAVE|CV_CLIENT, ticrate_cons_t, NULL);
+consvar_t cv_compactinfo = CVAR_INIT ("compactinfo", "No", CV_SAVE|CV_CLIENT, CV_YesNo, NULL);
 
 
 static void CV_palette_OnChange(void);

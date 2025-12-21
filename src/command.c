@@ -1008,18 +1008,18 @@ static void COM_Help_f(void)
 			CONS_Printf("%s ", cvar->name);
 			i++;
 		}
-		CONS_Printf("\n\x82""Addons:");
-		for (cvar = consvar_vars; cvar; cvar = cvar->next)
-		{
-			if (cvar->flags & (CV_NOSHOWHELP | CV_CLIENT) || !(cvar->flags & CV_LUAVAR))
-				continue;
-			CONS_Printf("%s ", cvar->name);
-			i++;
-		}
 		CONS_Printf("\n\x82""Client:");
 		for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		{
 			if (cvar->flags & (CV_NOSHOWHELP | CV_LUAVAR) || !(cvar->flags & CV_CLIENT))
+				continue;
+			CONS_Printf("%s ", cvar->name);
+			i++;
+		}
+		CONS_Printf("\n\x82""Addons:");
+		for (cvar = consvar_vars; cvar; cvar = cvar->next)
+		{
+			if (cvar->flags & (CV_NOSHOWHELP | CV_CLIENT) || !(cvar->flags & CV_LUAVAR))
 				continue;
 			CONS_Printf("%s ", cvar->name);
 			i++;

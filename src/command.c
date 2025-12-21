@@ -1028,7 +1028,7 @@ static void COM_Help_f(void)
 			i++;
 		}
 		if (!foundflag)
-			CONS_Printf("\x82""(no variables have been created by addons)");
+			CONS_Printf("(no variables have been created by addons)");
 
         CONS_Printf("\x82""\nCommands:\nVanilla: ");
         for (cmd = com_commands; cmd; cmd = cmd->next)
@@ -1057,7 +1057,7 @@ static void COM_Help_f(void)
             i++;
         }
 		if (!foundflag)
-			CONS_Printf("\x82""(no commands have been created by addons)");
+			CONS_Printf("(no commands have been created by addons)");
 
 		CONS_Printf("\x82""\nCheck wiki.srb2.org for more or type help <command or variable>\n");
 

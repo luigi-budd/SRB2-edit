@@ -15,7 +15,7 @@
 
 #include "../doomdef.h"
 
-#define MAX_REASONLENGTH 30
+#define MAX_REASONLENGTH 253
 
 void Ban_Add(const char *reason);
 void D_SaveBan(void);

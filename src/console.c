@@ -43,7 +43,7 @@
 #include "hardware/hw_main.h"
 #endif
 
-#define MAXHUDLINES 20
+#define MAXHUDLINES 40
 
 #ifdef HAVE_THREADS
 I_mutex con_mutex;

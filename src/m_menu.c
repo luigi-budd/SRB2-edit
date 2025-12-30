@@ -1564,12 +1564,6 @@ static menuitem_t OP_ScreenshotOptionsMenu[] =
 	{IT_STRING|IT_CVAR, NULL, "Local Color Table", &cv_gif_localcolortable,       105},
 	{IT_STRING|IT_CVAR|IT_CV_SLIDER, NULL, "Max GIF Size (MB)",      &cv_gif_maxsize,  110},
 	{IT_STRING|IT_CVAR, NULL, "Keep recording when capped",      &cv_gif_rolling_buffer,  	  115},
-
-	{IT_STRING|IT_CVAR, NULL, "Downscaling",       &cv_apng_downscale,             95},
-	{IT_STRING|IT_CVAR, NULL, "Memory Level",      &cv_zlib_memorya,              100},
-	{IT_STRING|IT_CVAR, NULL, "Compression Level", &cv_zlib_levela,               105},
-	{IT_STRING|IT_CVAR, NULL, "Strategy",          &cv_zlib_strategya,            110},
-	{IT_STRING|IT_CVAR, NULL, "Window Size",       &cv_zlib_window_bitsa,         115},
 };
 
 enum
@@ -1580,9 +1574,7 @@ enum
 	op_movie_folder = 11,
 	op_screenshot_capture = 12,
 	op_screenshot_gif_start = 13,
-	op_screenshot_gif_end = 17,
-	op_screenshot_apng_start = 18,
-	op_screenshot_apng_end = 22,
+	op_screenshot_gif_end = 17
 };
 
 static menuitem_t OP_EraseDataMenu[] =
@@ -2484,7 +2476,7 @@ void Screenshot_option_Onchange(void)
 void Moviemode_mode_Onchange(void)
 {
 	INT32 i, cstart, cend;
-	for (i = op_screenshot_gif_start; i <= op_screenshot_apng_end; ++i)
+	for (i = op_screenshot_gif_start; i <= op_screenshot_gif_end; ++i)
 		OP_ScreenshotOptionsMenu[i].status = IT_DISABLED;
 
 	switch (cv_moviemode.value)
@@ -2492,10 +2484,6 @@ void Moviemode_mode_Onchange(void)
 		case MM_GIF:
 			cstart = op_screenshot_gif_start;
 			cend = op_screenshot_gif_end;
-			break;
-		case MM_APNG:
-			cstart = op_screenshot_apng_start;
-			cend = op_screenshot_apng_end;
 			break;
 		default:
 			return;

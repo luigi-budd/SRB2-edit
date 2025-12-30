@@ -172,10 +172,6 @@ void SCR_SetMode(void)
 	// Lactozilla: Renderer switching
 	if (setrenderneeded)
 	{
-		// stop recording movies (APNG only)
-		if (setrenderneeded && (moviemode == MM_APNG))
-			M_StopMovie();
-
 		// VID_SetMode will call VID_CheckRenderer itself,
 		// so no need to do this in here.
 		if (!setmodeneeded)

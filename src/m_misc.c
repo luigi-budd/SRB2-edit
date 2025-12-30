@@ -93,10 +93,6 @@ typedef off_t off64_t;
  #endif
  #ifdef PNG_WRITE_SUPPORTED
   #define USE_PNG // Only actually use PNG if write is supported.
-  #if defined (PNG_WRITE_APNG_SUPPORTED) //|| !defined(PNG_STATIC)
-    #include "apng.h"
-    #define USE_APNG
-  #endif
   // See hardware/hw_draw.c for a similar check to this one.
  #endif
 #endif
@@ -109,7 +105,7 @@ consvar_t cv_screenshot_folder = CVAR_INIT ("screenshot_folder", "", CV_SAVE, NU
 
 consvar_t cv_screenshot_colorprofile = CVAR_INIT ("screenshot_colorprofile", "Yes", CV_SAVE, CV_YesNo, NULL);
 
-static CV_PossibleValue_t moviemode_cons_t[] = {{MM_GIF, "GIF"}, {MM_APNG, "aPNG"}, {MM_SCREENSHOT, "Screenshots"}, {0, NULL}};
+static CV_PossibleValue_t moviemode_cons_t[] = {{MM_GIF, "GIF"}, {MM_SCREENSHOT, "Screenshots"}, {0, NULL}};
 consvar_t cv_moviemode = CVAR_INIT ("moviemode_mode", "GIF", CV_SAVE|CV_CALL, moviemode_cons_t, Moviemode_mode_Onchange);
 
 consvar_t cv_movie_option = CVAR_INIT ("movie_option", "Default", CV_SAVE|CV_CALL, screenshot_cons_t, Moviemode_option_Onchange);
@@ -146,30 +142,12 @@ static CV_PossibleValue_t zlib_window_bits_t[] = {
 	{14, "16k"}, {15, "32k"},
 	{0, NULL}};
 
-static CV_PossibleValue_t apng_delay_t[] = {
-	{1, "1x"},
-	{2, "1/2x"},
-	{3, "1/3x"},
-	{4, "1/4x"},
-	{0, NULL}};
-
 // zlib memory usage is as follows:
 // (1 << (zlib_window_bits+2)) +  (1 << (zlib_level+9))
 consvar_t cv_zlib_memory = CVAR_INIT ("png_memory_level", "7", CV_SAVE, zlib_mem_level_t, NULL);
 consvar_t cv_zlib_level = CVAR_INIT ("png_compress_level", "(Optimal) 6", CV_SAVE, zlib_level_t, NULL);
 consvar_t cv_zlib_strategy = CVAR_INIT ("png_strategy", "Normal", CV_SAVE, zlib_strategy_t, NULL);
 consvar_t cv_zlib_window_bits = CVAR_INIT ("png_window_size", "32k", CV_SAVE, zlib_window_bits_t, NULL);
-
-consvar_t cv_zlib_memorya = CVAR_INIT ("apng_memory_level", "(Max Memory) 9", CV_SAVE, zlib_mem_level_t, NULL);
-consvar_t cv_zlib_levela = CVAR_INIT ("apng_compress_level", "4", CV_SAVE, zlib_level_t, NULL);
-consvar_t cv_zlib_strategya = CVAR_INIT ("apng_strategy", "RLE", CV_SAVE, zlib_strategy_t, NULL);
-consvar_t cv_zlib_window_bitsa = CVAR_INIT ("apng_window_size", "32k", CV_SAVE, zlib_window_bits_t, NULL);
-consvar_t cv_apng_delay = CVAR_INIT ("apng_speed", "1x", CV_SAVE, apng_delay_t, NULL);
-consvar_t cv_apng_downscale = CVAR_INIT ("apng_downscale", "On", CV_SAVE, CV_OnOff, NULL);
-
-#ifdef USE_APNG
-static boolean apng_downscale = false; // So nobody can do something dumb like changing cvars mid output
-#endif
 
 boolean takescreenshot = false; // Take a screenshot this tic
 
@@ -887,435 +865,10 @@ static const char *Newsnapshotfile(const char *pathname, const char *ext)
 }
 #endif
 
-#ifdef HAVE_PNG
-FUNCNORETURN static void PNG_error(png_structp PNG, png_const_charp pngtext)
-{
-	//CONS_Debug(DBG_RENDER, "libpng error at %p: %s", PNG, pngtext);
-	I_Error("libpng error at %p: %s", PNG, pngtext);
-}
-
-static void PNG_warn(png_structp PNG, png_const_charp pngtext)
-{
-	CONS_Debug(DBG_RENDER, "libpng warning at %p: %s", PNG, pngtext);
-}
-
-static void M_PNGhdr(png_structp png_ptr, png_infop png_info_ptr, PNG_CONST png_uint_32 width, PNG_CONST png_uint_32 height, PNG_CONST png_byte *palette)
-{
-	const png_byte png_interlace = PNG_INTERLACE_NONE; //PNG_INTERLACE_ADAM7
-	if (palette)
-	{
-		png_colorp png_PLTE = png_malloc(png_ptr, sizeof(png_color)*256); //palette
-		const png_byte *pal = palette;
-		png_uint_16 i;
-		for (i = 0; i < 256; i++)
-		{
-			png_PLTE[i].red   = *pal; pal++;
-			png_PLTE[i].green = *pal; pal++;
-			png_PLTE[i].blue  = *pal; pal++;
-		}
-		png_set_IHDR(png_ptr, png_info_ptr, width, height, 8, PNG_COLOR_TYPE_PALETTE,
-		 png_interlace, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-		png_write_info_before_PLTE(png_ptr, png_info_ptr);
-		png_set_PLTE(png_ptr, png_info_ptr, png_PLTE, 256);
-		png_free(png_ptr, (png_voidp)png_PLTE); // safe in libpng-1.2.1+
-		png_set_filter(png_ptr, PNG_FILTER_TYPE_BASE, PNG_FILTER_NONE);
-		png_set_compression_strategy(png_ptr, Z_DEFAULT_STRATEGY);
-	}
-	else
-	{
-		png_set_IHDR(png_ptr, png_info_ptr, width, height, 8, PNG_COLOR_TYPE_RGB,
-		 png_interlace, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-		png_write_info_before_PLTE(png_ptr, png_info_ptr);
-		png_set_compression_strategy(png_ptr, Z_FILTERED);
-	}
-}
-
-static void M_PNGText(png_structp png_ptr, png_infop png_info_ptr, PNG_CONST png_byte movie)
-{
-#ifdef PNG_TEXT_SUPPORTED
-#define SRB2PNGTXT 11 //PNG_KEYWORD_MAX_LENGTH(79) is the max
-	png_text png_infotext[SRB2PNGTXT];
-	char keytxt[SRB2PNGTXT][12] = {
-	"Title", "Description", "Playername", "Mapnum", "Mapname",
-	"Location", "Interface", "Render Mode", "Revision", "Build Date", "Build Time"};
-	char titletxt[] = "Sonic Robo Blast 2 " VERSIONSTRING;
-	png_charp playertxt =  cv_playername.zstring;
-	char desctxt[] = "SRB2 Screenshot";
-	char Movietxt[] = "SRB2 Movie";
-	size_t i;
-	char interfacetxt[] =
-#ifdef HAVE_SDL
-	 "SDL";
-#elif defined (_WINDOWS)
-	 "DirectX";
-#else
-	 "Unknown";
-#endif
-	char rendermodetxt[9];
-	char maptext[8];
-	char lvlttltext[48];
-	char locationtxt[40];
-	char ctrevision[40];
-	char ctdate[40];
-	char cttime[40];
-
-	switch (rendermode)
-	{
-		case render_soft:
-			strcpy(rendermodetxt, "Software");
-			break;
-		case render_opengl:
-			strcpy(rendermodetxt, "OpenGL");
-			break;
-		default: // Just in case
-			strcpy(rendermodetxt, "None");
-			break;
-	}
-
-	if (gamestate == GS_LEVEL)
-		snprintf(maptext, 8, "%s", G_BuildMapName(gamemap));
-	else
-		snprintf(maptext, 8, "Unknown");
-
-	if (gamestate == GS_LEVEL && mapheaderinfo[gamemap-1]->lvlttl[0] != '\0')
-		snprintf(lvlttltext, 48, "%s%s%s",
-			mapheaderinfo[gamemap-1]->lvlttl,
-			(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " Zone",
-			(mapheaderinfo[gamemap-1]->actnum > 0) ? va(" %d",mapheaderinfo[gamemap-1]->actnum) : "");
-	else
-		snprintf(lvlttltext, 48, "Unknown");
-
-	if (gamestate == GS_LEVEL && players[displayplayer].mo)
-		snprintf(locationtxt, 40, "X:%d Y:%d Z:%d A:%d",
-			players[displayplayer].mo->x>>FRACBITS,
-			players[displayplayer].mo->y>>FRACBITS,
-			players[displayplayer].mo->z>>FRACBITS,
-			FixedInt(AngleFixed(players[displayplayer].mo->angle)));
-	else
-		snprintf(locationtxt, 40, "Unknown");
-
-	memset(png_infotext,0x00,sizeof (png_infotext));
-
-	for (i = 0; i < SRB2PNGTXT; i++)
-		png_infotext[i].key  = keytxt[i];
-
-	png_infotext[0].text = titletxt;
-	if (movie)
-		png_infotext[1].text = Movietxt;
-	else
-		png_infotext[1].text = desctxt;
-	png_infotext[2].text = playertxt;
-	png_infotext[3].text = maptext;
-	png_infotext[4].text = lvlttltext;
-	png_infotext[5].text = locationtxt;
-	png_infotext[6].text = interfacetxt;
-	png_infotext[7].text = rendermodetxt;
-	png_infotext[8].text = strncpy(ctrevision, comprevision, sizeof(ctrevision)-1);
-	png_infotext[9].text = strncpy(ctdate, compdate, sizeof(ctdate)-1);
-	png_infotext[10].text = strncpy(cttime, comptime, sizeof(cttime)-1);
-
-	png_set_text(png_ptr, png_info_ptr, png_infotext, SRB2PNGTXT);
-#undef SRB2PNGTXT
-#endif
-}
-
-static inline void M_PNGImage(png_structp png_ptr, png_infop png_info_ptr, PNG_CONST png_uint_32 height, png_bytep png_buf)
-{
-	png_uint_32 pitch = png_get_rowbytes(png_ptr, png_info_ptr);
-	png_bytepp row_pointers = png_malloc(png_ptr, height* sizeof (png_bytep));
-	png_uint_32 y;
-	for (y = 0; y < height; y++)
-	{
-		row_pointers[y] = png_buf;
-		png_buf += pitch;
-	}
-	png_write_image(png_ptr, row_pointers);
-	png_free(png_ptr, (png_voidp)row_pointers);
-}
-
-#ifdef USE_APNG
-static png_structp apng_ptr = NULL;
-static png_infop   apng_info_ptr = NULL;
-static apng_infop  apng_ainfo_ptr = NULL;
-static png_FILE_p  apng_FILE = NULL;
-static png_uint_32 apng_frames = 0;
-#ifdef PNG_STATIC // Win32 build have static libpng
-#define aPNG_set_acTL png_set_acTL
-#define aPNG_write_frame_head png_write_frame_head
-#define aPNG_write_frame_tail png_write_frame_tail
-#else // outside libpng may not have apng support
-
-#ifndef PNG_WRITE_APNG_SUPPORTED // libpng header may not have apng patch
-
-#ifndef PNG_INFO_acTL
-#define PNG_INFO_acTL 0x10000L
-#endif
-#ifndef PNG_INFO_fcTL
-#define PNG_INFO_fcTL 0x20000L
-#endif
-#ifndef PNG_FIRST_FRAME_HIDDEN
-#define PNG_FIRST_FRAME_HIDDEN       0x0001
-#endif
-#ifndef PNG_DISPOSE_OP_NONE
-#define PNG_DISPOSE_OP_NONE        0x00
-#endif
-#ifndef PNG_DISPOSE_OP_BACKGROUND
-#define PNG_DISPOSE_OP_BACKGROUND  0x01
-#endif
-#ifndef PNG_DISPOSE_OP_PREVIOUS
-#define PNG_DISPOSE_OP_PREVIOUS    0x02
-#endif
-#ifndef PNG_BLEND_OP_SOURCE
-#define PNG_BLEND_OP_SOURCE        0x00
-#endif
-#ifndef PNG_BLEND_OP_OVER
-#define PNG_BLEND_OP_OVER          0x01
-#endif
-#ifndef PNG_HAVE_acTL
-#define PNG_HAVE_acTL             0x4000
-#endif
-#ifndef PNG_HAVE_fcTL
-#define PNG_HAVE_fcTL             0x8000L
-#endif
-
-#endif
-typedef png_uint_32 (*P_png_set_acTL) (png_structp png_ptr,
-   png_infop info_ptr, png_uint_32 num_frames, png_uint_32 num_plays);
-typedef void (*P_png_write_frame_head) (png_structp png_ptr,
-   png_infop info_ptr, png_bytepp row_pointers,
-   png_uint_32 width, png_uint_32 height,
-   png_uint_32 x_offset, png_uint_32 y_offset,
-   png_uint_16 delay_num, png_uint_16 delay_den, png_byte dispose_op,
-   png_byte blend_op);
-
-typedef void (*P_png_write_frame_tail) (png_structp png_ptr,
-   png_infop info_ptr);
-static P_png_set_acTL aPNG_set_acTL = NULL;
-static P_png_write_frame_head aPNG_write_frame_head = NULL;
-static P_png_write_frame_tail aPNG_write_frame_tail = NULL;
-#endif
-
-static inline boolean M_PNGLib(void)
-{
-#ifdef PNG_STATIC // Win32 build have static libpng
-	return true;
-#else
-	static void *pnglib = NULL;
-	if (aPNG_set_acTL && aPNG_write_frame_head && aPNG_write_frame_tail)
-		return true;
-	if (pnglib)
-		return false;
-#ifdef _WIN32
-	pnglib = GetModuleHandleA("libpng.dll");
-	if (!pnglib)
-		pnglib = GetModuleHandleA("libpng12.dll");
-	if (!pnglib)
-		pnglib = GetModuleHandleA("libpng13.dll");
-#elif defined (HAVE_SDL)
-#ifdef __APPLE__
-	pnglib = hwOpen("libpng.dylib");
-#else
-	pnglib = hwOpen("libpng.so");
-#endif
-#endif
-	if (!pnglib)
-		return false;
-#ifdef HAVE_SDL
-	aPNG_set_acTL = hwSym("png_set_acTL", pnglib);
-	aPNG_write_frame_head = hwSym("png_write_frame_head", pnglib);
-	aPNG_write_frame_tail = hwSym("png_write_frame_tail", pnglib);
-#endif
-#ifdef _WIN32
-	aPNG_set_acTL = GetProcAddress("png_set_acTL", pnglib);
-	aPNG_write_frame_head = GetProcAddress("png_write_frame_head", pnglib);
-	aPNG_write_frame_tail = GetProcAddress("png_write_frame_tail", pnglib);
-#endif
-	return (aPNG_set_acTL && aPNG_write_frame_head && aPNG_write_frame_tail);
-#endif
-}
-
-static void M_PNGFrame(png_structp png_ptr, png_infop png_info_ptr, png_bytep png_buf)
-{
-	png_uint_16 downscale = apng_downscale ? vid.dup : 1;
-
-	png_uint_32 pitch = png_get_rowbytes(png_ptr, png_info_ptr);
-	PNG_CONST png_uint_32 width = vid.width / downscale;
-	PNG_CONST png_uint_32 height = vid.height / downscale;
-	png_bytepp row_pointers = png_malloc(png_ptr, height * sizeof (png_bytep));
-	png_uint_32 x, y;
-	png_uint_16 framedelay = (png_uint_16)cv_apng_delay.value;
-
-	apng_frames++;
-
-	for (y = 0; y < height; y++)
-	{
-		row_pointers[y] = malloc(pitch * sizeof(png_byte));
-		for (x = 0; x < width; x++)
-			row_pointers[y][x] = png_buf[x * downscale];
-		png_buf += pitch * (downscale * downscale);
-	}
-		//for (x = 0; x < width; x++)
-		//{
-		//	printf("%d", x);
-		//	row_pointers[y][x] = 0;
-		//}
-	/*	row_pointers[y] = calloc(1, sizeof(png_bytep));
-		png_buf += pitch * 2;
-	}*/
-
-#ifndef PNG_STATIC
-	if (aPNG_write_frame_head)
-#endif
-		aPNG_write_frame_head(apng_ptr, apng_info_ptr, row_pointers,
-			width,     /* width */
-			height,    /* height */
-			0,         /* x offset */
-			0,         /* y offset */
-			framedelay, TICRATE,/* delay numerator and denominator */
-			PNG_DISPOSE_OP_BACKGROUND, /* dispose */
-			PNG_BLEND_OP_SOURCE        /* blend */
-		                     );
-
-	png_write_image(png_ptr, row_pointers);
-
-#ifndef PNG_STATIC
-	if (aPNG_write_frame_tail)
-#endif
-		aPNG_write_frame_tail(apng_ptr, apng_info_ptr);
-
-	png_free(png_ptr, (png_voidp)row_pointers);
-}
-
-static void M_PNGfix_acTL(png_structp png_ptr, png_infop png_info_ptr,
-		apng_infop png_ainfo_ptr)
-{
-	apng_set_acTL(png_ptr, png_info_ptr, png_ainfo_ptr, apng_frames, 0);
-
-#ifndef NO_PNG_DEBUG
-	png_debug(1, "in png_write_acTL\n");
-#endif
-}
-
-static boolean M_SetupaPNG(png_const_charp filename, png_bytep pal)
-{
-	png_uint_16 downscale;
-
-	apng_downscale = (!!cv_apng_downscale.value);
-
-	downscale = apng_downscale ? vid.dup : 1;
-
-	apng_FILE = fopen(filename,"wb+"); // + mode for reading
-	if (!apng_FILE)
-	{
-		CONS_Debug(DBG_RENDER, "M_StartMovie: Error on opening %s for write\n", filename);
-		return false;
-	}
-
-	apng_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,
-	 PNG_error, PNG_warn);
-	if (!apng_ptr)
-	{
-		CONS_Debug(DBG_RENDER, "M_StartMovie: Error on initialize libpng\n");
-		fclose(apng_FILE);
-		remove(filename);
-		return false;
-	}
-
-	apng_info_ptr = png_create_info_struct(apng_ptr);
-	if (!apng_info_ptr)
-	{
-		CONS_Debug(DBG_RENDER, "M_StartMovie: Error on allocate for libpng\n");
-		png_destroy_write_struct(&apng_ptr,  NULL);
-		fclose(apng_FILE);
-		remove(filename);
-		return false;
-	}
-
-	apng_ainfo_ptr = apng_create_info_struct(apng_ptr);
-	if (!apng_ainfo_ptr)
-	{
-		CONS_Debug(DBG_RENDER, "M_StartMovie: Error on allocate for apng\n");
-		png_destroy_write_struct(&apng_ptr, &apng_info_ptr);
-		fclose(apng_FILE);
-		remove(filename);
-		return false;
-	}
-
-	png_init_io(apng_ptr, apng_FILE);
-
-#ifdef PNG_SET_USER_LIMITS_SUPPORTED
-	png_set_user_limits(apng_ptr, MAXVIDWIDTH, MAXVIDHEIGHT);
-#endif
-
-	//png_set_filter(apng_ptr, 0, PNG_ALL_FILTERS);
-
-	png_set_compression_level(apng_ptr, cv_zlib_levela.value);
-	png_set_compression_mem_level(apng_ptr, cv_zlib_memorya.value);
-	png_set_compression_strategy(apng_ptr, cv_zlib_strategya.value);
-	png_set_compression_window_bits(apng_ptr, cv_zlib_window_bitsa.value);
-
-	M_PNGhdr(apng_ptr, apng_info_ptr, vid.width / downscale, vid.height / downscale, pal);
-
-	M_PNGText(apng_ptr, apng_info_ptr, true);
-
-	apng_set_set_acTL_fn(apng_ptr, apng_ainfo_ptr, aPNG_set_acTL);
-
-	apng_set_acTL(apng_ptr, apng_info_ptr, apng_ainfo_ptr, PNG_UINT_31_MAX, 0);
-
-	apng_write_info(apng_ptr, apng_info_ptr, apng_ainfo_ptr);
-
-	apng_frames = 0;
-
-	return true;
-}
-#endif
-#endif
-
 // ==========================================================================
 //                             MOVIE MODE
 // ==========================================================================
 #if NUMSCREENS > 2
-static inline moviemode_t M_StartMovieAPNG(const char *pathname)
-{
-#ifdef USE_APNG
-	UINT8 *palette = NULL;
-	const char *freename = NULL;
-	boolean ret = false;
-
-	if (!M_PNGLib())
-	{
-		CONS_Alert(CONS_ERROR, "Couldn't create aPNG: libpng not found\n");
-		return MM_OFF;
-	}
-
-	if (!(freename = Newsnapshotfile(pathname,"png")))
-	{
-		CONS_Alert(CONS_ERROR, "Couldn't create aPNG: no slots open in %s\n", pathname);
-		return MM_OFF;
-	}
-
-	if (rendermode == render_soft)
-	{
-		M_CreateScreenShotPalette();
-		palette = screenshot_palette;
-	}
-
-	ret = M_SetupaPNG(va(pandf,pathname,freename), palette);
-
-	if (!ret)
-	{
-		CONS_Alert(CONS_ERROR, "Couldn't create aPNG: error creating %s in %s\n", freename, pathname);
-		return MM_OFF;
-	}
-	return MM_APNG;
-#else
-	// no APNG support exists
-	(void)pathname;
-	CONS_Alert(CONS_ERROR, "Couldn't create aPNG: this build lacks aPNG support\n");
-	return MM_OFF;
-#endif
-}
-
 static inline moviemode_t M_StartMovieGIF(const char *pathname)
 {
 #ifdef HAVE_ANIGIF
@@ -1373,9 +926,6 @@ void M_StartMovie(void)
 		case MM_GIF:
 			moviemode = M_StartMovieGIF(pathname);
 			break;
-		case MM_APNG:
-			moviemode = M_StartMovieAPNG(pathname);
-			break;
 		case MM_SCREENSHOT:
 			moviemode = MM_SCREENSHOT;
 			break;
@@ -1383,9 +933,7 @@ void M_StartMovie(void)
 			return;
 	}
 
-	if (moviemode == MM_APNG)
-		CONS_Printf(M_GetText("Movie mode enabled (%s).\n"), "aPNG");
-	else if (moviemode == MM_GIF)
+	if (moviemode == MM_GIF)
 		CONS_Printf(M_GetText("Movie mode enabled (%s).\n"), "GIF");
 	else if (moviemode == MM_SCREENSHOT)
 		CONS_Printf(M_GetText("Movie mode enabled (%s).\n"), "screenshots");
@@ -1441,52 +989,12 @@ void M_SaveFrame(void)
 			}
 
 			return;
-		case MM_APNG:
-#ifdef USE_APNG
-			{
-				UINT8 *linear = NULL;
-				if (!apng_FILE) // should not happen!!
-				{
-					moviemode = MM_OFF;
-					movieframesrecorded = 0;
-					return;
-				}
-
-				if (rendermode == render_soft)
-				{
-					// munge planar buffer to linear
-					linear = screens[2];
-					I_ReadScreen(linear);
-				}
-#ifdef HWRENDER
-				else
-					linear = HWR_GetScreenshot();
-#endif
-				M_PNGFrame(apng_ptr, apng_info_ptr, (png_bytep)linear);
-#ifdef HWRENDER
-				if (rendermode != render_soft && linear)
-					free(linear);
-#endif
-				movieframesrecorded += 1;
-
-				if (apng_frames == PNG_UINT_31_MAX)
-				{
-					CONS_Alert(CONS_NOTICE, M_GetText("Max movie size reached\n"));
-					M_StopMovie();
-				}
-			}
-#else
-			moviemode = MM_OFF;
-			movieframesrecorded = 0;
-#endif
-			return;
 		default:
 			return;
 	}
 #endif
 }
 
-// GIF recordings only right now
 void M_PauseMovie(void)
 {
 	if (moviemode != MM_GIF)
@@ -1507,28 +1015,6 @@ void M_StopMovie(void)
 			if (!GIF_close())
 				return;
 			break;
-		case MM_APNG:
-#ifdef USE_APNG
-			if (!apng_FILE)
-				return;
-
-			if (apng_frames)
-			{
-				M_PNGfix_acTL(apng_ptr, apng_info_ptr, apng_ainfo_ptr);
-				apng_write_end(apng_ptr, apng_info_ptr, apng_ainfo_ptr);
-			}
-
-			png_destroy_write_struct(&apng_ptr, &apng_info_ptr);
-
-			fclose(apng_FILE);
-			apng_FILE = NULL;
-			CONS_Printf("aPNG closed; wrote %u frames\n", (UINT32)apng_frames);
-			apng_frames = 0;
-			movieframesrecorded = 0;
-			break;
-#else
-			return;
-#endif
 		case MM_SCREENSHOT:
 			break;
 		default:
@@ -1555,12 +1041,6 @@ long int M_SavedSize(void)
 	{	
 		case MM_GIF:
 			return GIF_ReturnSizeBecauseImTooGoodAtC();
-		case MM_APNG:
-#ifdef USE_APNG
-		return ftell(apng_FILE);
-#else
-		return 0;
-#endif
 		default:
 			return 0;
 	}

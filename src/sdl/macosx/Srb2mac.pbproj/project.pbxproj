@@ -1113,34 +1113,6 @@
 			path = ../../hardware/hw_md2.h;
 			refType = 2;
 		};
-		84177744085A106C000C01D8 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			name = hw3dsdrv.h;
-			path = ../../hardware/hw3dsdrv.h;
-			refType = 2;
-		};
-		84177745085A106C000C01D8 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			name = hw3sound.c;
-			path = ../../hardware/hw3sound.c;
-			refType = 2;
-		};
-		84177746085A106C000C01D8 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			name = hw3sound.h;
-			path = ../../hardware/hw3sound.h;
-			refType = 2;
-		};
-		84177747085A106C000C01D8 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			name = hws_data.h;
-			path = ../../hardware/hws_data.h;
-			refType = 2;
-		};
 		84177748085A1097000C01D8 = {
 			fileEncoding = 30;
 			isa = PBXFileReference;

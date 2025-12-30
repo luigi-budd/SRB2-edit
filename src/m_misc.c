@@ -865,6 +865,152 @@ static const char *Newsnapshotfile(const char *pathname, const char *ext)
 }
 #endif
 
+#ifdef HAVE_PNG
+FUNCNORETURN static void PNG_error(png_structp PNG, png_const_charp pngtext)
+{
+	//CONS_Debug(DBG_RENDER, "libpng error at %p: %s", PNG, pngtext);
+	I_Error("libpng error at %p: %s", PNG, pngtext);
+}
+
+static void PNG_warn(png_structp PNG, png_const_charp pngtext)
+{
+	CONS_Debug(DBG_RENDER, "libpng warning at %p: %s", PNG, pngtext);
+}
+
+static void M_PNGhdr(png_structp png_ptr, png_infop png_info_ptr, PNG_CONST png_uint_32 width, PNG_CONST png_uint_32 height, PNG_CONST png_byte *palette)
+{
+	const png_byte png_interlace = PNG_INTERLACE_NONE; //PNG_INTERLACE_ADAM7
+	if (palette)
+	{
+		png_colorp png_PLTE = png_malloc(png_ptr, sizeof(png_color)*256); //palette
+		const png_byte *pal = palette;
+		png_uint_16 i;
+		for (i = 0; i < 256; i++)
+		{
+			png_PLTE[i].red   = *pal; pal++;
+			png_PLTE[i].green = *pal; pal++;
+			png_PLTE[i].blue  = *pal; pal++;
+		}
+		png_set_IHDR(png_ptr, png_info_ptr, width, height, 8, PNG_COLOR_TYPE_PALETTE,
+		 png_interlace, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+		png_write_info_before_PLTE(png_ptr, png_info_ptr);
+		png_set_PLTE(png_ptr, png_info_ptr, png_PLTE, 256);
+		png_free(png_ptr, (png_voidp)png_PLTE); // safe in libpng-1.2.1+
+		png_set_filter(png_ptr, PNG_FILTER_TYPE_BASE, PNG_FILTER_NONE);
+		png_set_compression_strategy(png_ptr, Z_DEFAULT_STRATEGY);
+	}
+	else
+	{
+		png_set_IHDR(png_ptr, png_info_ptr, width, height, 8, PNG_COLOR_TYPE_RGB,
+		 png_interlace, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+		png_write_info_before_PLTE(png_ptr, png_info_ptr);
+		png_set_compression_strategy(png_ptr, Z_FILTERED);
+	}
+}
+
+static void M_PNGText(png_structp png_ptr, png_infop png_info_ptr, PNG_CONST png_byte movie)
+{
+#ifdef PNG_TEXT_SUPPORTED
+#define SRB2PNGTXT 11 //PNG_KEYWORD_MAX_LENGTH(79) is the max
+	png_text png_infotext[SRB2PNGTXT];
+	char keytxt[SRB2PNGTXT][12] = {
+	"Title", "Description", "Playername", "Mapnum", "Mapname",
+	"Location", "Interface", "Render Mode", "Revision", "Build Date", "Build Time"};
+	char titletxt[] = "Sonic Robo Blast 2 " VERSIONSTRING;
+	png_charp playertxt =  cv_playername.zstring;
+	char desctxt[] = "SRB2 Screenshot";
+	char Movietxt[] = "SRB2 Movie";
+	size_t i;
+	char interfacetxt[] =
+#ifdef HAVE_SDL
+	 "SDL";
+#elif defined (_WINDOWS)
+	 "DirectX";
+#else
+	 "Unknown";
+#endif
+	char rendermodetxt[9];
+	char maptext[8];
+	char lvlttltext[48];
+	char locationtxt[40];
+	char ctrevision[40];
+	char ctdate[40];
+	char cttime[40];
+
+	switch (rendermode)
+	{
+		case render_soft:
+			strcpy(rendermodetxt, "Software");
+			break;
+		case render_opengl:
+			strcpy(rendermodetxt, "OpenGL");
+			break;
+		default: // Just in case
+			strcpy(rendermodetxt, "None");
+			break;
+	}
+
+	if (gamestate == GS_LEVEL)
+		snprintf(maptext, 8, "%s", G_BuildMapName(gamemap));
+	else
+		snprintf(maptext, 8, "Unknown");
+
+	if (gamestate == GS_LEVEL && mapheaderinfo[gamemap-1]->lvlttl[0] != '\0')
+		snprintf(lvlttltext, 48, "%s%s%s",
+			mapheaderinfo[gamemap-1]->lvlttl,
+			(mapheaderinfo[gamemap-1]->levelflags & LF_NOZONE) ? "" : " Zone",
+			(mapheaderinfo[gamemap-1]->actnum > 0) ? va(" %d",mapheaderinfo[gamemap-1]->actnum) : "");
+	else
+		snprintf(lvlttltext, 48, "Unknown");
+
+	if (gamestate == GS_LEVEL && players[displayplayer].mo)
+		snprintf(locationtxt, 40, "X:%d Y:%d Z:%d A:%d",
+			players[displayplayer].mo->x>>FRACBITS,
+			players[displayplayer].mo->y>>FRACBITS,
+			players[displayplayer].mo->z>>FRACBITS,
+			FixedInt(AngleFixed(players[displayplayer].mo->angle)));
+	else
+		snprintf(locationtxt, 40, "Unknown");
+
+	memset(png_infotext,0x00,sizeof (png_infotext));
+
+	for (i = 0; i < SRB2PNGTXT; i++)
+		png_infotext[i].key  = keytxt[i];
+
+	png_infotext[0].text = titletxt;
+	if (movie)
+		png_infotext[1].text = Movietxt;
+	else
+		png_infotext[1].text = desctxt;
+	png_infotext[2].text = playertxt;
+	png_infotext[3].text = maptext;
+	png_infotext[4].text = lvlttltext;
+	png_infotext[5].text = locationtxt;
+	png_infotext[6].text = interfacetxt;
+	png_infotext[7].text = rendermodetxt;
+	png_infotext[8].text = strncpy(ctrevision, comprevision, sizeof(ctrevision)-1);
+	png_infotext[9].text = strncpy(ctdate, compdate, sizeof(ctdate)-1);
+	png_infotext[10].text = strncpy(cttime, comptime, sizeof(cttime)-1);
+
+	png_set_text(png_ptr, png_info_ptr, png_infotext, SRB2PNGTXT);
+#undef SRB2PNGTXT
+#endif
+}
+
+static inline void M_PNGImage(png_structp png_ptr, png_infop png_info_ptr, PNG_CONST png_uint_32 height, png_bytep png_buf)
+{
+	png_uint_32 pitch = png_get_rowbytes(png_ptr, png_info_ptr);
+	png_bytepp row_pointers = png_malloc(png_ptr, height* sizeof (png_bytep));
+	png_uint_32 y;
+	for (y = 0; y < height; y++)
+	{
+		row_pointers[y] = png_buf;
+		png_buf += pitch;
+	}
+	png_write_image(png_ptr, row_pointers);
+	png_free(png_ptr, (png_voidp)row_pointers);
+}
+#endif
 // ==========================================================================
 //                             MOVIE MODE
 // ==========================================================================

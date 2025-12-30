@@ -48,10 +48,6 @@
 // Thok camera snap (ctrl-f "chalupa")
 #include "g_input.h"
 
-#ifdef HW3SOUND
-#include "hardware/hw3sound.h"
-#endif
-
 #ifdef HWRENDER
 #include "hardware/hw_light.h"
 #include "hardware/hw_main.h"

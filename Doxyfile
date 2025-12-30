@@ -223,7 +223,6 @@ INCLUDE_FILE_PATTERNS  =
 PREDEFINED             = DOXYGEN \
                          HWRENDER \
                          DIRECTFULLSCREEN \
-                         HW3SOUND \
                          LOGMESSAGES \
                          WALLSPLATS \
                          FLOORSPLATS

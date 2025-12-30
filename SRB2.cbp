@@ -18,7 +18,6 @@ HAVE_MIXER for SDL2_mixer
 
 HAVE_PNG for PNG support (for APNG support. compile libs/libpng-src)
 HWRENDER for hardware render support
-HW3SOUND for 3D hardware sound  support
 ]]>
 			</notes>
 		</Option>
@@ -80,7 +79,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_SDL" />
 					<Add option="-DHAVE_MIXER" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DPARANOIA" />
 					<Add option="-DRANGECHECK" />
@@ -110,7 +108,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_SDL" />
 					<Add option="-DHAVE_MIXER" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
@@ -141,7 +138,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_SDL" />
 					<Add option="-DHAVE_MIXER" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DPARANOIA" />
 					<Add option="-DRANGECHECK" />
@@ -193,7 +189,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_MIXER" />
 					<Add option="-DHAVE_FMOD" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
@@ -286,7 +281,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DSTDC_HEADERS" />
 					<Add option="-D_WINDOWS" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
@@ -562,7 +556,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_SDL" />
 					<Add option="-DHAVE_MIXER" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DPARANOIA" />
 					<Add option="-DRANGECHECK" />
@@ -603,7 +596,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_SDL" />
 					<Add option="-DHAVE_MIXER" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
@@ -637,7 +629,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DSTDC_HEADERS" />
 					<Add option="-D_WINDOWS" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DPARANOIA" />
 					<Add option="-DRANGECHECK" />
@@ -682,7 +673,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DSTDC_HEADERS" />
 					<Add option="-D_WINDOWS" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />

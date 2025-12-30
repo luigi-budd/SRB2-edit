@@ -29,10 +29,6 @@
 #include "lua_hook.h"
 #include "m_cond.h" // SECRET_SKIN
 
-#ifdef HW3SOUND
-#include "hardware/hw3sound.h"
-#endif
-
 boolean LUA_CallAction(enum actionnum actionnum, mobj_t *actor);
 
 player_t *stplyr;

@@ -3012,12 +3012,12 @@ void ST_ReallyCoolAndUsefulGIFDrawer(void)
 	INT32 mheight = BASEVIDHEIGHT - 8;
 	V_DrawThinString(0, mheight,
 		cmap|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM,
-        gif_paused ? "II" : (moviemode == MM_APNG ? "APNG" : "GIF")
+        gif_paused ? "II" : "GIF"
 	);
 
 	boolean withincap = (cv_gif_maxsize.value != 0 ? (orig_gif_size >= (unsigned)(max(cv_gif_maxsize.value - 2, 0) * kMb)) : false);
 
-	V_DrawThinString((gif_paused ? 12 : (moviemode == MM_APNG ? 22 : 17)), mheight,
+	V_DrawThinString((gif_paused ? 12 : 17), mheight,
 		V_ALLOWLOWERCASE|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM,
 		va(
 			//shitty ik lol

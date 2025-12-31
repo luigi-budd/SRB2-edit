@@ -88,10 +88,6 @@
 #include "win32/win_main.h" // I_DoStartupMouse
 #endif
 
-#ifdef HW3SOUND
-#include "hardware/hw3sound.h"
-#endif
-
 #include "lua_script.h"
 
 // Version numbers for netplay :upside_down_face:
@@ -807,10 +803,6 @@ void D_SRB2Loop(void)
 		interp = R_UsingFrameInterpolation() && !dedicated;
 		doDisplay = false;
 
-#ifdef HW3SOUND
-		HW3S_BeginFrameUpdate();
-#endif
-
 		refreshdirmenu = 0; // not sure where to put this, here as good as any?
 
 		if (realtics > 0 || singletics)
@@ -896,10 +888,6 @@ void D_SRB2Loop(void)
 		S_UpdateSounds(); // move positional sounds
 		if (realtics > 0 || singletics)
 			S_UpdateClosedCaptions();
-
-#ifdef HW3SOUND
-		HW3S_EndFrameUpdate();
-#endif
 
 		LUA_Step();
 

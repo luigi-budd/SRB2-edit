@@ -410,6 +410,9 @@ consvar_t cv_glallowshaders = CVAR_INIT ("gr_allowcustomshaders", "On", CV_NETVA
 consvar_t cv_returnfromconnect = CVAR_INIT ("returnfromconnect", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 consvar_t cv_showserverinfo = CVAR_INIT ("showserverinfo", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 
+CV_PossibleValue_t CV_CVarInformation[] = {{0, "All"}, {1, "Hide Origin"}, {2, "Hide Flags"}, {3, "Values Only"}, {0, NULL}};
+consvar_t cv_cvarinformation = CVAR_INIT ("cvarinfo", "0", CV_CLIENT, CV_CVarInformation, NULL);
+
 char timedemo_name[256];
 boolean timedemo_csv;
 char timedemo_csv_id[256];
@@ -648,6 +651,7 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_showping);
 	CV_RegisterVar(&cv_pingmeasurement);
 	CV_RegisterVar(&cv_showcsays);
+	CV_RegisterVar(&cv_cvarinformation)
 
 	CV_RegisterVar(&cv_allowseenames);
 

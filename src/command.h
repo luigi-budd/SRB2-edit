@@ -117,7 +117,7 @@ typedef enum
 	CV_FLOAT = 16, // the value is fixed 16 : 16, where unit is FRACUNIT
 	               // (allow user to enter 0.45 for ex)
 	               // WARNING: currently only supports set with CV_Set()
-	CV_NOTINNET = 32,    // some varaiable can't be changed in network but is not netvar (ex: splitscreen)
+	CV_NOTINNET = 32,    // some variables can't be changed in network but is not netvar (ex: splitscreen)
 	CV_MODIFIED = 64,    // this bit is set when cvar is modified
 	CV_SHOWMODIF = 128,  // say something when modified
 	CV_SHOWMODIFONETIME = 256, // same but will be reset to 0 when modified, set in toggle

@@ -51,9 +51,6 @@
 #endif
 #endif
 
-#ifdef HW3SOUND
-#include "../hardware/hw3dsdrv.h"
-#endif
 
 #define GETFUNC(func) \
 	else if (0 == strcmp(#func, funcName)) \

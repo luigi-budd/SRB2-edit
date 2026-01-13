@@ -18,7 +18,6 @@ HAVE_MIXER for SDL2_mixer
 
 HAVE_PNG for PNG support (for APNG support. compile libs/libpng-src)
 HWRENDER for hardware render support
-HW3SOUND for 3D hardware sound  support
 ]]>
 			</notes>
 		</Option>
@@ -80,7 +79,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_SDL" />
 					<Add option="-DHAVE_MIXER" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DPARANOIA" />
 					<Add option="-DRANGECHECK" />
@@ -110,7 +108,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_SDL" />
 					<Add option="-DHAVE_MIXER" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
@@ -141,7 +138,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_SDL" />
 					<Add option="-DHAVE_MIXER" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DPARANOIA" />
 					<Add option="-DRANGECHECK" />
@@ -193,7 +189,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_MIXER" />
 					<Add option="-DHAVE_FMOD" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
@@ -286,7 +281,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DSTDC_HEADERS" />
 					<Add option="-D_WINDOWS" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
@@ -562,7 +556,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_SDL" />
 					<Add option="-DHAVE_MIXER" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DPARANOIA" />
 					<Add option="-DRANGECHECK" />
@@ -603,7 +596,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DHAVE_SDL" />
 					<Add option="-DHAVE_MIXER" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
@@ -637,7 +629,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DSTDC_HEADERS" />
 					<Add option="-D_WINDOWS" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DPARANOIA" />
 					<Add option="-DRANGECHECK" />
@@ -682,7 +673,6 @@ HW3SOUND for 3D hardware sound  support
 					<Add option="-DSTDC_HEADERS" />
 					<Add option="-D_WINDOWS" />
 					<Add option="-DHWRENDER" />
-					<Add option="-DHW3SOUND" />
 					<Add option="-DHAVE_PNG" />
 					<Add option="-DNDEBUG" />
 					<Add option="-DCOMPVERSION" />
@@ -1091,55 +1081,6 @@ HW3SOUND for 3D hardware sound  support
 		</Unit>
 		<Unit filename="src/g_input.h" />
 		<Unit filename="src/g_state.h" />
-		<Unit filename="src/hardware/hw3dsdrv.h">
-			<Option target="Debug Native/SDL" />
-			<Option target="Release Native/SDL" />
-			<Option target="Debug Mingw/SDL" />
-			<Option target="Release Mingw/SDL" />
-			<Option target="Debug Mingw/DirectX" />
-			<Option target="Release Mingw/DirectX" />
-			<Option target="Debug Any/Dummy" />
-			<Option target="Release Any/Dummy" />
-			<Option target="Debug Linux/SDL" />
-			<Option target="Release Linux/SDL" />
-			<Option target="Debug Mingw64/SDL" />
-			<Option target="Release Mingw64/SDL" />
-			<Option target="Debug Mingw64/DirectX" />
-			<Option target="Release Mingw64/DirectX" />
-		</Unit>
-		<Unit filename="src/hardware/hw3sound.c">
-			<Option compilerVar="CC" />
-			<Option target="Debug Native/SDL" />
-			<Option target="Release Native/SDL" />
-			<Option target="Debug Mingw/SDL" />
-			<Option target="Release Mingw/SDL" />
-			<Option target="Debug Mingw/DirectX" />
-			<Option target="Release Mingw/DirectX" />
-			<Option target="Debug Any/Dummy" />
-			<Option target="Release Any/Dummy" />
-			<Option target="Debug Linux/SDL" />
-			<Option target="Release Linux/SDL" />
-			<Option target="Debug Mingw64/SDL" />
-			<Option target="Release Mingw64/SDL" />
-			<Option target="Debug Mingw64/DirectX" />
-			<Option target="Release Mingw64/DirectX" />
-		</Unit>
-		<Unit filename="src/hardware/hw3sound.h">
-			<Option target="Debug Native/SDL" />
-			<Option target="Release Native/SDL" />
-			<Option target="Debug Mingw/SDL" />
-			<Option target="Release Mingw/SDL" />
-			<Option target="Debug Mingw/DirectX" />
-			<Option target="Release Mingw/DirectX" />
-			<Option target="Debug Any/Dummy" />
-			<Option target="Release Any/Dummy" />
-			<Option target="Debug Linux/SDL" />
-			<Option target="Release Linux/SDL" />
-			<Option target="Debug Mingw64/SDL" />
-			<Option target="Release Mingw64/SDL" />
-			<Option target="Debug Mingw64/DirectX" />
-			<Option target="Release Mingw64/DirectX" />
-		</Unit>
 		<Unit filename="src/hardware/hw_bsp.c">
 			<Option compilerVar="CC" />
 			<Option target="Debug Native/SDL" />
@@ -1421,22 +1362,6 @@ HW3SOUND for 3D hardware sound  support
 		</Unit>
 		<Unit filename="src/hardware/hw_trick.c">
 			<Option compilerVar="CC" />
-			<Option target="Debug Native/SDL" />
-			<Option target="Release Native/SDL" />
-			<Option target="Debug Mingw/SDL" />
-			<Option target="Release Mingw/SDL" />
-			<Option target="Debug Mingw/DirectX" />
-			<Option target="Release Mingw/DirectX" />
-			<Option target="Debug Any/Dummy" />
-			<Option target="Release Any/Dummy" />
-			<Option target="Debug Linux/SDL" />
-			<Option target="Release Linux/SDL" />
-			<Option target="Debug Mingw64/SDL" />
-			<Option target="Release Mingw64/SDL" />
-			<Option target="Debug Mingw64/DirectX" />
-			<Option target="Release Mingw64/DirectX" />
-		</Unit>
-		<Unit filename="src/hardware/hws_data.h">
 			<Option target="Debug Native/SDL" />
 			<Option target="Release Native/SDL" />
 			<Option target="Debug Mingw/SDL" />

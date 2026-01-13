@@ -325,9 +325,7 @@ void S_StartSoundName(void *mo, const  char *soundname);
 void S_StopSoundByID(void *origin, sfxenum_t sfx_id);
 void S_StopSoundByNum(sfxenum_t sfxnum);
 
-#ifndef HW3SOUND
 #define S_StartAttackSound S_StartSound
 #define S_StartScreamSound S_StartSound
-#endif
 
 #endif

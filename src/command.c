@@ -924,36 +924,41 @@ static void COM_Help_f(void)
 
 				CONS_Printf("\x82""Command: %s:\n", cmd->name);
 				CONS_Printf("\x82""Flags:""\x80\n");
+
 				if (cmd->flags & COM_ADMIN)
 				CONS_Printf("COM_ADMIN ");
+
 				if (cmd->flags & COM_SPLITSCREEN)
 				CONS_Printf("COM_SPLITSCREEN ");
+
 				if (cmd->flags & COM_LOCAL)
 				CONS_Printf("COM_LOCAL ");
+
 				if (cmd->flags & COM_LUA)
 				CONS_Printf("COM_LUA ");
+
 				if (cmd->flags & COM_LUACOM)
 				CONS_Printf("COM_LUACOM ");
+
 				if (cmd->flags & COM_CLIENT)
 				CONS_Printf("COM_CLIENT ");
+
 				if (cmd->flags & COM_SPLITSCREEN)
 				CONS_Printf("COM_SPLITSCREEN");
+
 				CONS_Printf("\n");
 
 				if (!(cv_cvarinformation.value == 1 || cv_cvarinformation.value == 3)) {
 					if (!(cmd->flags & (COM_LUACOM | COM_CLIENT))) {
 						CONS_Printf("Origin: Vanilla\n");
 						CONS_Printf("\x82""\nCheck wiki.srb2.org for more information\n");
-					}
-					if ((cmd->flags & COM_LUACOM)) {
-						CONS_Printf("Origin: Addon\n");
-						CONS_Printf("\x82""Refer to the addon for info about the command.\n");
-					}
-					if ((cmd->flags & COM_CLIENT))
+					} else if (cmd->flags & COM_LUACOM && !(cmd->flags & COM_CLIENT)) {
+						CONS_Printf("Origin: Addon\n""\x82""Refer to the addon for info about the command.\n");
+					} else if (cmd->flags & COM_CLIENT && !(cmd->flags & COM_LUACOM))
 					{
-						CONS_Printf("Origin: Client\n");
-						CONS_Printf("\x82""\nCheck SRB2-edit's README for more information\n");
-					}
+						CONS_Printf("Origin: Client\n""\x82""\nCheck SRB2-edit's README for more information\n");
+					} else if (cmd->flags & (COM_CLIENT && COM_LUACOM)) // Someone tried being funny.
+					CONS_Printf("Origin: Unknown\n");
 				}
 				return;
 			}
@@ -2511,7 +2516,6 @@ static boolean CV_Command(void)
 	consvar_t *v;
 	boolean floatmode = false;
 	INT32 i = 0;
-	const char *cvalue = NULL;
 
 	// check variables
 	v = CV_FindVar(COM_Argv(0));
@@ -2531,33 +2535,47 @@ static boolean CV_Command(void)
 			CONS_Printf("\x82""Variable %s:\n", v->name);
 			if (!(cv_cvarinformation.value == 2 || cv_cvarinformation.value == 3)) {
 				CONS_Printf(M_GetText("  flags: "));
-				// This sucks to read. But it works.
+
+				// This sucks. But I do not want to overcomplicate either.
 				if (v->flags & CV_SAVE)
 				CONS_Printf("CV_SAVE ");
+
 				if (v->flags & CV_CALL)
 				CONS_Printf("CV_CALL ");
+
 				if (v->flags & CV_NETVAR)
 				CONS_Printf("CV_NETVAR ");
+
 				if (v->flags & CV_NOINIT)
 				CONS_Printf("CV_NOINIT ");
+
 				if (v->flags & CV_FLOAT)
 				CONS_Printf("CV_FLOAT ");
+
 				if (v->flags & CV_NOTINNET)
 				CONS_Printf("CV_NOTINNET ");
+
 				if (v->flags & CV_MODIFIED)
 				CONS_Printf("CV_MODIFIED ");
+
 				if (v->flags & CV_SHOWMODIF)
 				CONS_Printf("CV_SHOWMODIF ");
+
 				if (v->flags & CV_SHOWMODIFONETIME)
 				CONS_Printf("CV_SHOWMODIFONETIME ");
+
 				if (v->flags & CV_NOSHOWHELP)
 				CONS_Printf("CV_NOSHOWHELP ");
+
 				if (v->flags & CV_CHEAT)
 				CONS_Printf("CV_CHEAT ");
+
 				if (v->flags & CV_ALLOWLUA)
 				CONS_Printf("CV_ALLOWLUA ");
+
 				if (v->flags & CV_LUAVAR)
 				CONS_Printf("CV_LUAVAR ");
+
 				if (v->flags & CV_CLIENT)
 				CONS_Printf("CV_CLIENT");
 
@@ -2567,16 +2585,15 @@ static boolean CV_Command(void)
 				if (!(v->flags & (CV_LUAVAR | CV_CLIENT))) {
 					CONS_Printf("Origin: Vanilla\n");
 					CONS_Printf("\x82""Check wiki.srb2.org for more information\n");
-				}
-				if (!(v->flags & CV_LUAVAR)) {
+				} else if (v->flags & CV_LUAVAR && !(v->flags & CV_CLIENT)) {
 					CONS_Printf("Origin: Addon\n");
-					CONS_Printf("\x82""Refer to the addons for info about the command.\n");
-				}
-				if (!(v->flags & CV_CLIENT))
+					CONS_Printf("\x82""Refer to the addon for info about the command.\n");
+				} else if (v->flags & CV_CLIENT && !(v->flags & CV_LUAVAR))
 				{
 					CONS_Printf("Origin: Client\n");
 					CONS_Printf("\x82""Check SRB2-edit's README for more information\n");
-				}
+				} else if (v->flags & (CV_CLIENT && CV_LUAVAR))
+					CONS_Printf("Origin: Unknown\n");
 			}
 			
 			if (v->PossibleValue)
@@ -2595,8 +2612,6 @@ static boolean CV_Command(void)
 						if (skincolors[i].accessible)
 						{
 							CONS_Printf("  %-2d : %s\n", i, skincolors[i].name);
-							if (i == v->value)
-								cvalue = skincolors[i].name;
 						}
 					}
 				}
@@ -2630,27 +2645,19 @@ static boolean CV_Command(void)
 						} else {
 							CONS_Printf("  %-2d : %s\n", v->PossibleValue[i].value,
 								v->PossibleValue[i].strvalue);
-
-								if (v->PossibleValue[i].value == v->value) {
-								cvalue = v->PossibleValue[i].strvalue;
 								}
 						i++;
 						}
 					}
 				}
 
-			if (cvalue)
-				CONS_Printf(" Current value: %s\n", cvalue);
-			else if (v->string)
-				CONS_Printf(" Current value: %s\n", v->string);
-			else
-				CONS_Printf(" Current value: %d\n", v->value);
+			CONS_Printf(M_GetText("\"%s\" is \"%s\" default is \"%s\"\n"), v->name, v->string, v->defaultvalue);
 
 			if (v->revert.v.string != NULL && strcmp(v->revert.v.string, v->string) != 0)
 					CONS_Printf(" Value before netgame: %s\n", v->revert.v.string);
-			}
 			return true;
 		}
+		
 		if (!(v->flags & CV_SAVE) || CV_FilterVarByVersion(v, COM_Argv(1)))
 		{
 			CV_Set(v, COM_Argv(1));

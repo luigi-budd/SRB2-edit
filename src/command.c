@@ -961,7 +961,7 @@ static void COM_Help_f(void)
 				return;
 			}
 
-			CONS_Printf("No command named %s. If you are looking for a variable, do \"%s\" instead.", help, help);
+			CV_FindVar(COM_Argv(1)) ? CONS_Printf("No command named %s. If you are looking for a variable, do \"%s\" instead.", help, help) : CONS_Printf("No command named %s.", help);
 			CONS_Printf("\x82""\nCheck wiki.srb2.org for more or try typing help without arguments. For info on flags, do \"help -f\".\n");
 		return;
 	}
@@ -1031,7 +1031,7 @@ static void COM_Help_f(void)
 			CONS_Printf("(no commands have been created by addons)");
 	}
 
-		CONS_Printf("\x82""\nCheck wiki.srb2.org for more or type help <command or variable>\n");
+		CONS_Printf("\x82""\nCheck wiki.srb2.org for more or type help <command>. For info on flags, do \"help -f\".\n");
 
 		CONS_Debug(DBG_GAMELOGIC, "\x82Total : %d\n", i);
 	}

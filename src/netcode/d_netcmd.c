@@ -411,7 +411,7 @@ consvar_t cv_returnfromconnect = CVAR_INIT ("returnfromconnect", "On", CV_SAVE|C
 consvar_t cv_showserverinfo = CVAR_INIT ("showserverinfo", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 
 CV_PossibleValue_t CV_CVarInformation[] = {{0, "All"}, {1, "Hide Origin"}, {2, "Hide Flags"}, {3, "Values Only"}, {0, NULL}};
-consvar_t cv_cvarinformation = CVAR_INIT ("cvarinfo", "0", CV_CLIENT|CV_SAVE, CV_CVarInformation, NULL);
+consvar_t cv_cvarinformation = CVAR_INIT ("cvarinfo", "All", CV_CLIENT|CV_SAVE, CV_CVarInformation, NULL);
 
 char timedemo_name[256];
 boolean timedemo_csv;

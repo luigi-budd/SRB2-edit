@@ -33,8 +33,8 @@ typedef enum
 	// COM_AddCommand: without this flag, the command
 	// CANNOT be run from Lua.
 	COM_LUA         = 8,
-	COM_LUACOM = 16, // Command is by Lua
-	COM_CLIENT = 32 // Command isnt from vanilla SRB2
+	COM_LUACOM = 16, // Command was created by Lua
+	COM_CLIENT = 32 // Command is in SRB2-edit, but not Vanilla.
 } com_flags_t;
 
 typedef void (*com_func_t)(void);
@@ -110,14 +110,14 @@ void VS_Print(vsbuf_t *buf, const char *data); // strcats onto the sizebuf
 
 typedef enum
 {
-	CV_SAVE = 1,   // save to config when quit game
+	CV_SAVE = 1,   // save to config on quit
 	CV_CALL = 2,   // call function on change
-	CV_NETVAR = 4, // send it when change (see logboris.txt at 12-4-2000)
-	CV_NOINIT = 8, // dont call function when var is registered (1st set)
+	CV_NETVAR = 4, // send on change (see logboris.txt at 12-4-2000)
+	CV_NOINIT = 8, // dont call function on register (1st set)
 	CV_FLOAT = 16, // the value is fixed 16 : 16, where unit is FRACUNIT
 	               // (allow user to enter 0.45 for ex)
 	               // WARNING: currently only supports set with CV_Set()
-	CV_NOTINNET = 32,    // some varaiable can't be changed in network but is not netvar (ex: splitscreen)
+	CV_NOTINNET = 32,    // variable isn't a netvar, but can't be changed in netgames (ex: splitscreen)
 	CV_MODIFIED = 64,    // this bit is set when cvar is modified
 	CV_SHOWMODIF = 128,  // say something when modified
 	CV_SHOWMODIFONETIME = 256, // same but will be reset to 0 when modified, set in toggle
@@ -126,9 +126,9 @@ typedef enum
 	                 // can only be set when we have the pointer to it
                    // used on menus
 	CV_CHEAT = 2048, // Don't let this be used in multiplayer unless cheats are on.
-	CV_ALLOWLUA = 4096,/* Let this be called from Lua */
-	CV_LUAVAR = 8192, // CV created by Lua
-	CV_CLIENT = 16384, // CV isnt a vanilla SRB2 client variable
+	CV_ALLOWLUA = 4096, // Let this be called from Lua
+	CV_LUAVAR = 8192, // Variable was created by Lua.
+	CV_CLIENT = 16384, // Variable is in SRB2-edit, but not Vanilla.
 } cvflags_t;
 
 typedef struct CV_PossibleValue_s

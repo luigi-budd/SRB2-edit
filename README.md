@@ -54,9 +54,14 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Pause GIFs *WHILE* Recording! (Bound to F2 by default)
 
 ## Console
-- `help` now lists commands and variables by origin. Passing `-a` shows addon-created cvars and commands, `-c` shows SRB2-edit cvars/coms, and `-v` shows vanilla cvars/coms. Passing nothing lists every single one under their respective header.
-- `help <cvar>` is now gone. Instead, all info is shown by just doing `<cvar>`. All flags are printed and are not renamed. `cvarinfo` lets you hide the flags and origin sections ("All" by default).
+- `help` now lists commands and variables by origin. Parameters are as follows:
+  | Param      | Desc      |
+  | ------------- | ------------- |
+  | `-v` | Only show vars and/or commands from vanilla SRB2 only.  |
+  | `-c` | Only show vars and/or commands that are in SRB2-edit, and not vanilla. |
+  | `-a` | Show vars and/or commands created by addons |
 
+- `help <cvar>` is now removed. Instead, all info is shown by just doing `<cvar>`. All flags are printed. `cvarinfo` lets you hide the flags and origin sections ("Show All" by default).
 
 # Lua Additions
 

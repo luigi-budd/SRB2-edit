@@ -410,8 +410,8 @@ consvar_t cv_glallowshaders = CVAR_INIT ("gr_allowcustomshaders", "On", CV_NETVA
 consvar_t cv_returnfromconnect = CVAR_INIT ("returnfromconnect", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 consvar_t cv_showserverinfo = CVAR_INIT ("showserverinfo", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 
-CV_PossibleValue_t CV_CVarInformation[] = {{0, "All"}, {1, "Hide Origin"}, {2, "Hide Flags"}, {3, "Values Only"}, {0, NULL}};
-consvar_t cv_cvarinformation = CVAR_INIT ("cvarinfo", "All", CV_CLIENT|CV_SAVE, CV_CVarInformation, NULL);
+CV_PossibleValue_t CV_CVarInformation[] = {{0, "Show All"}, {1, "Hide Origin"}, {2, "Hide Flags"}, {3, "Only Show Values"}, {0, NULL}};
+consvar_t cv_cvarinformation = CVAR_INIT ("cvarinfo", "Show All", CV_CLIENT|CV_SAVE, CV_CVarInformation, NULL);
 
 char timedemo_name[256];
 boolean timedemo_csv;
@@ -520,7 +520,7 @@ void D_RegisterServerCommands(void)
 
 	COM_AddCommand("addfolder", Command_Addfolder, COM_LUA);
 	COM_AddCommand("addfile", Command_Addfile, COM_LUA);
-	COM_AddCommand("addfilelocal", Command_Addfilelocal, COM_LUA);
+	COM_AddCommand("addfilelocal", Command_Addfilelocal, COM_LUA|COM_CLIENT);
 	COM_AddCommand("listwad", Command_ListWADS_f, COM_LUA);
 
 	COM_AddCommand("runsoc", Command_RunSOC, COM_LUA);

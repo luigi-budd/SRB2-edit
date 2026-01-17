@@ -885,30 +885,33 @@ static void COM_Help_f(void)
 	xcommand_t *cmd;
 	consvar_t *cvar;
 	boolean foundflag = false;
-	// should just concat to a string instead of having 3 booleans...
-	// ... but this is a lot shorter.
+	// Params for only showing certain origins (NOT type)
 	boolean parmv = COM_CheckPartialParm("-v");
 	boolean parmc = COM_CheckPartialParm("-c");
 	boolean parma = COM_CheckPartialParm("-a");
 
 	INT32 i = 0;
 
-	if (COM_CheckParm("-f")) {
-		CONS_Printf("CV_SAVE | This variable saves to config.\n");
-		CONS_Printf("CV_CALL | Calls a function when changed.\n");
-		CONS_Printf("CV_NETVAR | Sent to all clients on change.\n");
-		CONS_Printf("CV_NOINIT | No functions called on register.\n");
-		CONS_Printf("CV_FLOAT | Fixed 16 bits (int and frac), unit is FRACUNIT. Value is converted in possible values list.\n");
-		CONS_Printf("CV_NOTINNET | Can't be changed in netgames, however is NOT a netvar.\n");
-		CONS_Printf("CV_MODIFIED | Console variable was modified.\n");
-		CONS_Printf("CV_SHOWMODIF | Show something when modified.\n");
+	// Okay, bear with me here: It aligns ingame.
+	if (COM_CheckPartialParm("-f")) {
+		if (!(cv_cvarinformation.value == 1 || cv_cvarinformation.value == 3)) // feature-creeping.
+		CONS_Printf("FLAG\t\t\t\t   DESCRIPTION\n");
+
+		CONS_Printf("CV_SAVE\t\t\t | This variable saves to config.\n");
+		CONS_Printf("CV_CALL\t\t\t | Calls a function on changed.\n");
+		CONS_Printf("CV_NETVAR\t\t\t | Sent to all connected clients on change.\n");
+		CONS_Printf("CV_NOINIT\t\t\t | No functions called when registered.\n");
+		CONS_Printf("CV_FLOAT\t\t\t | Fixed 16 bits (int and frac), unit is FRACUNIT. Value is converted in possible values.\n");
+		CONS_Printf("CV_NOTINNET\t\t | Can't be changed in netgames, however ISN'T a netvar.\n");
+		CONS_Printf("CV_MODIFIED\t\t | This variable was modified.\n");
+		CONS_Printf("CV_SHOWMODIF\t\t | Show something when modified.\n");
 		CONS_Printf("CV_SHOWMODIFONETIME | Same as CV_SHOWMODIF, except resets to 0 when modified.\n");
-		CONS_Printf("CV_NOSHOWHELP | Does not appear in help list.\n");
+		CONS_Printf("CV_NOSHOWHELP\t\t | Does not appear in help list.\n");
 		// CV_HIDEN is unnecessary as those vars are outside the console
-		CONS_Printf("CV_CHEAT | Can only be used if cheats are enabled.\n");
-		CONS_Printf("CV_ALLOWLUA | Lua can call this console variable.\n");
-		CONS_Printf("CV_LUAVAR | This console variable was made by Lua.\n");
-		CONS_Printf("CV_CLIENT | Variable is not in vanilla SRB2.\n"); // Saying "made by SRB2-edit" feels wrong when some of them are ports
+		CONS_Printf("CV_CHEAT\t\t\t | Can only be used if cheats are enabled.\n");
+		CONS_Printf("CV_ALLOWLUA\t\t | Lua can call this console variable.\n");
+		CONS_Printf("CV_LUAVAR\t\t\t | This console variable was made by Lua.\n");
+		CONS_Printf("CV_CLIENT\t\t\t | Variable is not in vanilla SRB2.\n"); // Saying "made by SRB2-edit" feels wrong when some of them are ports
 		CONS_Printf("Commands with COM_LUA can be executed by Lua. Command flags are self-explanatory.\n");
 		return;
 	} 
@@ -952,16 +955,16 @@ static void COM_Help_f(void)
 					if (!(cmd->flags & (COM_LUACOM | COM_CLIENT))) {
 						CONS_Printf("\tOrigin: Vanilla""\x82"" (Check wiki.srb2.org for more information)\n");
 					} else if (cmd->flags & COM_LUACOM) {
-						CONS_Printf("\tOrigin: Addon""\x82"" (Refer to the addon for more information)\n");
+						CONS_Printf("\tOrigin: Addon""\x82"" (Refer to the addon page for more information)\n");
 					} else if (cmd->flags & COM_CLIENT && !(cmd->flags & COM_LUACOM))
 					{
-						CONS_Printf("\tOrigin: Client""\x82"" (Check SRB2-edit's README for more information)\n");
+						CONS_Printf("\tOrigin: Client""\x82"" (Check SRB2-edit's \"README.md\" file for more information)\n");
 					}
 				}
 				return;
 			}
 
-			CV_FindVar(COM_Argv(1)) ? CONS_Printf("No command named %s. If you are looking for a variable, do \"%s\" instead.", help, help) : CONS_Printf("No command named %s.", help);
+			CV_FindVar(COM_Argv(1)) ? CONS_Printf("No command named %s exists. If you want info about that variable, do \"%s\" instead.", help, help) : CONS_Printf("No command named %s exists.", help);
 			CONS_Printf("\x82""\nCheck wiki.srb2.org for more or try typing help without arguments. For info on flags, do \"help -f\".\n");
 		return;
 	}
@@ -969,55 +972,56 @@ static void COM_Help_f(void)
 	{
 		// this is really dirty...
 		if ((!parmc && !parma) || parmv) {
-		CONS_Printf("\x83""Vanilla:""\x82""\n\tVariables: ");
-		for (cvar = consvar_vars; cvar; cvar = cvar->next)
-		{
-			if (cvar->flags & (CV_NOSHOWHELP | CV_CLIENT | CV_LUAVAR))
-				continue;
-			CONS_Printf("%s ", cvar->name);
-			i++;
-		}
+			CONS_Printf("\x83""Vanilla:""\x82""\n\tVariables: ");
+			for (cvar = consvar_vars; cvar; cvar = cvar->next)
+			{
+				if (cvar->flags & (CV_NOSHOWHELP | CV_CLIENT | CV_LUAVAR))
+					continue;
+				CONS_Printf("%s ", cvar->name);
+				i++;
+			}
         CONS_Printf("\x82""\n\tCommands: ");
-        for (cmd = com_commands; cmd; cmd = cmd->next)
-        {
-            if (cmd->flags & (CV_LUAVAR | CV_CLIENT))
-                continue;
+        	for (cmd = com_commands; cmd; cmd = cmd->next)
+        	{
+            	if (cmd->flags & (COM_LUACOM | COM_CLIENT))
+                	continue;
             CONS_Printf("%s ",cmd->name);
             i++;
-        }
+        		}
 		}
 		if ((!parmv && !parma) || parmc) {
-		CONS_Printf(parmc ? "\x83""Client:""\x82""\n\tVariables: " : "\n\x83""Client:""\x82""\n\tVariables: ");
-		for (cvar = consvar_vars; cvar; cvar = cvar->next)
-		{
-			if (cvar->flags & (CV_NOSHOWHELP | CV_LUAVAR) || !(cvar->flags & CV_CLIENT))
-				continue;
-			CONS_Printf("%s ", cvar->name);
-			i++;
-		}
+			CONS_Printf(parmc ? "\x83""Client:""\x82""\n\tVariables: " : "\n\x83""Client:""\x82""\n\tVariables: ");
+			for (cvar = consvar_vars; cvar; cvar = cvar->next)
+			{
+				if (cvar->flags & (CV_NOSHOWHELP | CV_LUAVAR) || !(cvar->flags & CV_CLIENT))
+					continue;
+				CONS_Printf("%s ", cvar->name);
+				i++;
+			}
         CONS_Printf("\n\x82""\tCommands: ");
         for (cmd = com_commands; cmd; cmd = cmd->next)
         {
-            if (!(cmd->flags & COM_CLIENT))
+            if (!(cmd->flags & COM_CLIENT) || (cmd->flags & COM_LUACOM)) // if it has both, its someone messing with the flags table, count as addon instead
                 continue;
             CONS_Printf("%s ",cmd->name);
             i++;
         }
-	}
-		if ((!parmv && !parmc) || parma) {
-		CONS_Printf(parma ? "\x83""Addons:""\x82""\n\tVariables: " : "\n\x83""Addons:""\x82""\n\tVariables: ");
-		for (cvar = consvar_vars; cvar; cvar = cvar->next)
-		{
-			if (cvar->flags & (CV_NOSHOWHELP | CV_CLIENT) || !(cvar->flags & CV_LUAVAR))
-				continue;
-			CONS_Printf("%s ", cvar->name);
-			foundflag = true;
-			i++;
 		}
+		if ((!parmv && !parmc) || parma) {
+			CONS_Printf(parma ? "\x83""Addons:""\x82""\n\tVariables: " : "\n\x83""Addons:""\x82""\n\tVariables: ");
+			for (cvar = consvar_vars; cvar; cvar = cvar->next)
+			{
+				if (cvar->flags & CV_NOSHOWHELP || !(cvar->flags & CV_LUAVAR))
+					continue;
+				CONS_Printf("%s ", cvar->name);
+				foundflag = true;
+				i++;
+			}
+
 		if (!foundflag)
 			CONS_Printf("(no variables have been created by addons)");
-
 		foundflag = false;
+
         CONS_Printf("\n\x82""\tCommands: ");
         for (cmd = com_commands; cmd; cmd = cmd->next)
         {
@@ -1029,7 +1033,7 @@ static void COM_Help_f(void)
         }
 		if (!foundflag)
 			CONS_Printf("(no commands have been created by addons)");
-	}
+		}
 
 		CONS_Printf("\x82""\nCheck wiki.srb2.org for more or type help <command>. For info on flags, do \"help -f\".\n");
 

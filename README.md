@@ -15,7 +15,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Joining netgame shows progress bar on "checking files" ([Lugent's PR](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2446) [Lugent's PR](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2556))
 - Easily rejoin servers you've played before! ("`connect last`", Multiplayer -> Rejoin Previous Servers...)
 - Draw gif information to hud ("`moviemodeinfo`")
-- Crosshairs can invert pixels behind, to improve their visibility ("`crosshair_invert`")
+- Crosshairs can invert pixels behind, to improve their visibility ("`crosshair_invert`" and `crosshair2_invert`)
 - Thin captions and thin FPS! (Load "tinyfontfix.pk3" for music note on thin captions)
 - Countdown beep isn't ear piercingly loud!
 - Snake download game background fixed!
@@ -39,6 +39,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Addfilelocal from SRB2K Saturn! (use "`addfilelocal`" command or press R-ALT in the addons menu)
 - Minimum input delay from SRB2Kart Saturn/Ring Racers! (`mindelay`)
 - Improved startup times! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
+- `cam_centertoggle` and `cam2_centertoggle` are no longer exclusive to Automatic.
 
 ## Modding and Debugging
 - `renderhitbox` in multiplayer

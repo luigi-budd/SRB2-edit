@@ -1392,7 +1392,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	}
 
 	// Center view toggling!
-	// [SRB2-edit] (archiNiko 2025/1/18) this has ZERO RIGHTS to be
+	// [SRB2-edit] this has ZERO RIGHTS to be
 	// a simple mode only feature. It is now for all playstyles.
 	{
 		static boolean last_centerviewdown[2], centerviewhold[2]; // detect taps for toggle behavior

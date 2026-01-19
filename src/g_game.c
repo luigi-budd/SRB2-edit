@@ -1113,7 +1113,7 @@ INT16 ticcmd_oldangleturn[2];
 boolean ticcmd_centerviewdown[2]; // For simple controls, lock the camera behind the player
 mobj_t *ticcmd_ztargetfocus[2]; // Locking onto an object?
 
-#define JOYDECAY(x) (x*2)/3
+#define JOYDECAY(x) (x*62)/100
 
 void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 {
@@ -1239,11 +1239,11 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		turnleft = turnleft || (lookjoystickvector.xaxis < 0);
 	}
 	joyturning[forplayer] = JOYDECAY(joyturning[forplayer]);
-	if (lookjoystickvector.xaxis != 0)
+	if (lookjoystickvector.xaxis != 0 && abs(lookjoystickvector.xaxis) >= abs(joyturning[forplayer]))
 		joyturning[forplayer] = lookjoystickvector.xaxis;
 	
 	joyaimturning[forplayer] = JOYDECAY(joyaimturning[forplayer]);
-	if (lookjoystickvector.yaxis != 0)
+	if (lookjoystickvector.yaxis != 0 && abs(lookjoystickvector.yaxis) >= abs(joyaimturning[forplayer]))
 		joyaimturning[forplayer] = lookjoystickvector.yaxis;
 
 	forward = side = 0;
@@ -1547,7 +1547,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		}
 
 		if (analogjoystickmove && joyaiming[forplayer] && joyaimturning[forplayer] != 0 && configlookaxis != 0)
-			*myaiming += (joyaimturning[forplayer]<<16) * screen_invert;
+			*myaiming += FixedMul(joyaimturning[forplayer] * angleturn[2] * 156, turnmultiplier) * screen_invert;
 
 		// spring back if not using keyboard neither mouselookin'
 		if (!keyboard_look[forplayer] && configlookaxis == 0 && !joyaiming[forplayer] && !mouseaiming)

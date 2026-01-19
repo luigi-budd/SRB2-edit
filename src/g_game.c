@@ -1391,13 +1391,16 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		return;
 	}
 
-	// Centerview can be a toggle in simple mode!
+	// Center view toggling!
+	// [SRB2-edit] this has ZERO RIGHTS to be
+	// a simple mode only feature. It is now for all playstyles.
 	{
 		static boolean last_centerviewdown[2], centerviewhold[2]; // detect taps for toggle behavior
 		boolean down = PLAYERINPUTDOWN(ssplayer, GC_CENTERVIEW);
 
-		if (!(controlstyle == CS_SIMPLE && cv_cam_centertoggle[forplayer].value))
-			centerviewdown = down;
+		if (cv_cam_centertoggle[forplayer].value == 0) {
+				centerviewdown = down;
+			}
 		else
 		{
 			if (down && !last_centerviewdown[forplayer])

@@ -1112,6 +1112,9 @@ static fixed_t angleturn[3] = {640, 1280, 320}; // + slow turn
 INT16 ticcmd_oldangleturn[2];
 boolean ticcmd_centerviewdown[2]; // For simple controls, lock the camera behind the player
 mobj_t *ticcmd_ztargetfocus[2]; // Locking onto an object?
+
+#define JOYDECAY(x) (x*63)/100
+
 void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 {
 	boolean forcestrafe = false;
@@ -1138,6 +1141,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	static boolean keyboard_look[2]; // true if lookup/down using keyboard
 	static boolean resetdown[2]; // don't cam reset every frame
 	static boolean joyaiming[2]; // check the last frame's value if we need to reset the camera
+	static boolean joyturning[2];
+	static boolean joyaimturning[2];
 
 	// simple mode vars
 	static boolean zchange[2]; // only switch z targets once per press
@@ -1233,6 +1238,19 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		turnright = turnright || (lookjoystickvector.xaxis > 0);
 		turnleft = turnleft || (lookjoystickvector.xaxis < 0);
 	}
+	joyturning[forplayer] = JOYDECAY(joyturning[forplayer]);
+	if (lookjoystickvector.xaxis != 0 && abs(lookjoystickvector.xaxis) >= abs(joyturning[forplayer]))
+		joyturning[forplayer] = lookjoystickvector.xaxis;
+	
+	// only the aiming axis gets a deadzonne
+	const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_digitaldeadzone.value)/32 >> FRACBITS;
+	if (-jdeadzone < lookjoystickvector.yaxis && lookjoystickvector.yaxis < jdeadzone)
+		lookjoystickvector.yaxis = 0;
+
+	joyaimturning[forplayer] = JOYDECAY(joyaimturning[forplayer]);
+	if (lookjoystickvector.yaxis != 0 && abs(lookjoystickvector.yaxis) >= abs(joyaimturning[forplayer]))
+		joyaimturning[forplayer] = lookjoystickvector.yaxis;
+
 	forward = side = 0;
 
 	// use two stage accelerative turning
@@ -1292,10 +1310,10 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		else if (turnleft)
 			cmd->angleturn = (INT16)(cmd->angleturn + ((angleturn[tspeed] * turnmultiplier)>>FRACBITS));
 
-		if (analogjoystickmove && lookjoystickvector.xaxis != 0)
+		if (analogjoystickmove && joyturning[forplayer] != 0)
 		{
 			// JOYAXISRANGE should be 1023 (divide by 1024)
-			cmd->angleturn = (INT16)(cmd->angleturn - ((((lookjoystickvector.xaxis * angleturn[1]) >> 10) * turnmultiplier)>>FRACBITS)); // ANALOG!
+			cmd->angleturn = (INT16)(cmd->angleturn - ((((joyturning[forplayer] * angleturn[1]) >> 10) * turnmultiplier)>>FRACBITS)); // ANALOG!
 		}
 
 		if (turnright || turnleft || abs(cmd->angleturn) > angleturn[2])
@@ -1391,13 +1409,16 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		return;
 	}
 
-	// Centerview can be a toggle in simple mode!
+	// Center view toggling!
+	// [SRB2-edit] this has ZERO RIGHTS to be
+	// a simple mode only feature. It is now for all playstyles.
 	{
 		static boolean last_centerviewdown[2], centerviewhold[2]; // detect taps for toggle behavior
 		boolean down = PLAYERINPUTDOWN(ssplayer, GC_CENTERVIEW);
 
-		if (!(controlstyle == CS_SIMPLE && cv_cam_centertoggle[forplayer].value))
-			centerviewdown = down;
+		if (cv_cam_centertoggle[forplayer].value == 0) {
+				centerviewdown = down;
+			}
 		else
 		{
 			if (down && !last_centerviewdown[forplayer])
@@ -1530,8 +1551,8 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 			*myaiming += (mldy<<19)*player_invert*screen_invert;
 		}
 
-		if (analogjoystickmove && joyaiming[forplayer] && lookjoystickvector.yaxis != 0 && configlookaxis != 0)
-			*myaiming += (lookjoystickvector.yaxis<<16) * screen_invert;
+		if (analogjoystickmove && joyaiming[forplayer] && joyaimturning[forplayer] != 0 && configlookaxis != 0)
+			*myaiming += FixedMul(joyaimturning[forplayer] * angleturn[2] * 166, turnmultiplier) * screen_invert;
 
 		// spring back if not using keyboard neither mouselookin'
 		if (!keyboard_look[forplayer] && configlookaxis == 0 && !joyaiming[forplayer] && !mouseaiming)
@@ -1772,6 +1793,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	cmd->angleturn = (INT16)(cmd->angleturn + ticcmd_oldangleturn[forplayer]);
 	ticcmd_oldangleturn[forplayer] = cmd->angleturn;
 }
+#undef JOYDECAY
 
 ticcmd_t *G_CopyTiccmd(ticcmd_t* dest, const ticcmd_t* src, const size_t n)
 {

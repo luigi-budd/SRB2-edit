@@ -84,6 +84,8 @@ typedef struct gl_vissprite_s
 	UINT8 translucency;       //alpha level 0-255
 
 	angle_t angle; // for splats
+	fixed_t zdelta; // ditto
+	fixed_t ox, oy, oz, dx, dy; // ugh (fnf)
 
 	//Hurdler: 25/04/2000: now support colormap in hardware mode
 	UINT8 *colormap;

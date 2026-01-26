@@ -3527,6 +3527,7 @@ static void HWR_DrawSprite(gl_vissprite_t *spr)
 			wallVerts[i].z = rotated[i].y + spr->z1;
 		}
 
+		fixed_t old_zdelta, old_ox,old_oy,old_oz, old_dx,old_dy;
 		if (renderflags & (RF_SLOPESPLAT | RF_OBJECTSLOPESPLAT))
 		{
 			pslope_t *standingslope = spr->mobj->standingslope; // The slope that the object is standing on.
@@ -3537,16 +3538,38 @@ static void HWR_DrawSprite(gl_vissprite_t *spr)
 
 			if (standingslope && (renderflags & RF_OBJECTSLOPESPLAT))
 				splatslope = standingslope;
+			
+			if (splatslope)
+			{
+				old_zdelta = splatslope->zdelta;
+				old_ox = splatslope->o.x;
+				old_oy = splatslope->o.y;
+				old_oz = splatslope->o.z;
+				old_dx = splatslope->d.x;
+				old_dy = splatslope->d.y;
+			}
 		}
 
 		// Set vertical position
 		if (splatslope)
 		{
+			splatslope->zdelta = spr->zdelta;
+			splatslope->o.x = spr->ox;
+			splatslope->o.y = spr->oy;
+			splatslope->o.z = spr->oz;
+			splatslope->d.x = spr->dx;
+			splatslope->d.y = spr->dy;
 			for (i = 0; i < 4; i++)
 			{
 				fixed_t slopez = P_GetSlopeZAt(splatslope, FLOAT_TO_FIXED(wallVerts[i].x), FLOAT_TO_FIXED(wallVerts[i].z));
 				wallVerts[i].y = FIXED_TO_FLOAT(slopez) + zoffset;
 			}
+			splatslope->zdelta = old_zdelta;
+			splatslope->o.x = old_ox;
+			splatslope->o.y = old_oy;
+			splatslope->o.z = old_oz;
+			splatslope->d.x = old_dx;
+			splatslope->d.y = old_dy;
 		}
 		else
 		{
@@ -4908,7 +4931,14 @@ static void HWR_ProjectSprite(mobj_t *thing)
 	vis->bbox = false;
 
 	vis->angle = interp.angle;
+	vis->zdelta = interp.zdelta;
+	vis->ox = interp.ox;
+	vis->oy = interp.oy;
+	vis->oz = interp.oz;
+	vis->dx = interp.dx;
+	vis->dy = interp.dy;
 }
+
 
 // Precipitation projector for hardware mode
 static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)

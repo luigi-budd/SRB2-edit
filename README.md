@@ -39,7 +39,8 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Addfilelocal from SRB2K Saturn! (use "`addfilelocal`" command or press R-ALT in the addons menu)
 - Minimum input delay from SRB2Kart Saturn/Ring Racers! (`mindelay`)
 - Improved startup times! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
-- `cam_centertoggle` and `cam2_centertoggle` are no longer exclusive to Automatic.
+- "`cam_centertoggle`" and "`cam2_centertoggle`" are no longer exclusive to Automatic!
+- Show private messages as host! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
 
 ## Modding and Debugging
 - `renderhitbox` in multiplayer

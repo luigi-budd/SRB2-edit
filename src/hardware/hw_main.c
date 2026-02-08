@@ -2986,7 +2986,8 @@ static void HWR_DrawDropShadow(mobj_t *thing, fixed_t scale)
 // This is expecting a pointer to an array containing 4 wallVerts for a sprite
 static void HWR_RotateSpritePolyToAim(gl_vissprite_t *spr, FOutVector *wallVerts, const boolean precip)
 {
-	if (cv_glspritebillboarding.value
+	if ((cv_glspritebillboarding.value == 1 || (cv_glspritebillboarding.value == 2 &&
+		(spr->mobj->player || spr->mobj->type == MT_TAILSOVERLAY)))
 		&& spr && spr->mobj && !R_ThingIsPaperSprite(spr->mobj)
 		&& wallVerts)
 	{
@@ -3294,7 +3295,7 @@ static void HWR_SplitSprite(gl_vissprite_t *spr)
 		wallVerts[1].y = endbot;
 
 		// The x and y only need to be adjusted in the case that it's not a papersprite
-		if (cv_glspritebillboarding.value
+		if ((cv_glspritebillboarding.value == 1 || (cv_glspritebillboarding.value == 2 && (spr->mobj->player || spr->mobj->type == MT_TAILSOVERLAY)))
 			&& spr->mobj && !R_ThingIsPaperSprite(spr->mobj))
 		{
 			// Get the x and z of the vertices so billboarding draws correctly
@@ -4524,7 +4525,7 @@ static void HWR_ProjectSprite(mobj_t *thing)
 			if (!md2->found || md2->scale < 0.0f)
 				return;
 		}
-		else if (!cv_glspritebillboarding.value)
+		else if (cv_glspritebillboarding.value == 0)
 			return;
 	}
 
@@ -5841,6 +5842,7 @@ static CV_PossibleValue_t glshaders_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Igno
 static CV_PossibleValue_t glmodelinterpolation_cons_t[] = {{0, "Off"}, {1, "Sometimes"}, {2, "Always"}, {0, NULL}};
 static CV_PossibleValue_t glfakecontrast_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Smooth"}, {0, NULL}};
 static CV_PossibleValue_t glshearing_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Third-person"}, {0, NULL}};
+static CV_PossibleValue_t glsprbillboard_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Players"}, {0, NULL}};
 
 static void CV_glfiltermode_OnChange(void);
 static void CV_glanisotropic_OnChange(void);
@@ -5877,7 +5879,7 @@ consvar_t cv_glmodellighting = CVAR_INIT ("gr_modellighting", "Off", CV_SAVE|CV_
 consvar_t cv_glmodeltranslations = CVAR_INIT ("gr_modeltranslations", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 
 consvar_t cv_glshearing = CVAR_INIT ("gr_shearing", "Off", CV_SAVE, glshearing_cons_t, NULL);
-consvar_t cv_glspritebillboarding = CVAR_INIT ("gr_spritebillboarding", "Off", CV_SAVE, CV_OnOff, NULL);
+consvar_t cv_glspritebillboarding = CVAR_INIT ("gr_spritebillboarding", "Off", CV_SAVE, glsprbillboard_cons_t, NULL);
 consvar_t cv_glskydome = CVAR_INIT ("gr_skydome", "On", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_glfakecontrast = CVAR_INIT ("gr_fakecontrast", "Smooth", CV_SAVE, glfakecontrast_cons_t, NULL);
 consvar_t cv_glslopecontrast = CVAR_INIT ("gr_slopecontrast", "Off", CV_SAVE, CV_OnOff, NULL);

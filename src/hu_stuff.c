@@ -111,6 +111,9 @@ static patch_t *nopingicon;
 // crosshair 0 = off, 1 = cross, 2 = angle, 3 = point, see m_menu.c
 static patch_t *crosshair[HU_CROSSHAIRS]; // 3 precached crosshair graphics
 
+// Show PMs (if host), yoinked from Classic.
+static consvar_t cv_showprivatemessages = CVAR_INIT ("hu_showprivatemessages", "Yes", CV_SAVE|CV_CLIENT|CV_NOSHOWHELP, CV_YesNo, NULL);
+
 // -------
 // protos.
 // -------
@@ -740,7 +743,8 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	if (playernum == consoleplayer // By you
 	|| (target == -1 && ST_SameTeam(&players[consoleplayer], &players[playernum])) // To your team
 	|| target == 0 // To everyone
-	|| consoleplayer == target-1) // To you
+	|| consoleplayer == target-1 // To you
+	|| cv_showprivatemessages.value & server) // If enabled, show as server
 	{
 		const char *prefix = "", *cstart = "", *cend = "", *adminchar = "\x82~\x83", *remotechar = "\x82@\x83", *fmt2, *textcolor = "\x80";
 		char *tempchar = NULL;
@@ -809,6 +813,13 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 		}
 		else if (target > 0) // By you, to another player
 		{
+			if (cv_showprivatemessages.value && server)
+			{
+				HU_AddChatText(va("\x83[TO %s]<%s> %s", player_names[target-1], player_names[playernum], msg), cv_chatnotifications.value);
+				if (tempchar)
+					Z_Free(tempchar);
+				return;
+			}
 			// Use target's name.
 			dispname = player_names[target-1];
 			prefix = "\x82[TO]";

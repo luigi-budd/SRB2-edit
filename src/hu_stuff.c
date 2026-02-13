@@ -745,7 +745,7 @@ static void Got_Saycmd(UINT8 **p, INT32 playernum)
 	|| (target == -1 && ST_SameTeam(&players[consoleplayer], &players[playernum])) // To your team
 	|| target == 0 // To everyone
 	|| consoleplayer == target-1 // To you
-	|| cv_showprivatemessages.value && server) // If enabled, show as server
+	|| (cv_showprivatemessages.value && server)) // If enabled, show as server
 	{
 		const char *prefix = "", *cstart = "", *cend = "", *adminchar = "\x82~\x83", *remotechar = "\x82@\x83", *fmt2, *textcolor = "\x80";
 		char *tempchar = NULL;

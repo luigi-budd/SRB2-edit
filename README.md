@@ -64,7 +64,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
   | `-c` | Only show variables and/or commands that are in SRB2-edit, and not vanilla. |
   | `-a` | Only show variables and/or commands created by addons |
 
-- Console variables can no longer be used as an argument for `help`. "`cvarinfo`" lets you hide the flags and origin sections ("Show All" by default).
+- Console variables can no longer be used as an argument for `help`, they now print their info instead of just their current and default value. "`cvarinfo`" lets you hide the flags and origin sections ("Show All" by default).
 
 # Lua Additions
 

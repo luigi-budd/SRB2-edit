@@ -15,7 +15,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Joining netgame shows progress bar on "checking files" ([Lugent's PR](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2446) [Lugent's PR](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2556))
 - Easily rejoin servers you've played before! ("`connect last`", Multiplayer -> Rejoin Previous Servers...)
 - Draw gif information to hud ("`moviemodeinfo`")
-- Crosshairs can invert pixels behind, to improve their visibility ("`crosshair_invert`" and `crosshair2_invert`)
+- Crosshairs can invert pixels behind, to improve their visibility ("`crosshair_invert`" and "`crosshair2_invert`")
 - Thin captions and thin FPS! (Load "tinyfontfix.pk3" for music note on thin captions)
 - Countdown beep isn't ear piercingly loud!
 - Snake download game background fixed!
@@ -37,18 +37,19 @@ You can compile the source code normally (see "Compiling") and put the binary in
 ## Gameplay / Netplay
 - Skin change at any time
 - Addfilelocal from SRB2K Saturn! (use "`addfilelocal`" command or press R-ALT in the addons menu)
-- Minimum input delay from SRB2Kart Saturn/Ring Racers! (`mindelay`)
+- Minimum input delay from SRB2Kart Saturn/Ring Racers! ("`mindelay`")
 - Improved startup times! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
 - "`cam_centertoggle`" and "`cam2_centertoggle`" are no longer exclusive to Automatic!
 - See private messages as host! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
 
 ## Modding and Debugging
-- `renderhitbox` in multiplayer
+- "`renderhitbox`" in multiplayer
 - Lua HUD interpolation from SRB2K Saturn
 - "`freezelevel`" debug command (Be careful using when clients are connected!)
 - HUD camera struct updates position in first person! (credits [Jiskster](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2629) & [Hanicef](https://git.do.srb2.org/Hanicef/SRB2Classic/-/commit/681bd160f5be3925a97d798d00e67b32a8c1df71))
 - `v.cachePatch` accepts a second parameter for rotation! (https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2662)
 - Added "`TR`" as an alias to "`TICRATE`" in Lua
+- "`getlogfile`" command (Returns the absolute path of the current log, useful when latest-log.txt is sym-linked to a different log)
 
 ## GIFs
 - Adjustable gif size cap, toggable too! (`gif_maxsize`, "Max GIF Size (MB)")
@@ -63,7 +64,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
   | `-c` | Only show variables and/or commands that are in SRB2-edit, and not vanilla. |
   | `-a` | Only show variables and/or commands created by addons |
 
-- `help <cvar>` is now removed. Instead, all info is shown by just doing `<cvar>`. All flags are printed. `cvarinfo` lets you hide the flags and origin sections ("Show All" by default).
+- Console variables can no longer be used as an argument for `help`. "`cvarinfo`" lets you hide the flags and origin sections ("Show All" by default).
 
 # Lua Additions
 

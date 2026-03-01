@@ -49,14 +49,14 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - HUD camera struct updates position in first person! (credits [Jiskster](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2629) & [Hanicef](https://git.do.srb2.org/Hanicef/SRB2Classic/-/commit/681bd160f5be3925a97d798d00e67b32a8c1df71))
 - `v.cachePatch` accepts a second parameter for rotation! (https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2662)
 - Added "`TR`" as an alias to "`TICRATE`" in Lua
-- "`getlogfile`" command (Returns the absolute path of the current log, useful when latest-log.txt is sym-linked to a different log)
+- "`getlogfile`" command (Prints the absolute path of the current log, useful when latest-log.txt is sym-linked to a different log)
 
 ## GIFs
 - Adjustable gif size cap, toggable too! (`gif_maxsize`, "Max GIF Size (MB)")
     - ^ When gif is capped, gif_rolling allows for another gif to immediately start! (`gif_rolling`, "Keep recording when capped")
 - Pause GIFs *WHILE* Recording! (Bound to F2 by default)
 
-## Console
+## Console && Misc. Commands
 - `help` now lists commands and variables by origin. Parameters are as follows:
   | Param      | Desc      |
   | ------------- | ------------- |
@@ -65,6 +65,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
   | `-a` | Only show variables and/or commands created by addons |
 
 - Console variables can no longer be used as an argument for `help`, they now print their info instead of just their current and default value. "`cvarinfo`" lets you hide the flags and origin sections ("Show All" by default).
+- "`cvcycle`" command (`cvcycle <cvar> [values]`): Inaccessible by Lua. Cycles given values on the cvar if the current value is found in the list (also loops around). Fails if the current value is not found, unless `-r` is specified (starts at the first arg if so).
 
 # Lua Additions
 

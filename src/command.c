@@ -53,6 +53,7 @@ static void COM_Wait_f(void);
 static void COM_Help_f(void);
 static void COM_Find_f(void);
 static void COM_Toggle_f(void);
+static void COM_CVCycle_f(void);
 static void COM_Add_f(void);
 
 
@@ -349,6 +350,7 @@ void COM_Init(void)
 	COM_AddCommand("find", COM_Find_f, COM_LUA);
 	COM_AddCommand("toggle", COM_Toggle_f, COM_LUA);
 	COM_AddCommand("add", COM_Add_f, COM_LUA);
+	COM_AddCommand("cvcycle", COM_CVCycle_f, COM_CLIENT); // doesn't check CV_Immutable(), add COM_LUA at own your risk.
 	RegisterNetXCmd(XD_NETVAR, Got_NetVar);
 }
 
@@ -895,7 +897,7 @@ static void COM_Help_f(void)
 	// Okay, bear with me here: It aligns ingame.
 	if (COM_CheckPartialParm("-f")) {
 		if (!(cv_cvarinformation.value == 1 || cv_cvarinformation.value == 3)) // feature-creeping.
-		CONS_Printf("FLAG\t\t\t\t   DESCRIPTION\n");
+			CONS_Printf("FLAG\t\t\t\t   DESCRIPTION\n");
 
 		CONS_Printf("CV_SAVE\t\t\t | This variable saves to config.\n");
 		CONS_Printf("CV_CALL\t\t\t | Calls a function on changed.\n");
@@ -929,36 +931,36 @@ static void COM_Help_f(void)
 				CONS_Printf(M_GetText("  flags: "));
 
 				if (cmd->flags & COM_ADMIN)
-				CONS_Printf("COM_ADMIN ");
+					CONS_Printf("COM_ADMIN ");
 
 				if (cmd->flags & COM_SPLITSCREEN)
-				CONS_Printf("COM_SPLITSCREEN ");
+					CONS_Printf("COM_SPLITSCREEN ");
 
 				if (cmd->flags & COM_LOCAL)
-				CONS_Printf("COM_LOCAL ");
+					CONS_Printf("COM_LOCAL ");
 
 				if (cmd->flags & COM_LUA)
-				CONS_Printf("COM_LUA ");
+					CONS_Printf("COM_LUA ");
 
 				if (cmd->flags & COM_LUACOM)
-				CONS_Printf("COM_LUACOM ");
+					CONS_Printf("COM_LUACOM ");
 
 				if (cmd->flags & COM_CLIENT)
-				CONS_Printf("COM_CLIENT ");
+					CONS_Printf("COM_CLIENT ");
 
 				if (cmd->flags & COM_SPLITSCREEN)
-				CONS_Printf("COM_SPLITSCREEN");
+					CONS_Printf("COM_SPLITSCREEN");
 
 				CONS_Printf("\n");
 
 				if (!(cv_cvarinformation.value == 1 || cv_cvarinformation.value == 3)) {
 					if (!(cmd->flags & (COM_LUACOM | COM_CLIENT))) {
 						CONS_Printf("\tOrigin: Vanilla""\x82"" (Check wiki.srb2.org for more information)\n");
-					} else if (cmd->flags & COM_LUACOM) {
-						CONS_Printf("\tOrigin: Addon""\x82"" (Refer to the addon page for more information)\n");
 					} else if (cmd->flags & COM_CLIENT && !(cmd->flags & COM_LUACOM))
 					{
 						CONS_Printf("\tOrigin: Client""\x82"" (Check SRB2-edit's \"README.md\" file for more information)\n");
+					} else {
+						CONS_Printf("\tOrigin: Addon""\x82"" (Refer to the addon page for more information)\n");
 					}
 				}
 				return;
@@ -1121,7 +1123,7 @@ static void COM_Toggle_f(void)
 
 	if (COM_Argc() != 2)
 	{
-		CONS_Printf(M_GetText("Toggle <cvar_name>: Toggle the value of a cvar\n"));
+		CONS_Printf(M_GetText("Toggle <cvar>: Toggle the value of a cvar\n"));
 		return;
 	}
 	cvar = CV_FindVar(COM_Argv(1));
@@ -1143,6 +1145,76 @@ static void COM_Toggle_f(void)
 	// netcvar don't change imediately
 	cvar->flags |= CV_SHOWMODIFONETIME;
 	CV_AddValue(cvar, +1);
+}
+
+/*
+ * [SRB2-edit] cycle a cvar's values through given args (not bools tho)
+ * 
+ * meant to lessen the load on autoexec.cfgs having like 30 billion binds
+ * half of those being changing some vars back.
+ * 
+ * e.g.: "cvcycle color red white green"
+ * 
+ * THIS DOES _NOT_ CHECK CV_Immutable(). Don't expose to Lua, please.
+ * 
+*/
+static void COM_CVCycle_f(void)
+{
+	consvar_t *cvar;
+
+	boolean reiterateparm = COM_CheckPartialParm("-r");
+
+	UINT16 arg = 2; // used for manually counting args
+	UINT16 args; // exists for the while loop, don't wanna spam call COM_Argc there
+
+	cvar = CV_FindVar(COM_Argv(1));
+
+	if (COM_Argc() < 4)
+	{
+		CONS_Printf("cvcycle <cvar> [values]: Cycle given values (can't be used on boolean cvars)\n\n");
+		CONS_Printf("\"-r\" can be specified at the end to start from the beginning IF the current value isn't in the list.\n");
+		return;
+	}
+
+	if (!cvar)
+	{
+		CONS_Alert(CONS_NOTICE, M_GetText("%s is not a cvar\n"), COM_Argv(1));
+		return;
+	}
+
+	// i don't think theres a reason to make this toggle 2.0
+	if (cvar->PossibleValue == CV_YesNo || cvar->PossibleValue == CV_OnOff || cvar->PossibleValue == CV_TrueFalse)
+	{
+		CONS_Alert(CONS_NOTICE, "%s is a boolean variable, please use \"toggle\" instead\n", COM_Argv(1));
+		return;
+	}
+
+	args = (reiterateparm ? (COM_Argc()-1) : COM_Argc());
+
+	// really stupid argument iteration
+	// if it breaks, blame bagel for being an idiot
+	while (args > arg) {
+		if (((strcmp(COM_Argv(arg), cvar->string)) == 0) || (atoi(COM_Argv(arg)) == cvar->value))
+		{
+			cvar->flags |= CV_SHOWMODIFONETIME;
+			if (args > (arg+1)) {
+				CV_Set(cvar, COM_Argv(arg+1));
+			} else { // loop backwards kthxbai
+				CV_Set(cvar, COM_Argv(2));
+			}
+			return;
+		}
+		arg++;
+	}
+
+	if (reiterateparm) {
+		cvar->flags |= CV_SHOWMODIFONETIME;
+		CV_Set(cvar, COM_Argv(2));
+		return;
+	} else { // our guy is stupid
+		CONS_Alert(CONS_NOTICE, "Could not find current value and \"-r\" was not specified!\n");
+		return;
+	}
 }
 
 /** Command variant of CV_AddValue
@@ -2583,16 +2655,19 @@ static boolean CV_Command(void)
 
 			CONS_Printf("\n");
 			}
-		if (!(cv_cvarinformation.value == 1 || cv_cvarinformation.value == 3)) {
-			if (!(v->flags & (CV_LUAVAR | CV_CLIENT))) {
+		if (!(cv_cvarinformation.value == 1 || cv_cvarinformation.value == 3))
+		{
+			if (!(v->flags & (CV_LUAVAR | CV_CLIENT)))
+			{
 				CONS_Printf("\tOrigin: Vanilla""\x82"" (Check wiki.srb2.org for more information)\n");
-			} else if (v->flags & CV_LUAVAR) {
+			} else if (v->flags & CV_LUAVAR)
+			{
 				CONS_Printf("\tOrigin: Addon""\x82"" (Refer to the addon for more information)\n");
 			} else if (v->flags & CV_CLIENT && !(v->flags & CV_LUAVAR))
 			{
 				CONS_Printf("\tOrigin: Client""\x82"" (Check SRB2-edit's README for more information)\n");
 			}
-			}
+		}
 			
 		if (v->PossibleValue)
 		{
@@ -2637,17 +2712,18 @@ static boolean CV_Command(void)
 
 				while (v->PossibleValue[i].strvalue)
 				{
-					if (floatmode) {
+					if (floatmode)
+					{
 							CONS_Printf("\t  %-2f : %s\n", FIXED_TO_FLOAT(v->PossibleValue[i].value),
 								v->PossibleValue[i].strvalue);
 					} else {
 							CONS_Printf("\t  %-2d : %s\n", v->PossibleValue[i].value,
 								v->PossibleValue[i].strvalue);
-								}
-						i++;
-						}
 					}
+						i++;
 				}
+			}
+		}
 
 			CONS_Printf("\nValue is \"%s\" default is \"%s\"\n", v->string, v->defaultvalue);
 

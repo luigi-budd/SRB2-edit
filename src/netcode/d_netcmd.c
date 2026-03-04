@@ -143,6 +143,7 @@ FUNCNORETURN static ATTRNORETURN void Command_Quit_f(void);
 static void Command_Playintro_f(void);
 
 static void Command_Displayplayer_f(void);
+static void Command_GetLogFile_f(void);
 
 static void Command_ExitLevel_f(void);
 static void Command_Showmap_f(void);
@@ -652,6 +653,7 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_pingmeasurement);
 	CV_RegisterVar(&cv_showcsays);
 	CV_RegisterVar(&cv_cvarinformation);
+	COM_AddCommand("getlogfile", Command_GetLogFile_f, COM_CLIENT);
 
 	CV_RegisterVar(&cv_allowseenames);
 
@@ -4743,6 +4745,16 @@ static void Got_ExitLevelcmd(UINT8 **cp, INT32 playernum)
 static void Command_Displayplayer_f(void)
 {
 	CONS_Printf(M_GetText("Displayplayer is %d\n"), displayplayer);
+}
+
+// Print the path of the current logfile
+static void Command_GetLogFile_f(void)
+{
+	#ifdef LOGMESSAGES // just in case
+		CONS_Printf("Current logfile is at %s\n", logfilename);
+	#else
+		CONS_Printf("Logging is disabled!\n");
+	#endif
 }
 
 /** Quits a game and returns to the title screen.

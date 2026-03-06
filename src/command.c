@@ -1155,14 +1155,13 @@ static void COM_Toggle_f(void)
  * 
  * e.g.: "cvcycle color red white green"
  * 
- * THIS DOES _NOT_ CHECK CV_Immutable(). Don't expose to Lua, please.
- * 
 */
 static void COM_CVCycle_f(void)
 {
 	consvar_t *cvar;
 
-	boolean reiterateparm = COM_CheckPartialParm("-r");
+	boolean parmb = COM_CheckPartialParm("-b");
+	boolean parms = COM_CheckPartialParm("-s");
 
 	UINT16 arg = 2; // used for manually counting args
 	UINT16 args; // exists for the while loop, don't wanna spam call COM_Argc there
@@ -1172,7 +1171,7 @@ static void COM_CVCycle_f(void)
 	if (COM_Argc() < 4)
 	{
 		CONS_Printf("cvcycle <cvar> [values]: Cycle given values (can't be used on boolean cvars)\n\n");
-		CONS_Printf("\"-r\" can be specified at the end to start from the beginning IF the current value isn't in the list.\n");
+		CONS_Printf("\"-b\" can be specified at the end to start from the beginning IF the current value isn't in the list.\n");
 		return;
 	}
 
@@ -1185,18 +1184,17 @@ static void COM_CVCycle_f(void)
 	// i don't think theres a reason to make this toggle 2.0
 	if (cvar->PossibleValue == CV_YesNo || cvar->PossibleValue == CV_OnOff || cvar->PossibleValue == CV_TrueFalse)
 	{
-		CONS_Alert(CONS_NOTICE, "%s is a boolean variable, please use \"toggle\" instead\n", COM_Argv(1));
+		CONS_Alert(CONS_NOTICE, "%s is a boolean variable, use \"toggle\" instead\n", COM_Argv(1));
 		return;
 	}
 
-	args = (reiterateparm ? (COM_Argc()-1) : COM_Argc());
+	args = (COM_Argc()-(parms+parmb));
 
-	// really stupid argument iteration
-	// if it breaks, blame bagel for being an idiot
 	while (args > arg) {
-		if (((strcmp(COM_Argv(arg), cvar->string)) == 0) || (atoi(COM_Argv(arg)) == cvar->value))
+		if (!(strcmp(COM_Argv(arg), cvar->string)) || (atoi(COM_Argv(arg)) == cvar->value))
 		{
-			cvar->flags |= CV_SHOWMODIFONETIME;
+			if (!parms)
+				cvar->flags |= CV_SHOWMODIFONETIME;
 			if (args > (arg+1)) {
 				CV_Set(cvar, COM_Argv(arg+1));
 			} else { // loop backwards kthxbai
@@ -1207,12 +1205,13 @@ static void COM_CVCycle_f(void)
 		arg++;
 	}
 
-	if (reiterateparm) {
-		cvar->flags |= CV_SHOWMODIFONETIME;
+	if (parmb) {
+		if (!parms)
+			cvar->flags |= CV_SHOWMODIFONETIME;
 		CV_Set(cvar, COM_Argv(2));
 		return;
 	} else { // our guy is stupid
-		CONS_Alert(CONS_NOTICE, "Could not find current value and \"-r\" was not specified!\n");
+		CONS_Alert(CONS_NOTICE, "Could not find current value and \"-b\" was not specified!\n");
 		return;
 	}
 }
@@ -1225,7 +1224,7 @@ static void COM_Add_f(void)
 
 	if (COM_Argc() != 3)
 	{
-		CONS_Printf(M_GetText("Add <cvar_name> <value>: Add to the value of a cvar. Negative values work too!\n"));
+		CONS_Printf(M_GetText("Add <cvar> <value>: Add to the value of a cvar. Negative values work too!\n"));
 		return;
 	}
 	cvar = CV_FindVar(COM_Argv(1));

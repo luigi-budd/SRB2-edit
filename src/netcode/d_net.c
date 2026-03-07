@@ -403,20 +403,6 @@ void Net_UnAcknowledgePacket(INT32 node)
 		nodes[node].firstacktosend = UINT8_MAX;
 }
 
-/** Checks if all acks have been received
-  *
-  * \return True if all acks have been received
-  *
-  */
-static boolean Net_AllAcksReceived(void)
-{
-	for (INT32 i = 0; i < MAXACKPACKETS; i++)
-		if (ackpak[i].acknum)
-			return false;
-
-	return true;
-}
-
 static void InitNode(node_t *node)
 {
 	node->firstacktosend = 0;

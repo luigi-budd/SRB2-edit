@@ -53,7 +53,7 @@ static void COM_Wait_f(void);
 static void COM_Help_f(void);
 static void COM_Find_f(void);
 static void COM_Toggle_f(void);
-static void COM_CVCycle_f(void);
+static void COM_Cycle_f(void);
 static void COM_Add_f(void);
 
 
@@ -350,7 +350,7 @@ void COM_Init(void)
 	COM_AddCommand("find", COM_Find_f, COM_LUA);
 	COM_AddCommand("toggle", COM_Toggle_f, COM_LUA);
 	COM_AddCommand("add", COM_Add_f, COM_LUA);
-	COM_AddCommand("cvcycle", COM_CVCycle_f, COM_CLIENT); // doesn't check CV_Immutable(), add COM_LUA at own your risk.
+	COM_AddCommand("cycle", COM_Cycle_f, COM_CLIENT); // doesn't check CV_Immutable(), add COM_LUA at own your risk.
 	RegisterNetXCmd(XD_NETVAR, Got_NetVar);
 }
 
@@ -1153,10 +1153,10 @@ static void COM_Toggle_f(void)
  * meant to lessen the load on autoexec.cfgs having like 30 billion binds
  * half of those being changing some vars back.
  * 
- * e.g.: "cvcycle color red white green"
+ * e.g.: "cycle color red white green"
  * 
 */
-static void COM_CVCycle_f(void)
+static void COM_Cycle_f(void)
 {
 	consvar_t *cvar;
 
@@ -1170,7 +1170,7 @@ static void COM_CVCycle_f(void)
 
 	if (COM_Argc() < 4)
 	{
-		CONS_Printf("cvcycle <cvar> [values]: Cycle given values (can't be used on boolean cvars)\n\n");
+		CONS_Printf("cycle <cvar> [values]: Cycle given values (can't be used on boolean cvars)\n\n");
 		CONS_Printf("\"-b\" can be specified at the end to start from the beginning IF the current value isn't in the list.\n");
 		return;
 	}

@@ -891,9 +891,6 @@ static void COM_Help_f(void)
 {
 	xcommand_t *cmd;
 	consvar_t *cvar;
-	// todo: this could be lowered to 5 booleans at the price of
-	// repeating a check, probably not worth. regardless this is
-	// too many booleans.
 	// Params for only showing certain origins (NOT type)
 	boolean parmv = COM_CheckPartialParm("-v");
 	boolean parmc = COM_CheckPartialParm("-c");

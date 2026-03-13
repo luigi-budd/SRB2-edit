@@ -51,6 +51,7 @@ static void COM_CEchoDuration_f(void);
 static void COM_Exec_f(void);
 static void COM_Wait_f(void);
 static void COM_Help_f(void);
+static void COM_CONSLogicC_f(void);
 static void COM_Find_f(void);
 static void COM_Toggle_f(void);
 static void COM_Cycle_f(void);
@@ -347,6 +348,7 @@ void COM_Init(void)
 	COM_AddCommand("exec", COM_Exec_f, 0);
 	COM_AddCommand("wait", COM_Wait_f, 0);
 	COM_AddCommand("help", COM_Help_f, COM_LUA);
+	COM_AddCommand("conslogiccount", COM_CONSLogicC_f, COM_CLIENT);
 	COM_AddCommand("find", COM_Find_f, COM_LUA);
 	COM_AddCommand("toggle", COM_Toggle_f, COM_LUA);
 	COM_AddCommand("add", COM_Add_f, COM_LUA);
@@ -880,34 +882,38 @@ static void COM_Wait_f(void)
 		com_wait = 1; // 1 frame
 }
 
-/** Prints help on variables and commands.
-  */
+/*
+*Prints help on variables and commands.
+* TODO: This thing has too many booleans. Seriously.
+* isitallfalse can be removed but that comes at the price of checking it each time
+*/
 static void COM_Help_f(void)
 {
 	xcommand_t *cmd;
 	consvar_t *cvar;
-	boolean foundflag = false;
+	// todo: this could be lowered to 5 booleans at the price of
+	// repeating a check, probably not worth. regardless this is
+	// too many booleans.
 	// Params for only showing certain origins (NOT type)
 	boolean parmv = COM_CheckPartialParm("-v");
 	boolean parmc = COM_CheckPartialParm("-c");
 	boolean parma = COM_CheckPartialParm("-a");
-
-	INT32 i = 0;
+	// is the current loop for commands? (iscomloop)
+	// did we even hit any CV_LUAVAR/COM_LUACOM? (foundflag)
+	boolean iscomloop = false, foundflag = false, isitallfalse = false;
 
 	// Okay, bear with me here: It aligns ingame.
 	if (COM_CheckPartialParm("-f")) {
-		if (!(cv_cvarinformation.value == 1 || cv_cvarinformation.value == 3)) // feature-creeping.
-			CONS_Printf("FLAG\t\t\t\t   DESCRIPTION\n");
 
 		CONS_Printf("CV_SAVE\t\t\t | This variable saves to config.\n");
-		CONS_Printf("CV_CALL\t\t\t | Calls a function on changed.\n");
+		CONS_Printf("CV_CALL\t\t\t | Calls a function on change.\n");
 		CONS_Printf("CV_NETVAR\t\t\t | Sent to all connected clients on change.\n");
-		CONS_Printf("CV_NOINIT\t\t\t | No functions called when registered.\n");
+		CONS_Printf("CV_NOINIT\t\t\t | Don't call functions when registered.\n");
 		CONS_Printf("CV_FLOAT\t\t\t | Fixed 16 bits (int and frac), unit is FRACUNIT. Value is converted in possible values.\n");
 		CONS_Printf("CV_NOTINNET\t\t | Can't be changed in netgames, however ISN'T a netvar.\n");
 		CONS_Printf("CV_MODIFIED\t\t | This variable was modified.\n");
 		CONS_Printf("CV_SHOWMODIF\t\t | Show something when modified.\n");
-		CONS_Printf("CV_SHOWMODIFONETIME | Same as CV_SHOWMODIF, except resets to 0 when modified.\n");
+		CONS_Printf("CV_SHOWMODIFONETIME | Same as CV_SHOWMODIF, except is removed afterwards.\n");
 		CONS_Printf("CV_NOSHOWHELP\t\t | Does not appear in help list.\n");
 		// CV_HIDEN is unnecessary as those vars are outside the console
 		CONS_Printf("CV_CHEAT\t\t\t | Can only be used if cheats are enabled.\n");
@@ -930,11 +936,9 @@ static void COM_Help_f(void)
 				CONS_Printf("\x82""Command %s:\n", cmd->name);
 				CONS_Printf(M_GetText("  flags: "));
 
+				// fixme: enough said vvv
 				if (cmd->flags & COM_ADMIN)
 					CONS_Printf("COM_ADMIN ");
-
-				if (cmd->flags & COM_SPLITSCREEN)
-					CONS_Printf("COM_SPLITSCREEN ");
 
 				if (cmd->flags & COM_LOCAL)
 					CONS_Printf("COM_LOCAL ");
@@ -972,75 +976,111 @@ static void COM_Help_f(void)
 	}
 	else
 	{
-		// this is really dirty...
-		if ((!parmc && !parma) || parmv) {
-			CONS_Printf("\x83""Vanilla:""\x82""\n\tVariables: ");
-			for (cvar = consvar_vars; cvar; cvar = cvar->next)
-			{
-				if (cvar->flags & (CV_NOSHOWHELP | CV_CLIENT | CV_LUAVAR))
-					continue;
-				CONS_Printf("%s ", cvar->name);
-				i++;
-			}
-        CONS_Printf("\x82""\n\tCommands: ");
-        	for (cmd = com_commands; cmd; cmd = cmd->next)
-        	{
-            	if (cmd->flags & (COM_LUACOM | COM_CLIENT))
-                	continue;
-            CONS_Printf("%s ",cmd->name);
-            i++;
-        		}
-		}
-		if ((!parmv && !parma) || parmc) {
-			CONS_Printf(parmc ? "\x83""Client:""\x82""\n\tVariables: " : "\n\x83""Client:""\x82""\n\tVariables: ");
-			for (cvar = consvar_vars; cvar; cvar = cvar->next)
-			{
-				if (cvar->flags & (CV_NOSHOWHELP | CV_LUAVAR) || !(cvar->flags & CV_CLIENT))
-					continue;
-				CONS_Printf("%s ", cvar->name);
-				i++;
-			}
-        CONS_Printf("\n\x82""\tCommands: ");
-        for (cmd = com_commands; cmd; cmd = cmd->next)
-        {
-            if (!(cmd->flags & COM_CLIENT) || (cmd->flags & COM_LUACOM)) // if it has both, its someone messing with the flags table, count as addon instead
-                continue;
-            CONS_Printf("%s ",cmd->name);
-            i++;
-        }
-		}
-		if ((!parmv && !parmc) || parma) {
-			CONS_Printf(parma ? "\x83""Addons:""\x82""\n\tVariables: " : "\n\x83""Addons:""\x82""\n\tVariables: ");
-			for (cvar = consvar_vars; cvar; cvar = cvar->next)
-			{
-				if (cvar->flags & CV_NOSHOWHELP || !(cvar->flags & CV_LUAVAR))
-					continue;
-				CONS_Printf("%s ", cvar->name);
-				foundflag = true;
-				i++;
+		// logic count thing was moved to COM_CONSLogicC_f
+
+		// origin index (same order as helpheaders)
+		UINT8 oi = 0;
+
+		// only eval this once
+		isitallfalse = (!parmv && !parmc && !parma);
+
+		// slightly less ternary spam
+		const char* helpheaders[] = {"Vanilla", "Client", "Addons"};
+
+		while (oi <= 2)
+		{
+			if (!isitallfalse) {
+				if (!parmv && oi == 0)
+					oi++;
+				if (!parmc && oi == 1)
+					oi++;
+				if (!parma && oi == 2)
+					oi++;
 			}
 
-		if (!foundflag)
-			CONS_Printf("(no variables have been created by addons)");
-		foundflag = false;
+			foundflag = false;
+			if (!iscomloop) {
+				CONS_Printf("\x83%s\n\t""\x82Variables: \x80", helpheaders[oi]);
+				for (cvar = consvar_vars; cvar; cvar = cvar->next)
+				{
+					if (cvar->flags & CV_NOSHOWHELP)
+						continue;
+					
+					if (oi == 0 && cvar->flags & (CV_CLIENT | CV_LUAVAR))
+						continue;
+					
+					if (oi == 1 && (cvar->flags & CV_LUAVAR || !(cvar->flags & CV_CLIENT)))
+						continue;
 
-        CONS_Printf("\n\x82""\tCommands: ");
-        for (cmd = com_commands; cmd; cmd = cmd->next)
-        {
-            if (!(cmd->flags & COM_LUACOM))
-                continue;
-            CONS_Printf("%s ",cmd->name);
-			foundflag = true;
-            i++;
-        }
-		if (!foundflag)
-			CONS_Printf("(no commands have been created by addons)");
+					if (oi == 2 && !(cvar->flags & CV_LUAVAR))
+						continue;
+					
+					CONS_Printf("%s ", cvar->name);
+					if (oi == 2)
+						foundflag = true;
+				}
+			} else {
+				CONS_Printf("\x82""Commands: ""\x80");
+				for (cmd = com_commands; cmd; cmd = cmd->next)
+				{
+					// TODO: kill this with fire
+					
+					if (oi == 0 && cmd->flags & (COM_CLIENT | COM_LUACOM))
+						continue;
+					
+					if (oi == 1 && (cmd->flags & COM_LUACOM || !(cmd->flags & COM_CLIENT)))
+						continue;
+
+					if (oi == 2 && !(cmd->flags & COM_LUACOM))
+						continue;
+					
+					CONS_Printf("%s ", cmd->name);
+					if (oi == 2)
+						foundflag = true;
+				}
+			}
+
+			if (oi == 2 && !foundflag)
+				CONS_Printf("(no %s have been created by addons", (iscomloop ? "commands" : "variables"));
+
+			CONS_Printf("\n"); // new line right after
+			
+			// only increment if this is done
+			if (iscomloop) {
+				oi++;
+			}	
+
+			// gcc would optimize !bool probably so this is unneded but like
+			// just in case... since this *SHOULD* be a singular CPU instruction in theorem
+			iscomloop ^= 1;
 		}
 
 		CONS_Printf("\x82""\nCheck wiki.srb2.org for more or type help <command>. For info on flags, do \"help -f\".\n");
 
-		CONS_Debug(DBG_GAMELOGIC, "\x82Total : %d\n", i);
 	}
+}
+
+static void COM_CONSLogicC_f(void)
+{
+	xcommand_t *cmd;
+	consvar_t *cvar;
+	INT32 i = 0;
+
+	// (im just lazy to switch it off from CONS_Debug)
+	if (!(cv_debug & DBG_GAMELOGIC))
+		CONS_Printf("DEVMODE must be enabled and set to gamelogic to use this.\n");
+
+	for (cvar = consvar_vars; cvar; cvar = cvar->next)
+	{
+		i++;
+	}
+
+	for (cmd = com_commands; cmd; cmd = cmd->next)
+	{
+		i++;
+	}
+
+	CONS_Debug(DBG_GAMELOGIC, "\x82Total : %d\n", i);
 }
 
 static void COM_Find_f(void)

@@ -24,6 +24,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - See your ping in frame delay instead of milliseconds! ("`pingmeasurement`")
 - Tics per second counter! ("`showtps`") (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic) and TSoURDt3rd)
 - Compact FPS/TPS info! ("`compactinfo`")
+- Lowercase menus inspired by SRB2Kart Saturn! ("`menucaps`")
 
 ## Visual
 - Toggable mobj pitch/roll functional (3d rotation for models on slopes, like DRRR). Option located in Video Settings -> Level -> "Pitch/Roll Rotation"

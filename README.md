@@ -65,7 +65,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
   | `-a` | Only show variables and/or commands created by addons |
 
 - Console variables can no longer be used as an argument for `help`, they now print their info instead of just their current and default value. "`cvarinfo`" lets you hide the flags and origin sections ("Show All" by default).
-- "`cycle`" command (`cvcycle <cvar> [values]`): Inaccessible by Lua. Cycles given values on the cvar if the current value is found in the list (also loops around). Fails if the current value is not found, unless `-b` is specified (starts at the first arg if so).
+- "`cycle`" command (`cycle <cvar> [values]`): Inaccessible by Lua. Cycles given values on the cvar if the current value is found in the list (also loops around). Fails if the current value is not found, unless `-b` is specified (starts at the first arg if so).
 
 # Lua Additions
 

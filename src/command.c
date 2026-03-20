@@ -931,28 +931,30 @@ static void COM_Help_f(void)
 					continue;
 
 				CONS_Printf("\x82""Command %s:\n", cmd->name);
-				CONS_Printf(M_GetText("  flags: "));
+				if (!(cv_cvarinformation.value == 2 || cv_cvarinformation.value == 3)) {
+					CONS_Printf(M_GetText("  flags: "));
 
-				// fixme: enough said vvv
-				if (cmd->flags & COM_ADMIN)
-					CONS_Printf("COM_ADMIN ");
+					// fixme: enough said vvv
+					if (cmd->flags & COM_ADMIN)
+						CONS_Printf("COM_ADMIN ");
 
-				if (cmd->flags & COM_LOCAL)
-					CONS_Printf("COM_LOCAL ");
+					if (cmd->flags & COM_LOCAL)
+						CONS_Printf("COM_LOCAL ");
 
-				if (cmd->flags & COM_LUA)
-					CONS_Printf("COM_LUA ");
+					if (cmd->flags & COM_LUA)
+						CONS_Printf("COM_LUA ");
 
-				if (cmd->flags & COM_LUACOM)
-					CONS_Printf("COM_LUACOM ");
+					if (cmd->flags & COM_LUACOM)
+						CONS_Printf("COM_LUACOM ");
 
-				if (cmd->flags & COM_CLIENT)
-					CONS_Printf("COM_CLIENT ");
+					if (cmd->flags & COM_CLIENT)
+						CONS_Printf("COM_CLIENT ");
 
-				if (cmd->flags & COM_SPLITSCREEN)
-					CONS_Printf("COM_SPLITSCREEN");
-
-				CONS_Printf("\n");
+					if (cmd->flags & COM_SPLITSCREEN)
+						CONS_Printf("COM_SPLITSCREEN");
+			
+					CONS_Printf("\n");
+				}
 
 				if (!(cv_cvarinformation.value == 1 || cv_cvarinformation.value == 3)) {
 					if (!(cmd->flags & (COM_LUACOM | COM_CLIENT))) {
@@ -1020,7 +1022,6 @@ static void COM_Help_f(void)
 				CONS_Printf("\x82""Commands: ""\x80");
 				for (cmd = com_commands; cmd; cmd = cmd->next)
 				{
-					// TODO: kill this with fire
 					
 					if (oi == 0 && cmd->flags & (COM_CLIENT | COM_LUACOM))
 						continue;
@@ -2660,7 +2661,10 @@ static boolean CV_Command(void)
 				CONS_Printf("CV_NOINIT ");
 
 			if (v->flags & CV_FLOAT)
+			{
 				CONS_Printf("CV_FLOAT ");
+				floatmode = true;
+			}
 
 			if (v->flags & CV_NOTINNET)
 				CONS_Printf("CV_NOTINNET ");

@@ -323,10 +323,10 @@ static CV_PossibleValue_t chatx_cons_t[] = {{-BASEVIDWIDTH/2, "MIN"}, {BASEVIDWI
 static CV_PossibleValue_t chaty_cons_t[] = {{-BASEVIDHEIGHT/2, "MIN"}, {BASEVIDHEIGHT, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t chats1_cons_t[] = {{V_SNAPTOLEFT, "Left"}, {V_SNAPTORIGHT, "Right"}, {0, NULL}};
 static CV_PossibleValue_t chats2_cons_t[] = {{V_SNAPTOTOP, "Top"}, {V_SNAPTOBOTTOM, "Bottom"}, {0, NULL}};
-consvar_t cv_chatx = CVAR_INIT ("chatx", "13", CV_SAVE, chatx_cons_t, NULL);
-consvar_t cv_chaty = CVAR_INIT ("chaty", "169", CV_SAVE, chaty_cons_t, NULL);
-consvar_t cv_chats1 = CVAR_INIT ("chatleftrightsnapping", "Left", CV_SAVE, chats1_cons_t, NULL);
-consvar_t cv_chats2 = CVAR_INIT ("chatupdownsnapping", "Bottom", CV_SAVE, chats2_cons_t, NULL);
+consvar_t cv_chatx = CVAR_INIT ("chatx", "13", CV_SAVE|CV_CLIENT, chatx_cons_t, NULL);
+consvar_t cv_chaty = CVAR_INIT ("chaty", "169", CV_SAVE|CV_CLIENT, chaty_cons_t, NULL);
+consvar_t cv_chats1 = CVAR_INIT ("chatleftrightsnapping", "Left", CV_SAVE|CV_CLIENT, chats1_cons_t, NULL);
+consvar_t cv_chats2 = CVAR_INIT ("chatupdownsnapping", "Bottom", CV_SAVE|CV_CLIENT, chats2_cons_t, NULL);
 
 // Pause game upon window losing focus
 consvar_t cv_pauseifunfocused = CVAR_INIT ("pauseifunfocused", "Yes", CV_SAVE, CV_YesNo, NULL);

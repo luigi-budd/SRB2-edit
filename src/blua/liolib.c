@@ -313,7 +313,7 @@ static int io_openlump (lua_State *L) {
           direction = 1;
           wadnum = 0;
           break;
-        case 'm': // no game-Modifying addons
+        case 'm': // only game-Modifying addons
           localaddons = false;
           break;
         default:

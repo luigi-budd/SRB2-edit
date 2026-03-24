@@ -1816,6 +1816,8 @@ static UINT16 W_CheckNumForPatchNamePwad(const char *name, UINT16 wad, boolean l
 			// Found the patch by name, but needs to check if it is valid.
 			if (W_IsProbablyValidPatch(wad, i))
 				return i;
+			else
+				CONS_Alert(CONS_ERROR, "Found duplicate invalid patch by name: \"%s\"\n", name);
 		}
 	}
 

@@ -86,6 +86,8 @@ static CV_PossibleValue_t constextsize_cons_t[] = {
 static void CV_constextsize_OnChange(void);
 consvar_t cv_constextsize = CVAR_INIT ("con_textsize", "Medium", CV_SAVE|CV_CALL, constextsize_cons_t, CV_constextsize_OnChange);
 
+consvar_t cv_menucaps = CVAR_INIT ("menucaps", "ON", CV_SAVE, CV_OnOff, NULL);
+
 // local copy of the palette for V_GetColor()
 RGBA_t *pLocalPalette = NULL;
 RGBA_t *pMasterPalette = NULL;

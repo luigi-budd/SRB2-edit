@@ -24,6 +24,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - See your ping in frame delay instead of milliseconds! ("`pingmeasurement`")
 - Tics per second counter! ("`showtps`") (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic) and TSoURDt3rd)
 - Compact FPS/TPS info! ("`compactinfo`")
+- Lowercase menus inspired by SRB2Kart Saturn! ("`menucaps`")
 
 ## Visual
 - Toggable mobj pitch/roll functional (3d rotation for models on slopes, like DRRR). Option located in Video Settings -> Level -> "Pitch/Roll Rotation"
@@ -91,7 +92,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - `R_RemoveTranslation(string name)` : Removes a custom translation. Can only remove translations made by Lua.
 - `R_TranslationExists(string name)` : Returns true if a custom translation with a given name exists, false if not.
 
-- `io.openlump(string filename, [string mode])` : Similar to `io.openlocal`, but reads a lump inside any WAD/PK3 file loaded. Two new options are supported: `f` to scan addons forwards from start to end, and `m`, to exclude any game-modifying or local addons.
+- `io.openlump(string filename, [string mode])` : Similar to `io.openlocal`, but reads a lump inside any addon loaded. Two new options are supported: `f` to scan addons forward from start to end, and `m` to only search in game-modifying addons.
 
   Example:
   ```lua
@@ -99,10 +100,10 @@ You can compile the source code normally (see "Compiling") and put the binary in
   
   if file
   	local dat = file:read("*a")
-  	print("length: "..dat:len())
+  	print("Length: "..dat:len())
   	file:close()
   else
-  	print("could not read lump")
+  	print("Could not read lump")
   end
   ```
 

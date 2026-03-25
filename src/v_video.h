@@ -28,7 +28,7 @@
 
 extern UINT8 *screens[5];
 
-extern consvar_t cv_ticrate, cv_tpscounter, cv_compactinfo, cv_constextsize,
+extern consvar_t cv_ticrate, cv_tpscounter, cv_compactinfo, cv_constextsize, cv_menucaps,
 cv_globalgamma, cv_globalsaturation,
 cv_rhue, cv_yhue, cv_ghue, cv_chue, cv_bhue, cv_mhue,
 cv_rgamma, cv_ygamma, cv_ggamma, cv_cgamma, cv_bgamma, cv_mgamma,
@@ -194,6 +194,9 @@ void V_DrawFadeFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c, UINT16 color, U
 void V_DrawFadeConsBack(INT32 plines);
 void V_DrawPromptBack(INT32 boxheight, INT32 color);
 UINT8 *V_GetStringColormap(INT32 colorflags);
+
+// allow menu text to be displayed in lowercase
+#define MENUCAPS (!cv_menucaps.value ? V_ALLOWLOWERCASE : 0)
 
 // Generalized character drawing function, combining console & chat functionality with a specified font.
 void V_DrawFontCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed, fixed_t scale, UINT8 *colormap, fontdef_t font);

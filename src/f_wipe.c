@@ -118,7 +118,7 @@ static fademask_t *F_GetFadeMask(UINT8 masknum, UINT8 scrnnum)
 	size_t lsize;
 	RGBA_t *pcolor;
 
-	if (masknum > 99 || scrnnum > 99)
+	if (masknum > 99 || scrnnum > 99 || !cv_wipes.value)
 		goto freemask;
 
 	sprintf(&lumpname[4], "%.2hu%.2hu", (UINT16)masknum, (UINT16)scrnnum);

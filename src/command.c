@@ -931,7 +931,8 @@ static void COM_Help_f(void)
 					continue;
 
 				CONS_Printf("\x82""Command %s:\n", cmd->name);
-				if (!(cv_cvarinformation.value == 2 || cv_cvarinformation.value == 3)) {
+				if (!(cv_cvarinformation.value == 2 || cv_cvarinformation.value == 3))
+				{
 					CONS_Printf(M_GetText("  flags: "));
 
 					// fixme: enough said vvv
@@ -956,7 +957,8 @@ static void COM_Help_f(void)
 					CONS_Printf("\n");
 				}
 
-				if (!(cv_cvarinformation.value == 1 || cv_cvarinformation.value == 3)) {
+				if (!(cv_cvarinformation.value == 1 || cv_cvarinformation.value == 3))
+				{
 					if (!(cmd->flags & (COM_LUACOM | COM_CLIENT))) {
 						CONS_Printf("\tOrigin: Vanilla""\x82"" (Check wiki.srb2.org for more information)\n");
 					} else if (cmd->flags & COM_CLIENT && !(cmd->flags & COM_LUACOM))
@@ -1066,7 +1068,10 @@ static void COM_CONSLogicC_f(void)
 
 	// (im just lazy to switch it off from CONS_Debug)
 	if (!(cv_debug & DBG_GAMELOGIC))
+	{
 		CONS_Printf("DEVMODE must be enabled and set to gamelogic to use this.\n");
+		return;
+	}
 
 	for (cvar = consvar_vars; cvar; cvar = cvar->next)
 	{

@@ -219,7 +219,8 @@ UINT8 graphics_started = 0;
 
 UINT8 keyboard_started = 0;
 
-static boolean consolevent = false;
+static boolean consolevent = false; /* Whether console events are processed. */
+static boolean consoleistty = true; /* Whether we're user or system facing. */
 #if defined (__unix__) || defined(__APPLE__) || defined (UNIXCOMMON)
 static boolean framebuffer = false;
 #endif
@@ -808,7 +809,7 @@ static void I_StartupConsole(void)
 	if (isatty(STDIN_FILENO)!=1)
 	{
 		I_OutputMsg("stdin is not a tty, tty console mode failed\n");
-		consolevent = M_CheckParm("-forceconsole");
+		consoleistty = false;
 		return;
 	}
 	memset(&tty_con, 0x00, sizeof(tty_con));
@@ -869,14 +870,15 @@ static void I_GetConsoleEvents(void)
 				ev.key = tty_con.buffer[tty_con.cursor] = key;
 				tty_con.cursor++;
 				/* Write the character for user feedback. */
-				write(STDOUT_FILENO, &key, 1);
+				if (consoleistty)
+					write(STDOUT_FILENO, &key, 1);
 				break;
 			}
 			/* fallthrough */
 		case '\b':
 		case 127:
 			ev.key = KEY_BACKSPACE;
-			if (tty_con.cursor > 0) {
+			if (consoleistty && tty_con.cursor > 0) {
 				tty_con.cursor--;
 				tty_con.buffer[tty_con.cursor] = '\0';
 				tty_Back();
@@ -884,8 +886,10 @@ static void I_GetConsoleEvents(void)
 			break;
 		case '\n':
 			ev.key = KEY_ENTER;
-			tty_Clear();
-			tty_con.cursor = 0;
+			if (consoleistty) {
+				tty_Clear();
+				tty_con.cursor = 0;
+			}
 			break;
 		case 0x4: // ^D, aka EOF
 			// shut down, most unix programs behave this way
@@ -1119,7 +1123,7 @@ void I_OutputMsg(const char *fmt, ...)
 	}
 #else
 #ifdef HAVE_TERMIOS
-	if (consolevent && ttycon_ateol)
+	if (consoleistty && ttycon_ateol)
 	{
 		tty_Clear();
 		ttycon_ateol = false;
@@ -1129,7 +1133,7 @@ void I_OutputMsg(const char *fmt, ...)
 	if (!framebuffer)
 		fprintf(stderr, "%s", txt);
 #ifdef HAVE_TERMIOS
-	if (consolevent && txt[len-1] == '\n')
+	if (consoleistty && txt[len-1] == '\n')
 	{
 		write(STDOUT_FILENO, tty_con.buffer, tty_con.cursor);
 		ttycon_ateol = true;

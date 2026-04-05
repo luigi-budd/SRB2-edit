@@ -132,6 +132,8 @@ extern consvar_t cv_ffloorclip, cv_spriteclip;
 extern consvar_t cv_pitchroll_rotation;
 extern consvar_t cv_pitchroll_easing;
 
+extern consvar_t cv_flashes;
+
 extern boolean r_renderwalls;
 extern boolean r_renderfloors;
 extern boolean r_renderthings;

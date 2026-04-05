@@ -995,6 +995,8 @@ static void COM_Help_f(void)
 					oi++;
 				if (!parmc && oi == 1)
 					oi++;
+				if (!parma && oi == 2)
+					break;
 			}
 
 			foundflag = false;

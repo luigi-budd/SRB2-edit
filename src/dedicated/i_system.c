@@ -219,7 +219,8 @@ UINT8 graphics_started = 0;
 
 UINT8 keyboard_started = 0;
 
-static boolean consolevent = false;
+static boolean consolevent = false;  /* Whether console events are processed. */
+static boolean consoleistty = false; /* Whether we're user or system facing. */
 #if defined (__unix__) || defined(__APPLE__) || defined (UNIXCOMMON)
 static boolean framebuffer = false;
 #endif
@@ -808,7 +809,7 @@ static void I_StartupConsole(void)
 	if (isatty(STDIN_FILENO)!=1)
 	{
 		I_OutputMsg("stdin is not a tty, tty console mode failed\n");
-		consolevent = M_CheckParm("-forceconsole");
+		consoleistty = false;
 		return;
 	}
 	memset(&tty_con, 0x00, sizeof(tty_con));
@@ -863,7 +864,8 @@ static void I_GetConsoleEvents(void)
 		// we have something
 		// backspace?
 		// NOTE TTimo testing a lot of values .. seems it's the only way to get it to work everywhere
-		if ((key == tty_erase) || (key == 127) || (key == 8))
+		if (!consoleistty); /* NO-OP; no need to processes control characters. */
+		else if ((key == tty_erase) || (key == 127) || (key == 8))
 		{
 			if (tty_con.cursor > 0)
 			{
@@ -1124,7 +1126,7 @@ void I_OutputMsg(const char *fmt, ...)
 	}
 #else
 #ifdef HAVE_TERMIOS
-	if (consolevent && ttycon_ateol)
+	if (consoleistty && ttycon_ateol)
 	{
 		tty_Clear();
 		ttycon_ateol = false;
@@ -1134,7 +1136,7 @@ void I_OutputMsg(const char *fmt, ...)
 	if (!framebuffer)
 		fprintf(stderr, "%s", txt);
 #ifdef HAVE_TERMIOS
-	if (consolevent && txt[len-1] == '\n')
+	if (consoleistty && txt[len-1] == '\n')
 	{
 		write(STDOUT_FILENO, tty_con.buffer, tty_con.cursor);
 		ttycon_ateol = true;

@@ -437,6 +437,9 @@ consvar_t cv_firenaxis2 = CVAR_INIT ("joyaxis2_firenormal", "Z-Axis", CV_SAVE, j
 consvar_t cv_deadzone2 = CVAR_INIT ("joy_deadzone2", "0.125", CV_FLOAT|CV_SAVE, zerotoone_cons_t, NULL);
 consvar_t cv_digitaldeadzone2 = CVAR_INIT ("joy_digdeadzone2", "0.25", CV_FLOAT|CV_SAVE, zerotoone_cons_t, NULL);
 
+// disable wipes entirely
+consvar_t cv_wipes = CVAR_INIT ("wipes", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
+
 player_t *seenplayer; // player we're aiming at right now
 
 // now automatically allocated in D_RegisterClientCommands

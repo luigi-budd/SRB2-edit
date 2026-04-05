@@ -83,6 +83,8 @@ extern consvar_t cv_cam_shiftfacing[2], cv_cam_turnfacing[2],
 	cv_cam_turnfacingability[2], cv_cam_turnfacingspindash[2], cv_cam_turnfacinginput[2],
 	cv_cam_centertoggle[2], cv_cam_lockedinput[2], cv_cam_lockonboss[2];
 
+extern consvar_t cv_wipes;
+
 typedef enum
 {
 	LOCK_BOSS = 1<<0,

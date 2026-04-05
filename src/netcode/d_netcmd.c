@@ -932,6 +932,8 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_cam_lockonboss[0]);
 	CV_RegisterVar(&cv_cam_lockonboss[1]);
 
+	CV_RegisterVar(&cv_wipes);
+
 	// s_sound.c
 	CV_RegisterVar(&cv_soundvolume);
 	CV_RegisterVar(&cv_closedcaptioning);

@@ -569,12 +569,18 @@ static void I_StartupConsole(void)
 	if (framebuffer)
 		consolevent = SDL_FALSE;
 
+	if (M_CheckParm("-forceconsole"))
+		consolevent = SDL_TRUE;
+
 	if (!consolevent) return;
 
 	if (isatty(STDIN_FILENO)!=1)
 	{
 		I_OutputMsg("stdin is not a tty, tty console mode failed\n");
-		consolevent = SDL_FALSE;
+
+		if (!M_CheckParm("-forceconsole"))
+			consolevent = SDL_FALSE;
+
 		return;
 	}
 	memset(&tty_con, 0x00, sizeof(tty_con));

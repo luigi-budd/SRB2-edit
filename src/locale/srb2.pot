@@ -112,7 +112,7 @@ msgid "Total : %d\n"
 msgstr ""
 
 #: command.c:723
-msgid "Toggle <cvar_name> : Toggle the value of a cvar\n"
+msgid "Toggle <cvar> : Toggle the value of a cvar\n"
 msgstr ""
 
 #: command.c:729

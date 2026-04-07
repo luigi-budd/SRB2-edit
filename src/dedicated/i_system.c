@@ -801,12 +801,14 @@ static void I_StartupConsole(void)
 	if (framebuffer)
 		consolevent = false;
 
+	consolevent = consolevent || M_CheckParm("-forceconsole")
+
 	if (!consolevent) return;
 
 	if (isatty(STDIN_FILENO)!=1)
 	{
 		I_OutputMsg("stdin is not a tty, tty console mode failed\n");
-		consolevent = false;
+		consolevent = M_CheckParm("-forceconsole");
 		return;
 	}
 	memset(&tty_con, 0x00, sizeof(tty_con));

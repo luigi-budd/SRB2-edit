@@ -802,7 +802,7 @@ static void I_StartupConsole(void)
 	if (framebuffer)
 		consolevent = false;
 
-	consolevent = consolevent || M_CheckParm("-forceconsole")
+	consolevent = consolevent || M_CheckParm("-forceconsole");
 
 	if (!consolevent) return;
 

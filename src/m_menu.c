@@ -187,7 +187,7 @@ static tic_t keydown = 0;
 
 // now THIS is cool!
 static tic_t gc_ralt_down = 0;
-static boolean addons_forcelocal = false; 
+static boolean addons_forcelocal = false;
 
 // Lua
 static huddrawlist_h luahuddrawlist_playersetup;
@@ -6652,10 +6652,10 @@ static void M_DrawAddons(void)
 			// draw name of the item, use ... if too long
 #define charsonside (((boxwidth - x) / 16) - 1)
 			if (dirmenu[i][DIR_LEN] > (charsonside*2 + 3))
-				V_DrawString(x, y+4, flags, va("%.*s...%s", charsonside, dirmenu[i]+DIR_STRING, dirmenu[i]+DIR_STRING+dirmenu[i][DIR_LEN]-(charsonside+1)));
+				V_DrawThinString(x, y+4, flags, va("%.*s...%s", charsonside, dirmenu[i]+DIR_STRING, dirmenu[i]+DIR_STRING+dirmenu[i][DIR_LEN]-(charsonside+1)));
 #undef charsonside
 			else
-				V_DrawString(x, y+4, flags, dirmenu[i]+DIR_STRING);
+				V_DrawThinString(x, y+4, flags, dirmenu[i]+DIR_STRING);
 		}
 #undef type
 		y += 16;
@@ -6770,7 +6770,7 @@ static void M_HandleAddons(INT32 choice)
 	}
 
     boolean locally = (gc_ralt_down > 0 || addons_forcelocal);
-    
+
 	switch (choice)
 	{
 		case KEY_DOWNARROW:
@@ -11353,7 +11353,7 @@ static void M_DrawRejoinMenu(void)
 
 	for (i = 2; i < NUMLOGIP + 2; i++)
 		MP_RejoinMenu[i].status = IT_STRING | IT_SPACE;
-	
+
 	// now, iterate through our saved IPs
 	for (index = 0; index < NUMLOGIP; index++)
 	{
@@ -11397,7 +11397,7 @@ static void M_DrawRejoinMenu(void)
 			str);
 		V_DrawSmallString(x, y + (22 + 35) + 8, V_ALLOWLOWERCASE|highlight,
 			str_ip);
-		
+
 		MP_RejoinMenu[index + 2].status = IT_STRING | IT_CALL;
 		y += 12;
 	}
@@ -11448,7 +11448,7 @@ static void M_DrawConnectMenu(void)
 			268 + 6, (i == 0 ? 15 : 12),
 			(itemOn == FIRSTSERVERLINE+i) ? 153 : ((i & 1) ? 159 : 156)
 		);
-		
+
 		V_DrawString(currentMenu->x, S_LINEY(i), globalflags, serverlist[slindex].info.servername);
 
 		// Don't use color flags intentionally, the global yellow color will auto override the text color code
@@ -12029,7 +12029,7 @@ static void M_DrawMPMainMenu(void)
 
 	// use generic drawer for cursor, items and title
 	M_DrawGenericMenu();
-	
+
 	V_DrawRightAlignedString(BASEVIDWIDTH-x, y+79,
 		((itemOn == 5) ? V_YELLOWMAP : 0)|MENUCAPS, va("(2-%d players)", MAXPLAYERS));
 

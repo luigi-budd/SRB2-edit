@@ -4199,7 +4199,7 @@ static void M_DrawSlider(INT32 x, INT32 y, const consvar_t *cv, boolean ontop)
 void M_DrawTextBox(INT32 x, INT32 y, INT32 width, INT32 boxlines)
 {
 	// Solid color textbox.
-	V_DrawFill(x+5, y+5, width*8+6, boxlines*8+6, 159);
+	V_DrawFill(x+5, y+5, width*8+6, boxlines*8+6, cv_menubgcolor.value);
 }
 
 //
@@ -5803,7 +5803,7 @@ static void M_DrawLevelPlatterWideMap(UINT8 row, UINT8 col, INT32 x, INT32 y, bo
 
 	V_DrawFill(x, y+50, 282, 8,
 		((mapheaderinfo[map-1]->unlockrequired < 0)
-		? 159 : 63));
+		? cv_menubgcolor.value : 63));
 
 	V_DrawString(x, y+50, (highlight ? V_YELLOWMAP : 0)|MENUCAPS, levelselect.rows[row].mapnames[col]);
 }
@@ -5834,7 +5834,7 @@ static void M_DrawLevelPlatterMap(UINT8 row, UINT8 col, INT32 x, INT32 y, boolea
 
 	V_DrawFill(x, y+50, 80, 8,
 		((mapheaderinfo[map-1]->unlockrequired < 0)
-		? 159 : 63));
+		? cv_menubgcolor.value : 63));
 
 	if (strlen(levelselect.rows[row].mapnames[col]) > 6) // "AERIAL GARDEN" vs "ACT 18" - "THE ACT" intentionally compressed
 		V_DrawThinString(x, y+50+1, (highlight ? V_YELLOWMAP : 0)|MENUCAPS, levelselect.rows[row].mapnames[col]);
@@ -6575,7 +6575,7 @@ static void M_DrawAddons(void)
 	V_DrawFill(x-21, (y - 16) + (lsheadingheight - 2), boxwidth, 1, 30);
 
 	// addons menu back color
-	V_DrawFill(x-21, y - 1, boxwidth, m, (locally ? 157 : 159)|V_TRANSLUCENT);
+	V_DrawFill(x-21, y - 1, boxwidth, m, (locally ? cv_menubgcolor.value-2 : cv_menubgcolor.value)|V_TRANSLUCENT);
 
 	// The directory is too small for a scrollbar, so just draw a tall white line
 	if (sizedirmenu <= addonmenusize)
@@ -6668,7 +6668,7 @@ static void M_DrawAddons(void)
 	if (locally)
 	{
 		// V_DrawFill(x+5, y+5, width*8+6, boxlines*8+6, 159);
-		V_DrawFill(textbox_x,  y + 5, (MAXSTRINGLENGTH)*8 + 6, 14, 157|V_TRANSLUCENT);
+		V_DrawFill(textbox_x,  y + 5, (MAXSTRINGLENGTH)*8 + 6, 14, (cv_menubgcolor.value-2)|V_TRANSLUCENT);
 	}
 	else
 	{
@@ -7838,7 +7838,7 @@ static void M_DrawSoundTest(void)
 
 	y = (BASEVIDWIDTH-(vid.width/vid.dup))/2;
 
-	V_DrawFill(y, 20, vid.width/vid.dup, 24, 159);
+	V_DrawFill(y, 20, vid.width/vid.dup, 24, cv_menubgcolor.value);
 	{
 		static fixed_t st_scroll = -FRACUNIT;
 		const char* titl;
@@ -7875,7 +7875,7 @@ static void M_DrawSoundTest(void)
 			V_DrawRightAlignedThinString(BASEVIDWIDTH-16, 46, V_ALLOWLOWERCASE, curplaying->authors);
 	}
 
-	V_DrawFill(165, 60, 140, 112, 159);
+	V_DrawFill(165, 60, 140, 112, cv_menubgcolor.value);
 
 	{
 		INT32 t, b, q, m = 112;
@@ -7924,7 +7924,7 @@ static void M_DrawSoundTest(void)
 		while (t <= b)
 		{
 			if (t == st_sel)
-				V_DrawFill(165, y-4, 140-1, 16, 155);
+				V_DrawFill(165, y-4, 140-1, 16, (cv_menubgcolor.value-4));
 			if (!soundtestdefs[t]->allowed)
 			{
 				V_DrawString(x, y, (t == st_sel ? V_YELLOWMAP : 0)|V_ALLOWLOWERCASE, "???");
@@ -7945,7 +7945,7 @@ static void M_DrawSoundTest(void)
 				{
 					sfxstr = (cv_soundtest.value) ? S_sfx[cv_soundtest.value].name : "N/A";
 					i = V_StringWidth(sfxstr, 0);
-					V_DrawFill(165+140-9-i, y-4, i+8, 16, 150);
+					V_DrawFill(165+140-9-i, y-4, i+8, 16, (cv_menubgcolor.value-9));
 					V_DrawRightAlignedString(165+140-5, y, V_YELLOWMAP, sfxstr);
 				}
 			}
@@ -7954,7 +7954,7 @@ static void M_DrawSoundTest(void)
 				V_DrawString(x, y, (t == st_sel ? V_YELLOWMAP : 0)|V_ALLOWLOWERCASE, soundtestdefs[t]->title);
 				if (curplaying == soundtestdefs[t])
 				{
-					V_DrawFill(165+140-9, y-4, 8, 16, 150);
+					V_DrawFill(165+140-9, y-4, 8, 16, (cv_menubgcolor.value-9));
 					//V_DrawCharacter(165+140-8, y, '\x19' | V_YELLOWMAP, false);
 					V_DrawFixedPatch((165+140-9)<<FRACBITS, (y<<FRACBITS)-(bounce*4), FRACUNIT, 0, hu_font.chars['\x19'-FONTSTART], V_GetStringColormap(V_YELLOWMAP));
 				}
@@ -11337,7 +11337,7 @@ static void M_DrawRejoinMenu(void)
 	INT32 y = currentMenu->y;
 	UINT8 index;
 
-	V_DrawFill(x - 2, y + (12+2), BASEVIDWIDTH - (x*2), 24, 159);
+	V_DrawFill(x - 2, y + (12+2), BASEVIDWIDTH - (x*2), 24, cv_menubgcolor.value);
 	V_DrawString(x, y + (12+4), V_ALLOWLOWERCASE,
 		"Addresses of servers you join will");
 	V_DrawString(x, y + (22+4), V_ALLOWLOWERCASE,
@@ -11384,7 +11384,7 @@ static void M_DrawRejoinMenu(void)
 		V_DrawFill(currentMenu->x - 2,
 			y + (22 + 35),
 			BASEVIDWIDTH - (x*2), 12,
-			(itemOn == index + 2) ? 153 : ((index & 1) ? 159 : 156)
+			(itemOn == index + 2) ? (cv_menubgcolor.value-6) : ((index & 1) ? cv_menubgcolor.value : (cv_menubgcolor.value-3))
 		);
 		V_DrawString(x, y + (22 + 35), V_ALLOWLOWERCASE|highlight,
 			str);
@@ -11439,7 +11439,7 @@ static void M_DrawConnectMenu(void)
 		V_DrawFill(currentMenu->x - 3,
 			S_LINEY(i) - (i == 0 ? 3 : 0),
 			268 + 6, (i == 0 ? 15 : 12),
-			(itemOn == FIRSTSERVERLINE+i) ? 153 : ((i & 1) ? 159 : 156)
+			(itemOn == FIRSTSERVERLINE+i) ? (cv_menubgcolor.value-6) : ((i & 1) ? cv_menubgcolor.value : (cv_menubgcolor.value-3))
 		);
 
 		V_DrawString(currentMenu->x, S_LINEY(i), globalflags, serverlist[slindex].info.servername);
@@ -11966,7 +11966,7 @@ static void M_DrawConnectIP(void)
 	char *drawnstr_orig = drawnstr;
 	boolean drawthin, shorten = false;
 
-	V_DrawFill(x+5, y+4+5, boxwidth, 8+6, 159);
+	V_DrawFill(x+5, y+4+5, boxwidth, 8+6, cv_menubgcolor.value);
 
 	strcpy(drawnstr, setupm_ip);
 	drawthin = V_StringWidth(drawnstr, V_ALLOWLOWERCASE) + V_StringWidth("_", V_ALLOWLOWERCASE) > maxstrwidth;
@@ -12474,7 +12474,7 @@ static void M_DrawSetupMultiPlayerMenu(void)
 	y += 11;
 
 	// draw name string
-	V_DrawFill(x, y, 282/*(MAXPLAYERNAME+1)*8+6*/, 14, 159);
+	V_DrawFill(x, y, 282/*(MAXPLAYERNAME+1)*8+6*/, 14, cv_menubgcolor.value);
 	V_DrawString(x + 8, y + 3, V_ALLOWLOWERCASE, setupm_name);
 	if (skullAnimCounter < 4 && itemOn == 0)
 		V_DrawCharacter(x + 8 + V_StringWidth(setupm_name, V_ALLOWLOWERCASE), y + 3,
@@ -12527,7 +12527,7 @@ static void M_DrawSetupMultiPlayerMenu(void)
 
 	// draw box around character
 	V_DrawFill(x-(charw/2), y, charw, 84,
-		multi_invcolor ?skincolors[skincolors[setupm_fakecolor->color].invcolor].ramp[skincolors[setupm_fakecolor->color].invshade] : 159);
+		multi_invcolor ?skincolors[skincolors[setupm_fakecolor->color].invcolor].ramp[skincolors[setupm_fakecolor->color].invshade] : cv_menubgcolor.value);
 
 	sprdef = &skins[setupm_fakeskin]->sprites[multi_spr2];
 
@@ -12618,7 +12618,7 @@ colordraw:
 		mc = M_GridIndexToMenuColor(pos);
 
 		// Draw grid
-		V_DrawFill(x-2, y-2, 132, 132, 159);
+		V_DrawFill(x-2, y-2, 132, 132, cv_menubgcolor.value);
 		for (j = 0; j < 8; j++)
 		{
 			for (i = 0; i < COLOR_GRID_ROW_SIZE; i++)
@@ -13696,7 +13696,7 @@ static void M_DrawControl(void)
 		if (currentMenu->menuitems[i].status == IT_CONTROL)
 		{
 			V_DrawFill(x - 3,y, (BASEVIDWIDTH-currentMenu->x) - x + 6, 8,
-				((i == itemOn) ? 153 : ((i & 1) ? 159 : 156))|V_TRANSLUCENT
+				((i == itemOn) ? (cv_menubgcolor.value-6) : ((i & 1) ? cv_menubgcolor.value : (cv_menubgcolor.value-6)))|V_TRANSLUCENT
 			);
 			V_DrawThinString(x, y + 1, ((i == itemOn) ? V_YELLOWMAP : 0)|V_ALLOWLOWERCASE, currentMenu->menuitems[i].text);
 			keys[0] = setupcontrols[currentMenu->menuitems[i].alphaKey][0];
@@ -13879,7 +13879,7 @@ static void M_DrawPlaystyleMenu(void)
 
 		if (i == playstyle_currentchoice)
 		{
-			V_DrawFill(20, 40, 280, 150, 159);
+			V_DrawFill(20, 40, 280, 150, cv_menubgcolor.value);
 			V_DrawScaledPatch((i+1)*BASEVIDWIDTH/4 - 8, 10, 0, W_CachePatchName("M_CURSOR", PU_CACHE));
 			V_DrawString(30, 50, V_ALLOWLOWERCASE, PlaystyleDesc[i]);
 		}
@@ -14074,8 +14074,8 @@ static void M_DrawVideoMode(void)
 	}
 	else
 	{
-		V_DrawFill(60, OP_VideoModeDef.y + 98, 200, 12, 159);
-		V_DrawFill(60, OP_VideoModeDef.y + 114, 200, 20, 159);
+		V_DrawFill(60, OP_VideoModeDef.y + 98, 200, 12, cv_menubgcolor.value);
+		V_DrawFill(60, OP_VideoModeDef.y + 114, 200, 20, cv_menubgcolor.value);
 
 		V_DrawCenteredString(BASEVIDWIDTH/2, OP_VideoModeDef.y + 100, MENUCAPS,
 			va("Current mode is %c%dx%d",

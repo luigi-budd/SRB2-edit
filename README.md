@@ -26,6 +26,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Compact FPS/TPS info! ("`compactinfo`")
 - Lowercase menus inspired by SRB2Kart Saturn! ("`menucaps`")
 - Toggle screen wipes to speed up gameplay! ("`wipes`", not effective in Marathon Mode)
+- Change menu's background color! ("`menubgcolor`")
 
 ## Visual
 - Toggable mobj pitch/roll functional (3d rotation for models on slopes, like DRRR). Option located in Video Settings -> Level -> "Pitch/Roll Rotation"

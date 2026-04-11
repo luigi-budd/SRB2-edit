@@ -6569,19 +6569,13 @@ static void M_DrawAddons(void)
 
 	m = (BASEVIDHEIGHT - currentMenu->y + 2) - (y - 1);
 
-    // draw the local-addon-loading border first (duh)
-    if (locally)
-    {
-        V_DrawFill(x-22, y - 2, boxwidth + 2, m + 2, 159);
-    }
-
 	// draw the file path and the top white + black lines of the box
 	V_DrawString(x-21, (y - 16) + (lsheadingheight - 12), highlightflags|V_ALLOWLOWERCASE, M_AddonsHeaderPath());
 	V_DrawFill(x-21, (y - 16) + (lsheadingheight - 3), boxwidth, 1, hilicol);
 	V_DrawFill(x-21, (y - 16) + (lsheadingheight - 2), boxwidth, 1, 30);
 
 	// addons menu back color
-	V_DrawFill(x-21, y - 1, boxwidth, m, locally ? 157 : 159);
+	V_DrawFill(x-21, y - 1, boxwidth, m, (locally ? 157 : 159)|V_TRANSLUCENT);
 
 	// The directory is too small for a scrollbar, so just draw a tall white line
 	if (sizedirmenu <= addonmenusize)
@@ -6674,8 +6668,7 @@ static void M_DrawAddons(void)
 	if (locally)
 	{
 		// V_DrawFill(x+5, y+5, width*8+6, boxlines*8+6, 159);
-		V_DrawFill(textbox_x - 1,  y + 4, (MAXSTRINGLENGTH)*8 + 8, 16, 159);   // outline
-		V_DrawFill(textbox_x,  y + 5, (MAXSTRINGLENGTH)*8 + 6, 14, 157);
+		V_DrawFill(textbox_x,  y + 5, (MAXSTRINGLENGTH)*8 + 6, 14, 157|V_TRANSLUCENT);
 	}
 	else
 	{

@@ -43,7 +43,7 @@ INT32 M_RecordedFrames(void);
 long int M_SavedSize(void);
 
 // the file where game vars and settings are saved
-#define CONFIGFILENAME "config.cfg"
+#define CONFIGFILENAME "econfig.cfg"
 
 // The file where we'll save the last IPs we joined
 #define IPLOGFILE "srb2savedips.txt"

@@ -152,7 +152,7 @@ consvar_t cv_chasecam = CVAR_INIT ("chasecam", "On", CV_CALL, CV_OnOff, ChaseCam
 consvar_t cv_chasecam2 = CVAR_INIT ("chasecam2", "On", CV_CALL, CV_OnOff, ChaseCam2_OnChange);
 consvar_t cv_flipcam = CVAR_INIT ("flipcam", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam_OnChange);
 consvar_t cv_flipcam2 = CVAR_INIT ("flipcam2", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam2_OnChange);
-consvar_t cv_ringracers_quakes = CVAR_INIT ("rr_quakes", "Yes", CV_SAVE|CV_CALL|CV_CLIENT, CV_YesNo, NULL);
+consvar_t cv_ringracers_quakes = CVAR_INIT ("rr_quakes", "No", CV_SAVE|CV_CALL|CV_CLIENT, CV_YesNo, NULL);
 
 consvar_t cv_shadow = CVAR_INIT ("shadow", "On", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_skybox = CVAR_INIT ("skybox", "On", CV_SAVE, CV_OnOff, NULL);
@@ -168,7 +168,7 @@ consvar_t cv_drawdist_precip = CVAR_INIT ("drawdist_precip", "1024", CV_SAVE, dr
 consvar_t cv_fov = CVAR_INIT ("fov", "90", CV_SAVE|CV_FLOAT|CV_CALL, fov_cons_t, Fov_OnChange);
 consvar_t cv_fovchange = CVAR_INIT ("fovchange", "Off", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_maxportals = CVAR_INIT ("maxportals", "2", CV_SAVE, maxportals_cons_t, NULL);
-consvar_t cv_pitchroll_rotation = CVAR_INIT ("pitchroll-tation", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
+consvar_t cv_pitchroll_rotation = CVAR_INIT ("pitchroll-tation", "Off", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 consvar_t cv_pitchroll_easing = CVAR_INIT ("pitchroll-easing", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 
 consvar_t cv_renderview = CVAR_INIT ("renderview", "On", 0, CV_OnOff, NULL);

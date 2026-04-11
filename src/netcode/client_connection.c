@@ -32,6 +32,7 @@
 #include "../y_inter.h"
 #include "../z_zone.h"
 #include "../doomtype.h"
+#include "../r_main.h"
 #include "../doomstat.h"
 #include "../hu_stuff.h"
 #if defined (__GNUC__) || defined (__unix__)
@@ -248,8 +249,8 @@ static void CL_DrawConnectionStatus(void)
 		else if (cl_mode == CL_VIEWSERVER)
 		{
 			const INT32 ypos = 6;
-			V_DrawFill(8, ypos, BASEVIDWIDTH - 16, 54, 159);
 			
+			V_DrawFill(8, ypos, BASEVIDWIDTH - 16, 54, cv_menubgcolor.value);
 			V_DrawThinString(12 + 80, ypos+2, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.servername));
 			
 			const char *map = va("%sP", serverlist[joinnode].info.mapname);
@@ -294,8 +295,8 @@ static void CL_DrawConnectionStatus(void)
 				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+32, V_ALLOWLOWERCASE|V_GREENMAP, "Cheats");
 			}
 			
-			V_DrawFill(8, ypos+56, BASEVIDWIDTH - (ypos + 10), 112, 159);
 			
+			V_DrawFill(8, ypos+56, BASEVIDWIDTH - (ypos + 10), 112, cv_menubgcolor.value);
 			if (!cl_vs_showaddons)
 			{
 				V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|V_YELLOWMAP, "Players");
@@ -353,7 +354,7 @@ static void CL_DrawConnectionStatus(void)
 					if (i & 1)
 						V_DrawFill(x,y-1,
 							288, 9,
-							156
+							(cv_menubgcolor.value-3)
 						);
 					
 					fileneeded_t addon_file = fileneeded[i];
@@ -449,7 +450,7 @@ static void CL_DrawConnectionStatus(void)
 #undef charsonside
 
 			// Buttons
-			V_DrawFill(8, BASEVIDHEIGHT - (ypos+18), BASEVIDWIDTH - 16, 13, 159);
+			V_DrawFill(8, BASEVIDHEIGHT - (ypos+18), BASEVIDWIDTH - 16, 13, cv_menubgcolor.value);
 			V_DrawThinString(
 				16, BASEVIDHEIGHT - (ypos+15),
 				V_ALLOWLOWERCASE, "[""\x82""ESC""\x80""] = Back"

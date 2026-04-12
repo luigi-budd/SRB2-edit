@@ -88,7 +88,7 @@
 #endif
 
 // maximum number of windowed modes (see windowedModes[][])
-#define MAXWINMODES (21)
+#define MAXWINMODES (22)
 
 /**	\brief
 */

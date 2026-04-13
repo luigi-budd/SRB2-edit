@@ -3893,6 +3893,7 @@ void M_SetupNextMenu(menu_t *menudef)
 		{
 			if (ms_ServerList)
 			{
+				CL_QueryServerList(ms_ServerList);
 				free(ms_ServerList);
 				ms_ServerList = NULL;
 			}

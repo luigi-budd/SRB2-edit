@@ -7946,7 +7946,7 @@ static void M_DrawSoundTest(void)
 				{
 					sfxstr = (cv_soundtest.value) ? S_sfx[cv_soundtest.value].name : "N/A";
 					i = V_StringWidth(sfxstr, 0);
-					V_DrawFill(165+140-9-i, y-4, i+8, 16, (cv_menubgcolor.value-9));
+					V_DrawFill(165+140-9-i, y-4, i+8, 16, (cv_menubgcolor.value-8));
 					V_DrawRightAlignedString(165+140-5, y, V_YELLOWMAP, sfxstr);
 				}
 			}
@@ -7955,7 +7955,7 @@ static void M_DrawSoundTest(void)
 				V_DrawString(x, y, (t == st_sel ? V_YELLOWMAP : 0)|V_ALLOWLOWERCASE, soundtestdefs[t]->title);
 				if (curplaying == soundtestdefs[t])
 				{
-					V_DrawFill(165+140-9, y-4, 8, 16, (cv_menubgcolor.value-9));
+					V_DrawFill(165+140-9, y-4, 8, 16, (cv_menubgcolor.value-8));
 					//V_DrawCharacter(165+140-8, y, '\x19' | V_YELLOWMAP, false);
 					V_DrawFixedPatch((165+140-9)<<FRACBITS, (y<<FRACBITS)-(bounce*4), FRACUNIT, 0, hu_font.chars['\x19'-FONTSTART], V_GetStringColormap(V_YELLOWMAP));
 				}

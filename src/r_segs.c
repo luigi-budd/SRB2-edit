@@ -13,6 +13,7 @@
 
 #include "doomdef.h"
 #include "r_local.h"
+#include "r_main.h"
 #include "r_sky.h"
 
 #include "r_portal.h"
@@ -96,7 +97,7 @@ transnum_t R_GetLinedefTransTable(fixed_t alpha)
 
 static UINT8 R_SideLightLevel(side_t *side, INT16 base_lightlevel)
 {
-	return cv_fullbrite_hack.value ? 255 : max(0, min(255, side->light +
+	return cv_fullbrite_hack.value ? 255 : max(max(0, cv_secbright.value), min(255, side->light +
 		((side->lightabsolute) ? 0 : base_lightlevel)));
 }
 

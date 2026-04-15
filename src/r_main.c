@@ -143,6 +143,7 @@ static CV_PossibleValue_t menubg_cons_t[] = {
 	{127, "Aqua"}, {175, "Steel"}, {187, "Magenta"}, {199, "Lavender"},
 	{207, "Rosy"}, {215, "Lilac"}, {238, "Brown"}, {251, "Beige"}
 };
+static CV_PossibleValue_t secbright_cons_t[] = {{0, "MIN"}, {255, "MAX"}, {0, NULL}};
 
 static void R_SetFov(fixed_t playerfov);
 
@@ -178,6 +179,7 @@ consvar_t cv_fovchange = CVAR_INIT ("fovchange", "Off", CV_SAVE, CV_OnOff, NULL)
 consvar_t cv_maxportals = CVAR_INIT ("maxportals", "2", CV_SAVE, maxportals_cons_t, NULL);
 consvar_t cv_pitchroll_rotation = CVAR_INIT ("pitchroll-tation", "Off", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 consvar_t cv_pitchroll_easing = CVAR_INIT ("pitchroll-easing", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
+consvar_t cv_secbright = CVAR_INIT("r_secbright", "0", CV_SAVE, secbright_cons_t, NULL);
 
 consvar_t cv_renderview = CVAR_INIT ("renderview", "On", 0, CV_OnOff, NULL);
 consvar_t cv_renderwalls = CVAR_INIT ("r_renderwalls", "On", 0, CV_OnOff, NULL);
@@ -1711,6 +1713,7 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_renderthings);
 	CV_RegisterVar(&cv_ffloorclip);
 	CV_RegisterVar(&cv_spriteclip);
+	CV_RegisterVar(&cv_secbright);
 
 	CV_RegisterVar(&cv_cam_dist);
 	CV_RegisterVar(&cv_cam_still);

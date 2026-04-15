@@ -36,6 +36,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - View rollangle is interpolated!
 - Experimental translation support for models! ("`gl_modeltranslations`")
 - Render distance for OpenGL! ("`gr_renderdistance`", https://git.srb2.org/Hanicef/SRB2Classic/-/merge_requests/4, @GLideKS)
+- Configurable minimum sector brightress! ("`r_secbright`", ported from [SRB2 Legacy](https://github.com/srb2-preservation/srb2-legacy))
 
 ## Gameplay / Netplay
 - Skin change at any time

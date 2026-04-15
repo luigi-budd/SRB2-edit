@@ -150,6 +150,9 @@ void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, extracolormap_t *col
 	tint_color.rgba = (colormap != NULL) ? (UINT32)colormap->rgba : 0x00000000;
 	fade_color.rgba = (colormap != NULL) ? (UINT32)colormap->fadergba : 0xFF000000;
 
+	// Clamp the light level, since it can sometimes go out of the 0-255 range from animations
+	light_level = min(max(light_level, cv_secbright.value), 255);
+
 	// Crappy backup coloring if you can't do shaders
 	if (!HWR_UseShader())
 	{
@@ -186,9 +189,6 @@ void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, extracolormap_t *col
 		poly_color.s.green = (UINT8)green;
 		poly_color.s.blue = (UINT8)blue;
 	}
-
-	// Clamp the light level, since it can sometimes go out of the 0-255 range from animations
-	light_level = min(max(light_level, 0), 255);
 
 	if(!HWR_ShouldUsePaletteRendering()) // In palette rendering mode, changes to the color profile are taken into account
 	{
@@ -323,7 +323,7 @@ static FUINT HWR_CalcSlopeLight(FUINT lightnum, angle_t dir, fixed_t delta)
 
 static UINT8 HWR_SideLightLevel(side_t *side, INT16 base_lightlevel)
 {
-	return (cv_fullbrite_hack.value ? 255 : max(0, min(255, side->light +
+	return (cv_fullbrite_hack.value ? 255 : max(max(0, cv_secbright.value), min(255, side->light +
 		((side->lightabsolute) ? 0 : base_lightlevel))));
 }
 
@@ -3016,6 +3016,7 @@ static void HWR_DrawDropShadow(mobj_t *thing, fixed_t scale)
 	{
 		shader = SHADER_SPRITE;
 		blendmode |= PF_ColorMapped;
+		sSurf.LightInfo.light_level = 0;
 	}
 
 	HWR_ProcessPolygon(&sSurf, shadowVerts, 4, blendmode, shader, false);

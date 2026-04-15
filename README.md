@@ -27,6 +27,11 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Lowercase menus inspired by SRB2Kart Saturn! ("`menucaps`")
 - Toggle screen wipes to speed up gameplay! ("`wipes`", not effective in Marathon Mode)
 - Change menu's background color! ("`menubgcolor`")
+- Player names on the rankings uses a thin font.
+- Addons menu uses thin font.
+- "Quit Game" and "Abort" options are red colored.
+- The Background of the addons menu now are translucent.
+- Perfstats blue text uses sky color instead.
 
 ## Visual
 - Toggable mobj pitch/roll functional (3d rotation for models on slopes, like DRRR). Option located in Video Settings -> Level -> "Pitch/Roll Rotation"
@@ -37,6 +42,9 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Experimental translation support for models! ("`gl_modeltranslations`")
 - Render distance for OpenGL! ("`gr_renderdistance`", https://git.srb2.org/Hanicef/SRB2Classic/-/merge_requests/4, @GLideKS)
 - Configurable minimum sector brightress! ("`r_secbright`", ported from [SRB2 Legacy](https://github.com/srb2-preservation/srb2-legacy))
+- Added 1360x768 resolution (personal use)
+- Light Dithering from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic)
+- Removed RR's fake contrast since it makes brightress off on walls.
 
 ## Gameplay / Netplay
 - Skin change at any time
@@ -45,6 +53,8 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Improved startup times! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
 - "`cam_centertoggle`" and "`cam2_centertoggle`" are no longer exclusive to Automatic!
 - See private messages as host! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
+- Lifted maxsend limits
+- This build uses econfig.cfg instead of config.cfg due to the many options SRB2-edit provides
 
 ## Modding and Debugging
 - "`renderhitbox`" in multiplayer

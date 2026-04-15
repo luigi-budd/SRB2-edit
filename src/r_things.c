@@ -2445,7 +2445,7 @@ static void R_ProjectSprite(mobj_t *thing)
 	else
 		vis->transmap = NULL;
 
-	if (R_ThingIsFullBright(oldthing) || oldthing->flags2 & MF2_SHADOW || thing->flags2 & MF2_SHADOW || cv_fullbrite_hack.value)
+	if (R_ThingIsFullBright(oldthing) || oldthing->flags2 & MF2_SHADOW || thing->flags2 & MF2_SHADOW)
 		vis->cut |= SC_FULLBRIGHT;
 	else if (R_ThingIsSemiBright(oldthing))
 		vis->cut |= SC_SEMIBRIGHT;

@@ -719,21 +719,21 @@ void Y_IntermissionDrawer(void)
 			V_DrawFill(160, 32, 1, 152, 0);
 
 			if (intertype == int_race)
-				V_DrawRightAlignedString(x+152, 32, V_YELLOWMAP, "TIME");
+				V_DrawRightAlignedString(x+152, 32, MENUCOLOR, "TIME");
 			else
-				V_DrawRightAlignedString(x+152, 32, V_YELLOWMAP, "SCORE");
+				V_DrawRightAlignedString(x+152, 32, MENUCOLOR, "SCORE");
 
-			V_DrawCenteredString(x+(BASEVIDWIDTH/2)+6, 32, V_YELLOWMAP, "#");
-			V_DrawString(x+(BASEVIDWIDTH/2)+36, 32, V_YELLOWMAP, "NAME");
+			V_DrawCenteredString(x+(BASEVIDWIDTH/2)+6, 32, MENUCOLOR, "#");
+			V_DrawString(x+(BASEVIDWIDTH/2)+36, 32, MENUCOLOR, "NAME");
 		}
 
-		V_DrawCenteredString(x+6, 32, V_YELLOWMAP, "#");
-		V_DrawString(x+36, 32, V_YELLOWMAP, "NAME");
+		V_DrawCenteredString(x+6, 32, MENUCOLOR, "#");
+		V_DrawString(x+36, 32, MENUCOLOR, "NAME");
 
 		if (intertype == int_race)
-			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, V_YELLOWMAP, "TIME");
+			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, MENUCOLOR, "TIME");
 		else
-			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, V_YELLOWMAP, "SCORE");
+			V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, MENUCOLOR, "SCORE");
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
@@ -835,14 +835,14 @@ void Y_IntermissionDrawer(void)
 		V_DrawFill(160, 32, 1, 152, 0);
 
 		//strings at the top of the list
-		V_DrawCenteredString(x+6, 32, V_YELLOWMAP, "#");
-		V_DrawCenteredString(x+(BASEVIDWIDTH/2)+6, 32, V_YELLOWMAP, "#");
+		V_DrawCenteredString(x+6, 32, MENUCOLOR, "#");
+		V_DrawCenteredString(x+(BASEVIDWIDTH/2)+6, 32, MENUCOLOR, "#");
 
-		V_DrawString(x+36, 32, V_YELLOWMAP, "NAME");
-		V_DrawString(x+(BASEVIDWIDTH/2)+36, 32, V_YELLOWMAP, "NAME");
+		V_DrawString(x+36, 32, MENUCOLOR, "NAME");
+		V_DrawString(x+(BASEVIDWIDTH/2)+36, 32, MENUCOLOR, "NAME");
 
-		V_DrawRightAlignedString(x+152, 32, V_YELLOWMAP, "SCORE");
-		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, V_YELLOWMAP, "SCORE");
+		V_DrawRightAlignedString(x+152, 32, MENUCOLOR, "SCORE");
+		V_DrawRightAlignedString(x+(BASEVIDWIDTH/2)+152, 32, MENUCOLOR, "SCORE");
 
 		for (i = 0; i < data.match.numplayers; i++)
 		{
@@ -894,27 +894,27 @@ void Y_IntermissionDrawer(void)
 		V_DrawCenteredString(BASEVIDWIDTH/2, 8, 0, data.competition.levelstring);
 		V_DrawFill(4, 42, 312, 1, 0);
 
-		V_DrawCenteredString(x+6, 32, V_YELLOWMAP, "#");
-		V_DrawString(x+36, 32, V_YELLOWMAP, "NAME");
+		V_DrawCenteredString(x+6, 32, MENUCOLOR, "#");
+		V_DrawString(x+36, 32, MENUCOLOR, "NAME");
 		// Time
-		V_DrawRightAlignedString(x+160, 32, V_YELLOWMAP, "TIME");
+		V_DrawRightAlignedString(x+160, 32, MENUCOLOR, "TIME");
 
 		// Rings
-		V_DrawThinString(x+168, 32, V_YELLOWMAP, "RING");
+		V_DrawThinString(x+168, 32, MENUCOLOR, "RING");
 
 		// Total rings
-		V_DrawThinString(x+191, 24, V_YELLOWMAP, "TOTAL");
-		V_DrawThinString(x+196, 32, V_YELLOWMAP, "RING");
+		V_DrawThinString(x+191, 24, MENUCOLOR, "TOTAL");
+		V_DrawThinString(x+196, 32, MENUCOLOR, "RING");
 
 		// Monitors
-		V_DrawThinString(x+223, 24, V_YELLOWMAP, "ITEM");
-		V_DrawThinString(x+229, 32, V_YELLOWMAP, "BOX");
+		V_DrawThinString(x+223, 24, MENUCOLOR, "ITEM");
+		V_DrawThinString(x+229, 32, MENUCOLOR, "BOX");
 
 		// Score
-		V_DrawRightAlignedString(x+288, 32, V_YELLOWMAP, "SCORE");
+		V_DrawRightAlignedString(x+288, 32, MENUCOLOR, "SCORE");
 
 		// Points
-		V_DrawRightAlignedString(x+312, 32, V_YELLOWMAP, "PT");
+		V_DrawRightAlignedString(x+312, 32, MENUCOLOR, "PT");
 
 		for (i = 0; i < data.competition.numplayers; i++)
 		{
@@ -977,12 +977,12 @@ skiptallydrawer:
 		return;
 
 	if (timer)
-		V_DrawCenteredString(BASEVIDWIDTH/2, 188, V_YELLOWMAP,
+		V_DrawCenteredString(BASEVIDWIDTH/2, 188, MENUCOLOR,
 			va("start in %d seconds", timer/TICRATE));
 
 	// Make it obvious that scrambling is happening next round.
 	if (cv_scrambleonchange.value && cv_teamscramble.value && (intertic/TICRATE % 2 == 0))
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, V_YELLOWMAP, M_GetText("Teams will be scrambled next round!"));
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT/2, MENUCOLOR, M_GetText("Teams will be scrambled next round!"));
 }
 
 //

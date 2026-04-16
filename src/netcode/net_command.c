@@ -62,7 +62,6 @@ void SendNetXCmd(netxcmd_t id, const void *param, size_t nparam)
 {
 	if (localtextcmd[0]+2+nparam > MAXTEXTCMD)
 	{
-
 		textcmdbuf_t *buf = textcmdbuf;
 
 		if (2+nparam > MAXTEXTCMD)

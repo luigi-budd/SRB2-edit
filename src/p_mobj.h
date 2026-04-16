@@ -271,8 +271,6 @@ typedef enum {
 	PCF_MOVINGFOF = 8,
 	// Is rain.
 	PCF_RAIN = 16,
-	// Ran the thinker this tic.
-	PCF_THUNK = 32,
 } precipflag_t;
 
 // [RH] Like msecnode_t, but for the blockmap
@@ -489,6 +487,8 @@ typedef struct precipmobj_s
 	INT32 tics; // state tic counter
 	state_t *state;
 	INT32 flags; // flags from mobjinfo tables
+
+	tic_t lastupdatetime;
 } precipmobj_t;
 
 typedef struct actioncache_s

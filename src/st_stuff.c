@@ -825,7 +825,7 @@ static inline void ST_drawRings(void)
 
 static void ST_drawLivesArea(void)
 {
-	INT32 v_colmap = V_YELLOWMAP, livescount = -1;
+	INT32 v_colmap = V_YELLOWMAP, livescount = -1; // romoney5: i'm not touching this one
 	boolean notgreyedout = false;
 
 	if (!stplyr->skincolor)

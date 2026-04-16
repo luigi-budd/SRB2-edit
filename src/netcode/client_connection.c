@@ -32,6 +32,7 @@
 #include "../y_inter.h"
 #include "../z_zone.h"
 #include "../doomtype.h"
+#include "../r_main.h"
 #include "../doomstat.h"
 #include "../hu_stuff.h"
 #if defined (__GNUC__) || defined (__unix__)
@@ -91,7 +92,7 @@ static void DrawConnectionStatusBox(void)
 	if (cl_mode == CL_CONFIRMCONNECT || IsDownloadingFile())
 		return;
 
-	V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-16, V_YELLOWMAP|V_ALLOWLOWERCASE, "Press ESC to abort");
+	V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-16, MENUCOLOR|V_ALLOWLOWERCASE, "Press ESC to abort");
 }
 
 static void DrawFileProgress(fileneeded_t *file, int y)
@@ -217,7 +218,7 @@ static void CL_DrawConnectionStatus(void)
 				cltext = M_GetText("Connecting to server...");
 				break;
 		}
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, V_YELLOWMAP|V_ALLOWLOWERCASE, cltext);
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, MENUCOLOR|V_ALLOWLOWERCASE, cltext);
 	}
 	else
 	{
@@ -226,7 +227,7 @@ static void CL_DrawConnectionStatus(void)
 			INT32 totalfileslength;
 			INT32 loadcompletednum = 0;
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-16, V_YELLOWMAP|V_ALLOWLOWERCASE, "Press ESC to abort");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-16, MENUCOLOR|V_ALLOWLOWERCASE, "Press ESC to abort");
 
 			// ima just count files here
 			if (fileneeded)
@@ -237,7 +238,7 @@ static void CL_DrawConnectionStatus(void)
 			}
 
 			// Loading progress
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, V_YELLOWMAP|V_ALLOWLOWERCASE, "Loading server addons...");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, MENUCOLOR|V_ALLOWLOWERCASE, "Loading server addons...");
 			totalfileslength = (INT32)((loadcompletednum/(double)(fileneedednum)) * 256);
 			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-16-8, 32, 1);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-16, 256, 8, 111);
@@ -248,8 +249,8 @@ static void CL_DrawConnectionStatus(void)
 		else if (cl_mode == CL_VIEWSERVER)
 		{
 			const INT32 ypos = 6;
-			V_DrawFill(8, ypos, BASEVIDWIDTH - 16, 54, 159);
 			
+			V_DrawFill(8, ypos, BASEVIDWIDTH - 16, 54, cv_menubgcolor.value);
 			V_DrawThinString(12 + 80, ypos+2, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.servername));
 			
 			const char *map = va("%sP", serverlist[joinnode].info.mapname);
@@ -294,12 +295,12 @@ static void CL_DrawConnectionStatus(void)
 				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+32, V_ALLOWLOWERCASE|V_GREENMAP, "Cheats");
 			}
 			
-			V_DrawFill(8, ypos+56, BASEVIDWIDTH - (ypos + 10), 112, 159);
 			
+			V_DrawFill(8, ypos+56, BASEVIDWIDTH - (ypos + 10), 112, cv_menubgcolor.value);
 			if (!cl_vs_showaddons)
 			{
-				V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|V_YELLOWMAP, "Players");
-				V_DrawRightAlignedString(BASEVIDWIDTH - 12, ypos+58, V_ALLOWLOWERCASE|V_YELLOWMAP, va("%i / %i", serverlist[joinnode].info.numberofplayer, serverlist[joinnode].info.maxplayer));
+				V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|MENUCOLOR, "Players");
+				V_DrawRightAlignedString(BASEVIDWIDTH - 12, ypos+58, V_ALLOWLOWERCASE|MENUCOLOR, va("%i / %i", serverlist[joinnode].info.numberofplayer, serverlist[joinnode].info.maxplayer));
 				
 				INT32 i;
 				INT32 count = 0;
@@ -339,7 +340,7 @@ static void CL_DrawConnectionStatus(void)
 			}
 			else
 			{
-				V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|V_YELLOWMAP, "Addons");
+				V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|MENUCOLOR, "Addons");
 
 #define charsonside (18)
 #define maxcharlen ((charsonside*2) + 3) // 3 for the 3 dots
@@ -353,7 +354,7 @@ static void CL_DrawConnectionStatus(void)
 					if (i & 1)
 						V_DrawFill(x,y-1,
 							288, 9,
-							156
+							(cv_menubgcolor.value-3)
 						);
 					
 					fileneeded_t addon_file = fileneeded[i];
@@ -384,7 +385,7 @@ static void CL_DrawConnectionStatus(void)
 						}
 
 						V_DrawRightAlignedThinString(x + 288,
-							y, V_YELLOWMAP|V_ALLOWLOWERCASE,
+							y, MENUCOLOR|V_ALLOWLOWERCASE,
 							// "~" since its approx this size, we mightve lost some
 							// accuracy from only having 4 bytes carry the size
 							va("~%.1f %s", file_size, size_mode == 0 ? "b" : (size_mode == 2 ? "kb" : "mb"))
@@ -423,7 +424,7 @@ static void CL_DrawConnectionStatus(void)
 				}
 				
 				V_DrawRightAlignedThinString(BASEVIDWIDTH - 18, ypos + 59,
-					V_ALLOWLOWERCASE|V_YELLOWMAP,
+					V_ALLOWLOWERCASE|MENUCOLOR,
 					va("~%.1f%s total", (float)totalsize, size_mode == 0 ? "b" : (size_mode == 2 ? "kb" : "mb"))
 				);
 
@@ -434,13 +435,13 @@ static void CL_DrawConnectionStatus(void)
 					// up arrow
 					if (cl_vs_sa_scroll)
 						V_DrawRightAlignedThinString(BASEVIDWIDTH - 10,
-							(ypos+58) - (cl_vs_sa_animcount/5), V_YELLOWMAP,
+							(ypos+58) - (cl_vs_sa_animcount/5), MENUCOLOR,
 							"\x1A"
 						);
 					
 					if (cl_vs_sa_scroll != fileneedednum - ADDONSCROLLCAP)
 						V_DrawRightAlignedThinString(BASEVIDWIDTH - 10,
-							y-9 + (cl_vs_sa_animcount/5), V_YELLOWMAP,
+							y-9 + (cl_vs_sa_animcount/5), MENUCOLOR,
 							"\x1B"
 						);
 				}
@@ -449,7 +450,7 @@ static void CL_DrawConnectionStatus(void)
 #undef charsonside
 
 			// Buttons
-			V_DrawFill(8, BASEVIDHEIGHT - (ypos+18), BASEVIDWIDTH - 16, 13, 159);
+			V_DrawFill(8, BASEVIDHEIGHT - (ypos+18), BASEVIDWIDTH - 16, 13, cv_menubgcolor.value);
 			V_DrawThinString(
 				16, BASEVIDHEIGHT - (ypos+15),
 				V_ALLOWLOWERCASE, "[""\x82""ESC""\x80""] = Back"
@@ -473,7 +474,7 @@ static void CL_DrawConnectionStatus(void)
 			INT32 checkcompletednum = 0;
 			INT32 i;
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-16, V_YELLOWMAP|V_ALLOWLOWERCASE, "Press ESC to abort");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-16, MENUCOLOR|V_ALLOWLOWERCASE, "Press ESC to abort");
 
 			//ima just count files here
 			if (fileneeded)
@@ -484,7 +485,7 @@ static void CL_DrawConnectionStatus(void)
 			}
 
 			// Check progress
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, V_YELLOWMAP|V_ALLOWLOWERCASE, "Checking server addon list...");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, MENUCOLOR|V_ALLOWLOWERCASE, "Checking server addon list...");
 			totalfileslength = (INT32)((checkcompletednum/(double)(fileneedednum)) * 256);
 			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-16-8, 32, 1);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-16, 256, 8, 111);
@@ -537,7 +538,7 @@ static void CL_DrawConnectionStatus(void)
 			const char *download_str = M_GetText("Downloading \"%s\"");
 #endif
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-46-24, V_ALLOWLOWERCASE|V_YELLOWMAP,
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-46-24, V_ALLOWLOWERCASE|MENUCOLOR,
 				va(download_str, tempname));
 
 			// Rusty: actually lets do this instead
@@ -557,17 +558,17 @@ static void CL_DrawConnectionStatus(void)
 					strlcpy(tempname, http_source, sizeof(tempname));
 				}
 
-				V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-46-16, V_ALLOWLOWERCASE|V_YELLOWMAP,
+				V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-46-16, V_ALLOWLOWERCASE|MENUCOLOR,
 					va(M_GetText("from %s"), tempname));
 			}
 			else
 			{
-				V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-46-16, V_ALLOWLOWERCASE|V_YELLOWMAP,
+				V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-46-16, V_ALLOWLOWERCASE|MENUCOLOR,
 					M_GetText("from the server"));
 			}
             DrawFileProgress(file, BASEVIDHEIGHT-46);
 
-            V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-14, V_ALLOWLOWERCASE|V_YELLOWMAP, "Total Progress");
+            V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-14, V_ALLOWLOWERCASE|MENUCOLOR, "Total Progress");
 			DrawOverallProgress(BASEVIDHEIGHT-16);
         }
 		else
@@ -576,7 +577,7 @@ static void CL_DrawConnectionStatus(void)
 				Snake_Draw(snake);
 
 			DrawConnectionStatusBox();
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, V_YELLOWMAP,
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, MENUCOLOR,
 				M_GetText("Waiting to download files..."));
 		}
 	}

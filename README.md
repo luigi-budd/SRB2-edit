@@ -1,3 +1,8 @@
+> [!IMPORTANT]  
+> This fork uses a different configuration file: `econfig.cfg`
+> 
+> If needed, copy paste your `config.cfg` and rename it to `econfig.cfg`
+
 ## Compiling
 
 See [SRB2 Wiki/Source code compiling](http://wiki.srb2.org/wiki/Source_code_compiling)

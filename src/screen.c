@@ -218,7 +218,6 @@ void SCR_Startup(void)
 	CV_RegisterVar(&cv_compactinfo);
 	CV_RegisterVar(&cv_constextsize);
 	CV_RegisterVar(&cv_menucaps);
-	CV_RegisterVar(&cv_menucolor);
 
 	V_SetPalette(0);
 }
@@ -538,7 +537,7 @@ void SCR_DisplayTicRate(void)
 		width = V_StringWidth(drawnstr, V_NOSCALESTART);
 
 		V_DrawString(vid.width - ((7 * 8 * vid.dup) + V_StringWidth("FPS: ", V_NOSCALESTART)), h,
-			MENUCOLOR|V_NOSCALESTART|V_USERHUDTRANS, "FPS:");
+			V_YELLOWMAP|V_NOSCALESTART|V_USERHUDTRANS, "FPS:");
 		V_DrawString(vid.width - width, h,
 			fpscntcolor |V_NOSCALESTART|V_USERHUDTRANS, drawnstr);
 	}
@@ -566,7 +565,7 @@ void SCR_DisplayTicRate(void)
 		INT32 width = V_StringWidth(drawnstr, V_NOSCALESTART);
 
 		V_DrawString(vid.width - ((7 * 8 * vid.dup) + V_StringWidth("TPS: ", V_NOSCALESTART)), h + (vstep*vid.dup),
-			MENUCOLOR|V_NOSCALESTART|V_USERHUDTRANS, "TPS:");
+			V_YELLOWMAP|V_NOSCALESTART|V_USERHUDTRANS, "TPS:");
 		V_DrawString(vid.width - width, h + (vstep*vid.dup),
 			ticcntcolor|V_NOSCALESTART|V_USERHUDTRANS, drawnstr);
 	}

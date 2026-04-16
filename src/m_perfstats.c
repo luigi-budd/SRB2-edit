@@ -734,7 +734,7 @@ static void PS_DrawRenderStats(void)
 	if (PS_IsLevelActive())
 	{
 		x = hires ? 115 : 90;
-		cy = PS_DrawPerfRows(x, 10, V_SKYMAP, commoncounter_rows) + half_row;
+		cy = PS_DrawPerfRows(x, 10, V_BLUEMAP, commoncounter_rows) + half_row;
 
 #ifdef HWRENDER
 		if (rendermode == render_opengl && cv_glbatching.value)
@@ -766,7 +766,7 @@ static void PS_DrawGameLogicStats(void)
 	PS_DrawPerfRows(20, 10, V_YELLOWMAP, gamelogic_rows);
 
 	x = hires ? 115 : 90;
-	PS_DrawPerfRows(x, 10, V_SKYMAP, thinkercount_rows);
+	PS_DrawPerfRows(x, 10, V_BLUEMAP, thinkercount_rows);
 
 	if (hires)
 		V_DrawSmallString(212, 10, V_MONOSPACE | V_ALLOWLOWERCASE | V_PURPLEMAP, "Calls:");

@@ -311,7 +311,7 @@ UINT8 M_UpdateUnlockablesAndExtraEmblems(gamedata_t *data)
 
 		strcat(slashed, cechoText);
 
-		HU_SetCEchoFlags(MENUCOLOR|V_RETURN8);
+		HU_SetCEchoFlags(V_YELLOWMAP|V_RETURN8);
 		HU_SetCEchoDuration(6);
 		HU_DoCEcho(slashed);
 		return true;

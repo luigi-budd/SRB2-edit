@@ -418,6 +418,9 @@ visplane_t *R_FindPlane(sector_t *sector, fixed_t height, INT32 picnum, INT32 li
 	offset_x = ((INT64)offset_x * xscale) / FRACUNIT;
 	offset_y = ((INT64)offset_y * yscale) / FRACUNIT;
 
+	if (slope != NULL)
+		lightlevel += (slope->lightOffset / 8);
+
 	// This appears to fix the Nimbus Ruins sky bug.
 	if (picnum == skyflatnum && pfloor)
 	{
@@ -920,7 +923,7 @@ void R_DrawSinglePlane(visplane_t *pl)
 			spanfunctype = SPANDRAWFUNC_SPLAT;
 
 		if (pl->polyobj->translucency == 0 || (pl->extra_colormap && (pl->extra_colormap->flags & CMF_FOG)))
-			light = (max(pl->lightlevel, cv_secbright.value) >> LIGHTSEGSHIFT);
+			light = (cv_fullbrite_hack.value ? 255 : pl->lightlevel >> LIGHTSEGSHIFT);
 		else // TODO: 2.3: Make transparent polyobject planes always use light level
 			light = LIGHTLEVELS-1;
 	}
@@ -962,7 +965,7 @@ void R_DrawSinglePlane(visplane_t *pl)
 				}
 
 				if ((spanfunctype == SPANDRAWFUNC_SPLAT) || (pl->extra_colormap && (pl->extra_colormap->flags & CMF_FOG)))
-					light = (max(pl->lightlevel, cv_secbright.value) >> LIGHTSEGSHIFT);
+					light = (cv_fullbrite_hack.value ? 255 : pl->lightlevel >> LIGHTSEGSHIFT);
 				else // TODO: 2.3: Make transparent FOF planes use light level instead of always being fullbright
 					light = LIGHTLEVELS-1;
 			}
@@ -970,9 +973,9 @@ void R_DrawSinglePlane(visplane_t *pl)
 			{
 				ds_fog = true;
 				spanfunctype = SPANDRAWFUNC_FOG;
-				light = (max(pl->lightlevel, cv_secbright.value) >> LIGHTSEGSHIFT);
+				light = (pl->lightlevel >> LIGHTSEGSHIFT);
 			}
-			else light = (max(pl->lightlevel, cv_secbright.value) >> LIGHTSEGSHIFT);
+			else light = (cv_fullbrite_hack.value ? 255 : pl->lightlevel >> LIGHTSEGSHIFT);
 
 			if (pl->ffloor->fofflags & FOF_RIPPLE && !ds_fog)
 			{
@@ -999,7 +1002,7 @@ void R_DrawSinglePlane(visplane_t *pl)
 			}
 		}
 		else
-			light = (max(pl->lightlevel, cv_secbright.value) >> LIGHTSEGSHIFT);
+			light = (cv_fullbrite_hack.value ? 255 : pl->lightlevel >> LIGHTSEGSHIFT);
 	}
 
 	if (ds_fog)

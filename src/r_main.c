@@ -136,14 +136,6 @@ static CV_PossibleValue_t fov_cons_t[] = {{MINFOV*FRACUNIT, "MIN"}, {MAXFOV*FRAC
 static CV_PossibleValue_t translucenthud_cons_t[] = {{0, "MIN"}, {10, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t maxportals_cons_t[] = {{0, "MIN"}, {12, "MAX"}, {0, NULL}}; // lmao rendering 32 portals, you're a card
 static CV_PossibleValue_t homremoval_cons_t[] = {{0, "No"}, {1, "Yes"}, {2, "Flash"}, {0, NULL}};
-static CV_PossibleValue_t menubg_cons_t[] = {
-	{15, "White"}, {21, "Gray"}, {28, "Black"}, {47, "Red"}, {15, "White"},
-	{58, "Creamsicle"}, {63, "Orange"}, {71, "Gold"}, {79, "Yellow"}, {95, "Moss"},
-	{109, "Green"}, {127, "Aqua"}, {138, "Sky"}, {159, "Blue"}, {169, "Purple"},
-	{127, "Aqua"}, {175, "Steel"}, {187, "Magenta"}, {199, "Lavender"},
-	{207, "Rosy"}, {215, "Lilac"}, {238, "Brown"}, {251, "Beige"}
-};
-static CV_PossibleValue_t secbright_cons_t[] = {{0, "MIN"}, {255, "MAX"}, {0, NULL}};
 
 static void R_SetFov(fixed_t playerfov);
 
@@ -158,10 +150,9 @@ void SendWeaponPref2(void);
 consvar_t cv_tailspickup = CVAR_INIT ("tailspickup", "On", CV_NETVAR|CV_ALLOWLUA, CV_OnOff, NULL);
 consvar_t cv_chasecam = CVAR_INIT ("chasecam", "On", CV_CALL, CV_OnOff, ChaseCam_OnChange);
 consvar_t cv_chasecam2 = CVAR_INIT ("chasecam2", "On", CV_CALL, CV_OnOff, ChaseCam2_OnChange);
-consvar_t cv_menubgcolor = CVAR_INIT ("menubgcolor", "Blue", CV_SAVE|CV_CALL|CV_CLIENT, menubg_cons_t, NULL);
 consvar_t cv_flipcam = CVAR_INIT ("flipcam", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam_OnChange);
 consvar_t cv_flipcam2 = CVAR_INIT ("flipcam2", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam2_OnChange);
-consvar_t cv_ringracers_quakes = CVAR_INIT ("rr_quakes", "No", CV_SAVE|CV_CALL|CV_CLIENT, CV_YesNo, NULL);
+consvar_t cv_ringracers_quakes = CVAR_INIT ("rr_quakes", "Yes", CV_SAVE|CV_CALL|CV_CLIENT, CV_YesNo, NULL);
 
 consvar_t cv_shadow = CVAR_INIT ("shadow", "On", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_skybox = CVAR_INIT ("skybox", "On", CV_SAVE, CV_OnOff, NULL);
@@ -177,9 +168,8 @@ consvar_t cv_drawdist_precip = CVAR_INIT ("drawdist_precip", "1024", CV_SAVE, dr
 consvar_t cv_fov = CVAR_INIT ("fov", "90", CV_SAVE|CV_FLOAT|CV_CALL, fov_cons_t, Fov_OnChange);
 consvar_t cv_fovchange = CVAR_INIT ("fovchange", "Off", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_maxportals = CVAR_INIT ("maxportals", "2", CV_SAVE, maxportals_cons_t, NULL);
-consvar_t cv_pitchroll_rotation = CVAR_INIT ("pitchroll-tation", "Off", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
+consvar_t cv_pitchroll_rotation = CVAR_INIT ("pitchroll-tation", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 consvar_t cv_pitchroll_easing = CVAR_INIT ("pitchroll-easing", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
-consvar_t cv_secbright = CVAR_INIT("r_secbright", "0", CV_SAVE, secbright_cons_t, NULL);
 
 consvar_t cv_renderview = CVAR_INIT ("renderview", "On", 0, CV_OnOff, NULL);
 consvar_t cv_renderwalls = CVAR_INIT ("r_renderwalls", "On", 0, CV_OnOff, NULL);
@@ -189,6 +179,7 @@ consvar_t cv_ffloorclip = CVAR_INIT ("r_ffloorclip", "On", 0, CV_OnOff, NULL);
 consvar_t cv_spriteclip = CVAR_INIT ("r_spriteclip", "On", 0, CV_OnOff, NULL);
 
 consvar_t cv_homremoval = CVAR_INIT ("homremoval", "No", CV_SAVE, homremoval_cons_t, NULL);
+consvar_t cv_fullbrite_hack = CVAR_INIT ("fullbrite", "No", CV_NOINIT|CV_CLIENT, CV_OnOff, NULL);
 
 consvar_t cv_renderstats = CVAR_INIT ("renderstats", "Off", 0, CV_OnOff, NULL);
 
@@ -1686,6 +1677,7 @@ void R_RegisterEngineStuff(void)
 		return;
 
 	CV_RegisterVar(&cv_homremoval);
+	CV_RegisterVar(&cv_fullbrite_hack);
 	CV_RegisterVar(&cv_translucency);
 	CV_RegisterVar(&cv_drawdist);
 	CV_RegisterVar(&cv_drawdist_nights);
@@ -1698,7 +1690,6 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_chasecam);
 	CV_RegisterVar(&cv_chasecam2);
 	CV_RegisterVar(&cv_ringracers_quakes);
-	CV_RegisterVar(&cv_menubgcolor);
 
 	CV_RegisterVar(&cv_shadow);
 	CV_RegisterVar(&cv_skybox);
@@ -1711,7 +1702,6 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_renderthings);
 	CV_RegisterVar(&cv_ffloorclip);
 	CV_RegisterVar(&cv_spriteclip);
-	CV_RegisterVar(&cv_secbright);
 
 	CV_RegisterVar(&cv_cam_dist);
 	CV_RegisterVar(&cv_cam_still);

@@ -366,7 +366,7 @@ static CV_PossibleValue_t showping_cons_t[] = {{0, "Off"}, {1, "Always"}, {2, "W
 consvar_t cv_showping = CVAR_INIT ("showping", "Warning", CV_SAVE, showping_cons_t, NULL);
 static CV_PossibleValue_t pingmeasurement_cons_t[] = {{0, "Milliseconds"}, {1, "Frames"}, {0, NULL}};
 consvar_t cv_pingmeasurement = CVAR_INIT ("pingmeasurement", "Milliseconds", CV_SAVE|CV_CLIENT, pingmeasurement_cons_t, NULL);
-consvar_t cv_showcsays = CVAR_INIT ("showcsays", "No", CV_SAVE|CV_CLIENT, CV_YesNo, NULL);
+consvar_t cv_showcsays = CVAR_INIT ("showcsays", "Yes", CV_SAVE|CV_CLIENT, CV_YesNo, NULL);
 
 // Intermission time Tails 04-19-2002
 static CV_PossibleValue_t inttime_cons_t[] = {{0, "MIN"}, {3600, "MAX"}, {0, NULL}};

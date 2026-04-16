@@ -116,8 +116,9 @@ void HWR_ProcessPolygon(FSurfaceInfo *pSurf, FOutVector *pOutVerts, FUINT iNumPt
 		polygonArray[polygonArraySize].texture = current_texture;
 		polygonArray[polygonArraySize].shader = (shader_target != SHADER_NONE) ? HWR_GetShaderFromTarget(shader_target) : shader_target;
 		polygonArray[polygonArraySize].horizonSpecial = horizonSpecial;
-		// default to maximum value so skybox and horizon lines come first
-		polygonArray[polygonArraySize].hash = INT32_MIN+polygonArraySize;
+		// default to polygonArraySize so we don't lose order on horizon lines
+		// (yes, it's supposed to be negative, since we're sorting in that direction)
+		polygonArray[polygonArraySize].hash = -polygonArraySize;
 		polygonArraySize++;
 
 		if (!(PolyFlags & PF_NoTexture) && !horizonSpecial)
@@ -131,7 +132,7 @@ void HWR_ProcessPolygon(FSurfaceInfo *pSurf, FOutVector *pOutVerts, FUINT iNumPt
 			}
 			DIGEST(hash, PolyFlags);
 			DIGEST(hash, pSurf->PolyColor.rgba);
-			if (HWR_UseShader())
+			if (cv_glshaders.value && gl_shadersavailable)
 			{
 				DIGEST(hash, shader_target);
 				DIGEST(hash, pSurf->TintColor.rgba);
@@ -161,10 +162,6 @@ static int comparePolygons(const void *p1, const void *p2)
 	unsigned int index2 = *(const unsigned int*)p2;
 	PolygonArrayEntry* poly1 = &polygonArray[index1];
 	PolygonArrayEntry* poly2 = &polygonArray[index2];
-	// special case with signedness to prevent overflowing
-	// FIXME: check for prediction slowdowns!
-	if ((poly1->hash & 0x80000000) != (poly2->hash & 0x80000000))
-		return (poly1->hash & 0x80000000) < (poly2->hash & 0x80000000) ? 1 : -1;
 	return poly1->hash - poly2->hash;
 }
 
@@ -236,7 +233,7 @@ void HWR_RenderBatches(void)
 
 	// set state for first batch
 
-	if (HWR_UseShader())
+	if (cv_glshaders.value && gl_shadersavailable)
 	{
 		HWD.pfnSetShader(currentShader);
 	}
@@ -320,7 +317,7 @@ void HWR_RenderBatches(void)
 				nextSurfaceInfo = polygonArray[nextIndex].surf;
 				if (nextPolyFlags & PF_NoTexture)
 					nextTexture = 0;
-				if (currentShader != nextShader && HWR_UseShader())
+				if (currentShader != nextShader && cv_glshaders.value && gl_shadersavailable)
 				{
 					changeState = true;
 					changeShader = true;
@@ -335,7 +332,7 @@ void HWR_RenderBatches(void)
 					changeState = true;
 					changePolyFlags = true;
 				}
-				if (HWR_UseShader())
+				if (cv_glshaders.value && gl_shadersavailable)
 				{
 					if (currentSurfaceInfo.PolyColor.rgba != nextSurfaceInfo.PolyColor.rgba ||
 						currentSurfaceInfo.TintColor.rgba != nextSurfaceInfo.TintColor.rgba ||

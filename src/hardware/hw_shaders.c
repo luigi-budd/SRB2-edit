@@ -81,7 +81,6 @@ static shadertarget_t gl_shadertargets[NUMSHADERTARGETS];
 
 #define MODEL_LIGHTING_DEFINE "#define SRB2_MODEL_LIGHTING"
 #define PALETTE_RENDERING_DEFINE "#define SRB2_PALETTE_RENDERING"
-#define LIGHT_DITHERING_DEFINE "#define SRB2_LIGHT_DITHER"
 
 // Initialize shader variables and the backend's shader system. Load the base shaders.
 // Returns false if shaders cannot be used.
@@ -282,8 +281,6 @@ static char *HWR_PreprocessShader(char *original)
 		ADD_TO_LEN(MODEL_LIGHTING_DEFINE)
 	if (cv_glpaletterendering.value)
 		ADD_TO_LEN(PALETTE_RENDERING_DEFINE)
-	if (cv_gllightdither.value)
-		ADD_TO_LEN(LIGHT_DITHERING_DEFINE)
 
 #undef ADD_TO_LEN
 
@@ -327,8 +324,6 @@ static char *HWR_PreprocessShader(char *original)
 		WRITE_DEFINE(MODEL_LIGHTING_DEFINE)
 	if (cv_glpaletterendering.value)
 		WRITE_DEFINE(PALETTE_RENDERING_DEFINE)
-	if (cv_gllightdither.value)
-		WRITE_DEFINE(LIGHT_DITHERING_DEFINE)
 
 #undef WRITE_DEFINE
 

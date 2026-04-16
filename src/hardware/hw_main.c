@@ -150,9 +150,6 @@ void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, extracolormap_t *col
 	tint_color.rgba = (colormap != NULL) ? (UINT32)colormap->rgba : 0x00000000;
 	fade_color.rgba = (colormap != NULL) ? (UINT32)colormap->fadergba : 0xFF000000;
 
-	// Clamp the light level, since it can sometimes go out of the 0-255 range from animations
-	light_level = min(max(light_level, cv_secbright.value), 255);
-
 	// Crappy backup coloring if you can't do shaders
 	if (!HWR_UseShader())
 	{
@@ -190,11 +187,11 @@ void HWR_Lighting(FSurfaceInfo *Surface, INT32 light_level, extracolormap_t *col
 		poly_color.s.blue = (UINT8)blue;
 	}
 
-	if(!HWR_ShouldUsePaletteRendering()) // In palette rendering mode, changes to the color profile are taken into account
-	{
-		V_CubeApply(&tint_color.s.red, &tint_color.s.green, &tint_color.s.blue);
-		V_CubeApply(&fade_color.s.red, &fade_color.s.green, &fade_color.s.blue);
-	}
+	// Clamp the light level, since it can sometimes go out of the 0-255 range from animations
+	light_level = min(max(light_level, 0), 255);
+
+	V_CubeApply(&tint_color.s.red, &tint_color.s.green, &tint_color.s.blue);
+	V_CubeApply(&fade_color.s.red, &fade_color.s.green, &fade_color.s.blue);
 	Surface->PolyColor.rgba = poly_color.rgba;
 	Surface->TintColor.rgba = tint_color.rgba;
 	Surface->FadeColor.rgba = fade_color.rgba;
@@ -215,7 +212,7 @@ UINT8 HWR_FogBlockAlpha(INT32 light, extracolormap_t *colormap) // Let's see if 
 
 	realcolor.rgba = (colormap != NULL) ? colormap->rgba : 0x00000000;
 
-	if (HWR_UseShader())
+	if (cv_glshaders.value && gl_shadersavailable)
 	{
 		surfcolor.s.alpha = (255 - light);
 	}
@@ -238,83 +235,48 @@ UINT8 HWR_FogBlockAlpha(INT32 light, extracolormap_t *colormap) // Let's see if 
 	return surfcolor.s.alpha;
 }
 
-static FUINT HWR_CalcWallLight(FUINT lightnum, fixed_t v1x, fixed_t v1y, fixed_t v2x, fixed_t v2y)
+
+static FUINT HWR_CalcWallLight(FUINT lightnum, seg_t *line)
 {
 	INT16 finallight = lightnum;
 
-	if (cv_glfakecontrast.value != 0)
+	if (cv_glfakecontrast.value != 0 && line != NULL && P_ApplyLightOffset(lightnum))
 	{
-		const UINT8 contrast = 8;
 		fixed_t extralight = 0;
 
 		if (cv_glfakecontrast.value == 2) // Smooth setting
-		{
-			extralight = (-(contrast<<FRACBITS) +
-			FixedDiv(AngleFixed(R_PointToAngle2(0, 0,
-				abs(v1x - v2x),
-				abs(v1y - v2y))), 90<<FRACBITS)
-			* (contrast * 2)) >> FRACBITS;
-		}
+			extralight += line->hwLightOffset;
 		else
-		{
-			if (v1y == v2y)
-				extralight = -contrast;
-			else if (v1x == v2x)
-				extralight = contrast;
-		}
+			extralight += line->lightOffset * 8;
 
 		if (extralight != 0)
 		{
 			finallight += extralight;
-
-			if (finallight < 0)
-				finallight = 0;
-			if (finallight > 255)
-				finallight = 255;
+			finallight = min(max(finallight, 0) , 255);
 		}
 	}
 
 	return (FUINT)finallight;
 }
 
-static FUINT HWR_CalcSlopeLight(FUINT lightnum, angle_t dir, fixed_t delta)
+
+static FUINT HWR_CalcSlopeLight(FUINT lightnum, pslope_t *slope)
 {
 	INT16 finallight = lightnum;
+	fixed_t extralight = 0;
 
-	if (cv_glfakecontrast.value != 0 && cv_glslopecontrast.value != 0)
+	if (cv_glfakecontrast.value != 0 && cv_glslopecontrast.value != 0 && slope != NULL && P_ApplyLightOffset(lightnum))
 	{
-		const UINT8 contrast = 8;
-		fixed_t extralight = 0;
 
 		if (cv_glfakecontrast.value == 2) // Smooth setting
-		{
-			fixed_t dirmul = abs(FixedDiv(AngleFixed(dir) - (180<<FRACBITS), 180<<FRACBITS));
-
-			extralight = -(contrast<<FRACBITS) + (dirmul * (contrast * 2));
-
-			extralight = FixedMul(extralight, delta*4) >> FRACBITS;
-		}
+			extralight += slope->hwLightOffset;
 		else
-		{
-			dir = ((dir + ANGLE_45) / ANGLE_90) * ANGLE_90;
-
-			if (dir == ANGLE_180)
-				extralight = -contrast;
-			else if (dir == 0)
-				extralight = contrast;
-
-			if (delta >= FRACUNIT/2)
-				extralight *= 2;
-		}
+			extralight += slope->lightOffset * 8;
 
 		if (extralight != 0)
 		{
 			finallight += extralight;
-
-			if (finallight < 0)
-				finallight = 0;
-			if (finallight > 255)
-				finallight = 255;
+			finallight = min(max(finallight, 0) ,255);
 		}
 	}
 
@@ -323,7 +285,7 @@ static FUINT HWR_CalcSlopeLight(FUINT lightnum, angle_t dir, fixed_t delta)
 
 static UINT8 HWR_SideLightLevel(side_t *side, INT16 base_lightlevel)
 {
-	return (max(max(0, cv_secbright.value), min(255, side->light +
+	return (cv_fullbrite_hack.value ? 255 : max(0, min(255, side->light +
 		((side->lightabsolute) ? 0 : base_lightlevel))));
 }
 
@@ -400,6 +362,9 @@ static void HWR_RenderPlane(subsector_t *subsector, extrasubsector_t *xsub, bool
 
 	if (nrPlaneVerts < 3) // not even a triangle?
 		return;
+
+	if (cv_fullbrite_hack.value)
+		lightlevel = 255;
 
 	// Get the slope pointer to simplify future code
 	if (FOFsector)
@@ -511,7 +476,7 @@ static void HWR_RenderPlane(subsector_t *subsector, extrasubsector_t *xsub, bool
 		SETUP3DVERT(v3d, pv->x, pv->y);
 
 	if (slope)
-		lightlevel = HWR_CalcSlopeLight(lightlevel, R_PointToAngle2(0, 0, slope->normal.x, slope->normal.y), abs(slope->zdelta));
+		lightlevel = HWR_CalcSlopeLight(lightlevel, slope);
 
 	HWR_Lighting(&Surf, lightlevel, planecolormap);
 
@@ -756,7 +721,7 @@ static void HWR_SplitWall(sector_t *sector, FOutVector *wallVerts, INT32 texnum,
 
 	FUINT lightnum = HWR_SideLightLevel(gl_sidedef, sector->lightlevel);
 	const UINT8 alpha = Surf->PolyColor.s.alpha;
-	lightnum = HWR_CalcWallLight(lightnum, v1x, v1y, v2x, v2y);
+	lightnum = HWR_CalcWallLight(lightnum, gl_curline);
 	extracolormap_t *colormap = NULL;
 
 	if (!r_renderwalls)
@@ -802,13 +767,13 @@ static void HWR_SplitWall(sector_t *sector, FOutVector *wallVerts, INT32 texnum,
 			{
 				lightnum = HWR_SideLightLevel(gl_sidedef, pfloor->master->frontsector->lightlevel);
 				colormap = pfloor->master->frontsector->extra_colormap;
-				lightnum = colormap ? lightnum : HWR_CalcWallLight(lightnum, v1x, v1y, v2x, v2y);
+				lightnum = colormap ? lightnum : HWR_CalcWallLight(lightnum, gl_curline);
 			}
 			else
 			{
 				lightnum = HWR_SideLightLevel(gl_sidedef, *list[i].lightlevel);
 				colormap = *list[i].extra_colormap;
-				lightnum = colormap ? lightnum : HWR_CalcWallLight(lightnum, v1x, v1y, v2x, v2y);
+				lightnum = colormap ? lightnum : HWR_CalcWallLight(lightnum, gl_curline);
 			}
 		}
 
@@ -1230,7 +1195,7 @@ static void HWR_ProcessSeg(void)
 
 	FUINT lightnum = HWR_SideLightLevel(gl_sidedef, gl_frontsector->lightlevel);
 	extracolormap_t *colormap = gl_frontsector->extra_colormap;
-	lightnum = colormap ? lightnum : HWR_CalcWallLight(lightnum, vs.x, vs.y, ve.x, ve.y);
+	lightnum = colormap ? lightnum : HWR_CalcWallLight(lightnum, gl_curline);
 
 	FSurfaceInfo Surf;
 	Surf.PolyColor.s.alpha = 255;
@@ -1691,7 +1656,7 @@ static void HWR_ProcessSeg(void)
 
 					lightnum = HWR_SideLightLevel(gl_sidedef, rover->master->frontsector->lightlevel);
 					colormap = rover->master->frontsector->extra_colormap;
-					lightnum = colormap ? lightnum : HWR_CalcWallLight(lightnum, vs.x, vs.y, ve.x, ve.y);
+					lightnum = colormap ? lightnum : HWR_CalcWallLight(lightnum, gl_curline);
 
 					Surf.PolyColor.s.alpha = HWR_FogBlockAlpha(HWR_SideLightLevel(gl_sidedef, rover->master->frontsector->lightlevel), rover->master->frontsector->extra_colormap);
 
@@ -1848,7 +1813,7 @@ static void HWR_ProcessSeg(void)
 
 					lightnum = HWR_SideLightLevel(gl_sidedef, rover->master->frontsector->lightlevel);
 					colormap = rover->master->frontsector->extra_colormap;
-					lightnum = colormap ? lightnum : HWR_CalcWallLight(lightnum, vs.x, vs.y, ve.x, ve.y);
+					lightnum = colormap ? lightnum : HWR_CalcWallLight(lightnum, gl_curline);
 
 					Surf.PolyColor.s.alpha = HWR_FogBlockAlpha(rover->master->frontsector->lightlevel, rover->master->frontsector->extra_colormap);
 
@@ -3013,7 +2978,6 @@ static void HWR_DrawDropShadow(mobj_t *thing, fixed_t scale)
 	{
 		shader = SHADER_SPRITE;
 		blendmode |= PF_ColorMapped;
-		sSurf.LightInfo.light_level = 0;
 	}
 
 	HWR_ProcessPolygon(&sSurf, shadowVerts, 4, blendmode, shader, false);
@@ -3257,7 +3221,7 @@ static void HWR_SplitSprite(gl_vissprite_t *spr)
 	i = 0;
 	temp = FLOAT_TO_FIXED(realtop);
 
-	if (R_ThingIsFullBright(spr->mobj))
+	if (R_ThingIsFullBright(spr->mobj) || cv_fullbrite_hack.value)
 		lightlevel = 255;
 	else if (R_ThingIsFullDark(spr->mobj))
 		lightlevel = 0;
@@ -3270,7 +3234,7 @@ static void HWR_SplitSprite(gl_vissprite_t *spr)
 		if (h <= temp)
 		{
 			if (!lightset)
-				lightlevel = max(min(*list[i-1].lightlevel, 255), 0);
+				lightlevel = *list[i-1].lightlevel > 255 ? 255 : *list[i-1].lightlevel;
 			if (!(spr->mobj->renderflags & RF_NOCOLORMAPS))
 				colormap = *list[i-1].extra_colormap;
 			break;
@@ -3289,7 +3253,7 @@ static void HWR_SplitSprite(gl_vissprite_t *spr)
 		if (!(list[i].flags & FOF_NOSHADE) && (list[i].flags & FOF_CUTSPRITES))
 		{
 			if (!lightset)
-				lightlevel = max(min(*list[i].lightlevel, 255), 0);
+				lightlevel = *list[i].lightlevel > 255 ? 255 : *list[i].lightlevel;
 			if (!(spr->mobj->renderflags & RF_NOCOLORMAPS))
 				colormap = *list[i].extra_colormap;
 		}
@@ -3679,7 +3643,7 @@ static void HWR_DrawSprite(gl_vissprite_t *spr)
 		boolean lightset = true;
 		extracolormap_t *colormap = NULL;
 
-		if (R_ThingIsFullBright(spr->mobj))
+		if (R_ThingIsFullBright(spr->mobj) || cv_fullbrite_hack.value)
 			lightlevel = 255;
 		else if (R_ThingIsFullDark(spr->mobj))
 			lightlevel = 0;
@@ -3694,13 +3658,13 @@ static void HWR_DrawSprite(gl_vissprite_t *spr)
 			INT32 light = R_GetPlaneLight(sector, spr->mobj->z, false);
 
 			if (!lightset)
-				lightlevel = max(min(*sector->lightlist[light].lightlevel, 255), 0);
+				lightlevel = *sector->lightlist[light].lightlevel > 255 ? 255 : *sector->lightlist[light].lightlevel;
 
 			if (*sector->lightlist[light].extra_colormap && !(spr->mobj->renderflags & RF_NOCOLORMAPS))
 				colormap = *sector->lightlist[light].extra_colormap;
 		}
 		else if (!lightset)
-			lightlevel = max(min(sector->lightlevel, 255), 0);
+			lightlevel = sector->lightlevel > 255 ? 255 : sector->lightlevel;
 
 		if (R_ThingIsSemiBright(spr->mobj))
 			lightlevel = 128 + (lightlevel>>1);
@@ -3854,7 +3818,7 @@ static inline void HWR_DrawPrecipitationSprite(gl_vissprite_t *spr)
 			// Always use the light at the top instead of whatever I was doing before
 			INT32 light = R_GetPlaneLight(sector, spr->mobj->z + spr->mobj->height, false);
 
-			if (!R_ThingIsFullBright(spr->mobj))
+			if (!(R_ThingIsFullBright(spr->mobj) || cv_fullbrite_hack.value))
 				lightlevel = *sector->lightlist[light].lightlevel > 255 ? 255 : *sector->lightlist[light].lightlevel;
 
 			if (*sector->lightlist[light].extra_colormap)
@@ -3862,7 +3826,7 @@ static inline void HWR_DrawPrecipitationSprite(gl_vissprite_t *spr)
 		}
 		else
 		{
-			if (!R_ThingIsFullBright(spr->mobj))
+			if (!(R_ThingIsFullBright(spr->mobj) || cv_fullbrite_hack.value))
 				lightlevel = sector->lightlevel > 255 ? 255 : sector->lightlevel;
 
 			if (sector->extra_colormap)
@@ -5096,16 +5060,13 @@ static void HWR_ProjectPrecipitationSprite(precipmobj_t *thing)
 	vis->bbox = false;
 
 	// okay... this is a hack, but weather isn't networked, so it should be ok
-	if (thing->lastupdatetime < gametic)
+	if (!(thing->precipflags & PCF_THUNK))
 	{
-		R_ResetPrecipitationMobjInterpolationState(thing);
-
 		if (thing->precipflags & PCF_RAIN)
 			P_RainThinker(thing);
 		else
 			P_SnowThinker(thing);
-
-		thing->lastupdatetime = gametic;
+		thing->precipflags |= PCF_THUNK;
 	}
 }
 
@@ -5878,6 +5839,7 @@ void HWR_LoadLevel(void)
 // ==========================================================================
 
 static CV_PossibleValue_t glshaders_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Ignore custom shaders"}, {0, NULL}};
+static CV_PossibleValue_t glmodelinterpolation_cons_t[] = {{0, "Off"}, {1, "Sometimes"}, {2, "Always"}, {0, NULL}};
 static CV_PossibleValue_t glfakecontrast_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Smooth"}, {0, NULL}};
 static CV_PossibleValue_t glshearing_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Third-person"}, {0, NULL}};
 static CV_PossibleValue_t glsprbillboard_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Players"}, {0, NULL}};
@@ -5888,7 +5850,6 @@ static void CV_glmodellighting_OnChange(void);
 static void CV_glpaletterendering_OnChange(void);
 static void CV_glpalettedepth_OnChange(void);
 static void CV_glshaders_OnChange(void);
-static void CV_gllightdithering_OnChange(void);
 
 static CV_PossibleValue_t glfiltermode_cons_t[]= {{HWD_SET_TEXTUREFILTER_POINTSAMPLED, "Nearest"},
 	{HWD_SET_TEXTUREFILTER_BILINEAR, "Bilinear"}, {HWD_SET_TEXTUREFILTER_TRILINEAR, "Trilinear"},
@@ -5913,7 +5874,7 @@ consvar_t cv_glcoronasize = CVAR_INIT ("gr_coronasize", "1", CV_SAVE|CV_FLOAT, 0
 #endif
 
 consvar_t cv_glmodels = CVAR_INIT ("gr_models", "Off", CV_SAVE, CV_OnOff, NULL);
-consvar_t cv_glmodelinterpolation = CVAR_INIT ("gr_modelinterpolation", "On", CV_SAVE, CV_OnOff, NULL);
+consvar_t cv_glmodelinterpolation = CVAR_INIT ("gr_modelinterpolation", "Sometimes", CV_SAVE, glmodelinterpolation_cons_t, NULL);
 consvar_t cv_glmodellighting = CVAR_INIT ("gr_modellighting", "Off", CV_SAVE|CV_CALL, CV_OnOff, CV_glmodellighting_OnChange);
 consvar_t cv_glmodeltranslations = CVAR_INIT ("gr_modeltranslations", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 
@@ -5936,7 +5897,6 @@ static CV_PossibleValue_t glpalettedepth_cons_t[] = {{16, "16 bits"}, {24, "24 b
 
 consvar_t cv_glpaletterendering = CVAR_INIT ("gr_paletterendering", "On", CV_SAVE|CV_CALL, CV_OnOff, CV_glpaletterendering_OnChange);
 consvar_t cv_glpalettedepth = CVAR_INIT ("gr_palettedepth", "16 bits", CV_SAVE|CV_CALL, glpalettedepth_cons_t, CV_glpalettedepth_OnChange);
-consvar_t cv_gllightdither = CVAR_INIT ("gr_lightdithering", "Off", CV_SAVE|CV_CALL, CV_OnOff, CV_gllightdithering_OnChange);
 
 #define ONLY_IF_GL_LOADED if (vid.glstate != VID_GL_LIBRARY_LOADED) return;
 consvar_t cv_glwireframe = CVAR_INIT ("gr_wireframe", "Off", 0, CV_OnOff, NULL);
@@ -5990,15 +5950,6 @@ static void CV_glshaders_OnChange(void)
 	}
 }
 
-static void CV_gllightdithering_OnChange(void)
-{
-	ONLY_IF_GL_LOADED
-	if (gl_shadersavailable)
-	{
-		HWR_CompileShaders();
-	}
-}
-
 //added by Hurdler: console varibale that are saved
 void HWR_AddCommands(void)
 {
@@ -6030,7 +5981,6 @@ void HWR_AddCommands(void)
 
 	CV_RegisterVar(&cv_glpaletterendering);
 	CV_RegisterVar(&cv_glpalettedepth);
-	CV_RegisterVar(&cv_gllightdither);
 	CV_RegisterVar(&cv_glwireframe);
 }
 

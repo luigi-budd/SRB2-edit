@@ -99,7 +99,6 @@ extern consvar_t cv_glslopecontrast;
 extern consvar_t cv_glbatching;
 extern consvar_t cv_glpaletterendering;
 extern consvar_t cv_glpalettedepth;
-extern consvar_t cv_gllightdither;
 extern consvar_t cv_glrenderdistance;
 
 extern consvar_t cv_glwireframe;

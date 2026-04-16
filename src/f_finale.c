@@ -1597,7 +1597,7 @@ void F_GameEvaluationDrawer(void)
 	if (finalecount >= 5*TICRATE)
 	{
 		INT32 startcoord = 32;
-		V_DrawString(8, 16, MENUCOLOR, "Unlocked:");
+		V_DrawString(8, 16, V_YELLOWMAP, "Unlocked:");
 
 		for (i = 0; i < MAXUNLOCKABLES; i++)
 		{
@@ -1621,7 +1621,7 @@ void F_GameEvaluationDrawer(void)
 			endingtext = va("%s & %s, %s%s", skins[players[consoleplayer].skin]->realname, skins[botskin-1]->realname, rtatext, cuttext);
 		else
 			endingtext = va("%s, %s%s", skins[players[consoleplayer].skin]->realname, rtatext, cuttext);
-		V_DrawCenteredString(BASEVIDWIDTH/2, 182, V_SNAPTOBOTTOM|(ultimatemode ? MENUREDCOLOR : MENUCOLOR), endingtext);
+		V_DrawCenteredString(BASEVIDWIDTH/2, 182, V_SNAPTOBOTTOM|(ultimatemode ? V_REDMAP : V_YELLOWMAP), endingtext);
 	}
 }
 
@@ -4582,7 +4582,7 @@ void F_TextPromptDrawer(void)
 
 	// Draw chevron
 	if (promptblockcontrols && !timetonext)
-		V_DrawString(textr-8, chevrony + (skullAnimCounter/5), (V_SNAPTOBOTTOM|MENUCOLOR), "\x1B"); // down arrow
+		V_DrawString(textr-8, chevrony + (skullAnimCounter/5), (V_SNAPTOBOTTOM|V_YELLOWMAP), "\x1B"); // down arrow
 }
 
 #define nocontrolallowed(j) {\

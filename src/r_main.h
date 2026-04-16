@@ -115,10 +115,10 @@ extern ps_metric_t ps_numpolyobjects;
 
 extern consvar_t cv_showhud, cv_translucenthud, cv_moviemodeinfo;
 extern consvar_t cv_homremoval;
+extern consvar_t cv_fullbrite_hack;
 extern consvar_t cv_chasecam, cv_chasecam2;
 extern consvar_t cv_flipcam, cv_flipcam2;
 extern consvar_t cv_ringracers_quakes;
-extern consvar_t cv_menubgcolor;
 
 extern consvar_t cv_shadow;
 extern consvar_t cv_translucency;
@@ -131,7 +131,6 @@ extern consvar_t cv_renderwalls, cv_renderfloors, cv_renderthings;
 extern consvar_t cv_ffloorclip, cv_spriteclip;
 extern consvar_t cv_pitchroll_rotation;
 extern consvar_t cv_pitchroll_easing;
-extern consvar_t cv_secbright;
 
 extern consvar_t cv_flashes;
 

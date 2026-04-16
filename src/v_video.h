@@ -28,7 +28,7 @@
 
 extern UINT8 *screens[5];
 
-extern consvar_t cv_ticrate, cv_tpscounter, cv_compactinfo, cv_constextsize, cv_menucaps, cv_menucolor,
+extern consvar_t cv_ticrate, cv_tpscounter, cv_compactinfo, cv_constextsize, cv_menucaps,
 cv_globalgamma, cv_globalsaturation,
 cv_rhue, cv_yhue, cv_ghue, cv_chue, cv_bhue, cv_mhue,
 cv_rgamma, cv_ygamma, cv_ggamma, cv_cgamma, cv_bgamma, cv_mgamma,
@@ -47,7 +47,7 @@ typedef struct
 {
 	boolean init;
 	RGBA_t palette[256];
-	UINT16 table[0x10000];
+	UINT16 table[0xFFFF];
 } colorlookup_t;
 
 void InitColorLUT(colorlookup_t *lut, RGBA_t *palette, boolean makecolors);
@@ -197,10 +197,6 @@ UINT8 *V_GetStringColormap(INT32 colorflags);
 
 // allow menu text to be displayed in lowercase
 #define MENUCAPS (!cv_menucaps.value ? V_ALLOWLOWERCASE : 0)
-
-// romoney5: menu highlight color
-#define MENUCOLOR (cv_menucolor.value)
-#define MENUREDCOLOR (cv_menucolor.value == V_REDMAP ? V_BLUEMAP : V_REDMAP)
 
 // Generalized character drawing function, combining console & chat functionality with a specified font.
 void V_DrawFontCharacter(INT32 x, INT32 y, INT32 c, boolean lowercaseallowed, fixed_t scale, UINT8 *colormap, fontdef_t font);

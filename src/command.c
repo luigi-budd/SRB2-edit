@@ -986,7 +986,7 @@ static void COM_Help_f(void)
 		isitallfalse = (!parmv && !parmc && !parma);
 
 		// slightly less ternary spam
-		const char* helpheaders[] = {"Vanilla", "Client", "Addons"};
+		const char* helpheaders[] = {"Vanilla:", "Client:", "Addons:"};
 
 		while (oi <= 2)
 		{
@@ -996,7 +996,7 @@ static void COM_Help_f(void)
 				if (!parmc && oi == 1)
 					oi++;
 				if (!parma && oi == 2)
-					oi++;
+					break;
 			}
 
 			foundflag = false;
@@ -1010,7 +1010,7 @@ static void COM_Help_f(void)
 					if (oi == 0 && cvar->flags & (CV_CLIENT | CV_LUAVAR))
 						continue;
 					
-					if (oi == 1 && (cvar->flags & CV_LUAVAR || !(cvar->flags & CV_CLIENT)))
+					if (oi == 1 && ((cvar->flags & CV_LUAVAR) || !(cvar->flags & CV_CLIENT)))
 						continue;
 
 					if (oi == 2 && !(cvar->flags & CV_LUAVAR))
@@ -1021,14 +1021,14 @@ static void COM_Help_f(void)
 						foundflag = true;
 				}
 			} else {
-				CONS_Printf("\x82""Commands: ""\x80");
+				CONS_Printf("\t\x82""Commands: ""\x80");
 				for (cmd = com_commands; cmd; cmd = cmd->next)
 				{
 					
 					if (oi == 0 && cmd->flags & (COM_CLIENT | COM_LUACOM))
 						continue;
 					
-					if (oi == 1 && (cmd->flags & COM_LUACOM || !(cmd->flags & COM_CLIENT)))
+					if (oi == 1 && ((cmd->flags & COM_LUACOM) || !(cmd->flags & COM_CLIENT)))
 						continue;
 
 					if (oi == 2 && !(cmd->flags & COM_LUACOM))
@@ -1041,7 +1041,7 @@ static void COM_Help_f(void)
 			}
 
 			if (oi == 2 && !foundflag)
-				CONS_Printf("(no %s have been created by addons", (iscomloop ? "commands" : "variables"));
+				CONS_Printf("(no %s have been created by addons)", (iscomloop ? "commands" : "variables"));
 
 			CONS_Printf("\n"); // new line right after
 			

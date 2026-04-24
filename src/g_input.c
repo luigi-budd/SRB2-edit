@@ -822,7 +822,7 @@ void G_SaveKeySetting(FILE *f, INT32 (*fromcontrols)[2], INT32 (*fromcontrolsbis
 {
 	INT32 i;
 
-	for (i = (!edit ? 1 : NUM_GAMECONTROLS-EDITCUSTOMCONTROLS); i < NUM_GAMECONTROLS; i++)
+	for (i = (!edit ? 1 : VANILLACONTROLCOUNT); i < NUM_GAMECONTROLS; i++)
 	{
 		fprintf(f, "setcontrol \"%s\" \"%s\"", gamecontrolname[i],
 			G_KeyNumToName(fromcontrols[i][0]));
@@ -833,7 +833,7 @@ void G_SaveKeySetting(FILE *f, INT32 (*fromcontrols)[2], INT32 (*fromcontrolsbis
 			fprintf(f, "\n");
 	}
 
-	for (i = (!edit ? 1 : NUM_GAMECONTROLS-EDITCUSTOMCONTROLS); i < NUM_GAMECONTROLS; i++)
+	for (i = (!edit ? 1 : VANILLACONTROLCOUNT); i < NUM_GAMECONTROLS; i++)
 	{
 		fprintf(f, "setcontrol2 \"%s\" \"%s\"", gamecontrolname[i],
 			G_KeyNumToName(fromcontrolsbis[i][0]));

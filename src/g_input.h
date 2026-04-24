@@ -107,9 +107,7 @@ typedef enum
 	NUM_GAMECONTROLS
 } gamecontrols_e;
 
-// Increment this if you add a new GC_ (also make sure its after GC_CUSTOM3!)
-// this is used for saving SRB2-edit controls seperately
-#define EDITCUSTOMCONTROLS 1
+#define VANILLACONTROLCOUNT 43
 
 typedef enum
 {

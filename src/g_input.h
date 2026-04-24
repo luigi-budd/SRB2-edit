@@ -107,6 +107,8 @@ typedef enum
 	NUM_GAMECONTROLS
 } gamecontrols_e;
 
+#define VANILLACONTROLCOUNT 43
+
 typedef enum
 {
 	gcs_custom,
@@ -196,7 +198,7 @@ void Command_Setcontrol2_f(void);
 void G_DefineDefaultControls(void);
 INT32 G_GetControlScheme(INT32 (*fromcontrols)[2], const INT32 *gclist, INT32 gclen);
 void G_CopyControls(INT32 (*setupcontrols)[2], INT32 (*fromcontrols)[2], const INT32 *gclist, INT32 gclen);
-void G_SaveKeySetting(FILE *f, INT32 (*fromcontrols)[2], INT32 (*fromcontrolsbis)[2]);
+void G_SaveKeySetting(FILE *f, INT32 (*fromcontrols)[2], INT32 (*fromcontrolsbis)[2], boolean edit);
 INT32 G_CheckDoubleUsage(INT32 keynum, boolean modify);
 
 // sets the members of a mouse_t given position deltas

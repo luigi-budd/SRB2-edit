@@ -1166,6 +1166,9 @@ static void IdentifyVersion(addfilelist_t *startupwadfiles)
 	snprintf(configfile, sizeof configfile, "%s" PATHSEP CONFIGFILENAME, srb2waddir);
 	configfile[sizeof configfile - 1] = '\0';
 
+	snprintf(editconfigfile, sizeof editconfigfile, "%s" PATHSEP EDITCONFIGFILENAME, srb2waddir);
+	editconfigfile[sizeof editconfigfile - 1] = '\0';
+
 	// Load the IWAD
 	if (srb2wad != NULL && FIL_ReadFileOK(srb2wad))
 		D_AddFile(startupwadfiles, srb2wad);
@@ -1328,10 +1331,13 @@ void D_SRB2Main(void)
 #if (defined (__unix__) || defined (__APPLE__) || defined (UNIXCOMMON)) && !defined (__CYGWIN__)
 			I_Error("Please set $HOME to your home directory\n");
 #else
-			if (dedicated)
+			if (dedicated) {
 				snprintf(configfile, sizeof configfile, "d"CONFIGFILENAME);
-			else
+				snprintf(editconfigfile, sizeof editconfigfile, "d"EDITCONFIGFILENAME);
+			} else {
 				snprintf(configfile, sizeof configfile, CONFIGFILENAME);
+				snprintf(editconfigfile, sizeof editconfigfile, EDITCONFIGFILENAME);
+			}
 #endif
 		}
 		else
@@ -1340,10 +1346,13 @@ void D_SRB2Main(void)
 #ifdef DEFAULTDIR
 			snprintf(srb2home, sizeof srb2home, "%s" PATHSEP DEFAULTDIR, userhome);
 			snprintf(downloaddir, sizeof downloaddir, "%s" PATHSEP "DOWNLOAD", srb2home);
-			if (dedicated)
+			if (dedicated) {
 				snprintf(configfile, sizeof configfile, "%s" PATHSEP "d"CONFIGFILENAME, srb2home);
-			else
+				snprintf(editconfigfile, sizeof editconfigfile, "%s" PATHSEP "d"EDITCONFIGFILENAME, srb2home);
+			} else {
 				snprintf(configfile, sizeof configfile, "%s" PATHSEP CONFIGFILENAME, srb2home);
+				snprintf(editconfigfile, sizeof editconfigfile, "%s" PATHSEP EDITCONFIGFILENAME, srb2home);
+			}
 
 			// can't use sprintf since there is %u in savegamename
 			strcatbf(savegamename, srb2home, PATHSEP);
@@ -1353,10 +1362,13 @@ void D_SRB2Main(void)
 #else // DEFAULTDIR
 			snprintf(srb2home, sizeof srb2home, "%s", userhome);
 			snprintf(downloaddir, sizeof downloaddir, "%s", userhome);
-			if (dedicated)
+			if (dedicated) {
 				snprintf(configfile, sizeof configfile, "%s" PATHSEP "d"CONFIGFILENAME, userhome);
-			else
+				snprintf(editconfigfile, sizeof editconfigfile, "%s" PATHSEP "d"EDITCONFIGFILENAME, userhome);
+			} else {
 				snprintf(configfile, sizeof configfile, "%s" PATHSEP CONFIGFILENAME, userhome);
+				snprintf(editconfigfile, sizeof editconfigfile, "%s" PATHSEP EDITCONFIGFILENAME, userhome);
+			}
 
 			// can't use sprintf since there is %u in savegamename
 			strcatbf(savegamename, userhome, PATHSEP);
@@ -1367,6 +1379,7 @@ void D_SRB2Main(void)
 		}
 
 		configfile[sizeof configfile - 1] = '\0';
+		editconfigfile[sizeof editconfigfile - 1] = '\0';
 	}
 
 	M_LoadJoinedIPs();	// load joined ips

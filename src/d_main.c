@@ -1331,12 +1331,13 @@ void D_SRB2Main(void)
 #if (defined (__unix__) || defined (__APPLE__) || defined (UNIXCOMMON)) && !defined (__CYGWIN__)
 			I_Error("Please set $HOME to your home directory\n");
 #else
-			if (dedicated)
+			if (dedicated) {
 				snprintf(configfile, sizeof configfile, "d"CONFIGFILENAME);
 				snprintf(editconfigfile, sizeof editconfigfile, "d"EDITCONFIGFILENAME);
-			else
+			} else {
 				snprintf(configfile, sizeof configfile, CONFIGFILENAME);
 				snprintf(editconfigfile, sizeof editconfigfile, EDITCONFIGFILENAME);
+			}
 #endif
 		}
 		else

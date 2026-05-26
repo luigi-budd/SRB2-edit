@@ -1443,7 +1443,8 @@ boolean HWR_DrawModel(gl_vissprite_t *spr)
 				colormap = sector->extra_colormap;
 		}
 
-		HWR_Lighting(&Surf, lightlevel, colormap);
+		// lol
+		HWR_Lighting(&Surf, cv_fullbrite_hack.value ? 255 : lightlevel, colormap);
 	}
 	else
 		Surf.PolyColor.rgba = 0xFFFFFFFF;

@@ -20,6 +20,7 @@
 #include "i_video.h"
 #include "r_state.h"
 #include "r_draw.h"
+#include "netcode/d_netcmd.h"
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -454,7 +455,7 @@ boolean AM_Responder(event_t *ev)
 {
 	INT32 rc = false;
 
-	if (devparm || cv_debug) // only automap in Debug Tails 01-19-2001
+	if (devparm || cv_debug || cv_forceautomap.value) // only automap in Debug Tails 01-19-2001
 	{
 		if (!automapactive)
 		{
@@ -625,7 +626,7 @@ static inline void AM_doFollowPlayer(void)
   */
 void AM_Ticker(void)
 {
-	if (!cv_debug)
+	if (!(cv_debug || cv_forceautomap.value))
 		AM_Stop();
 
 	if (dedicated || !automapactive)

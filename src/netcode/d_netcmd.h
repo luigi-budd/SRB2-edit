@@ -128,6 +128,7 @@ extern consvar_t cv_freedemocamera;
 
 extern consvar_t cv_returnfromconnect;
 extern consvar_t cv_showserverinfo;
+extern consvar_t cv_forceautomap;
 
 typedef enum
 {

@@ -2804,13 +2804,17 @@ void CV_ClearChangedFlags(void)
   *
   * \param f File to save to.
   */
-void CV_SaveVariables(FILE *f)
+void CV_SaveVariables(FILE *f, boolean edit)
 {
 	consvar_t *cvar;
 
 	for (cvar = consvar_vars; cvar; cvar = cvar->next)
 		if (cvar->flags & CV_SAVE)
 		{
+			if ((!(cvar->flags & CV_CLIENT) && edit) || (cvar->flags & CV_CLIENT && !edit)) {
+				continue;
+			}
+
 			char stringtowrite[MAXTEXTCMD+1];
 
 			const char * string;

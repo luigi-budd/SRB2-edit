@@ -26,7 +26,7 @@
 #include "m_perfstats.h"
 #include "netcode/d_netcmd.h" // for cv_perfstats
 #include "i_system.h" // I_GetPreciseTime
-#include "lua_custombuild.h" // takis_complexlocaladdons
+#include "lua_custombuild.h" // edit_complexlocaladdons
 
 /* =========================================================================
                                   ABSTRACTION

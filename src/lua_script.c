@@ -443,9 +443,21 @@ int LUA_PushGlobals(lua_State *L, const char *word)
 		return 1;
 	}
 
-	if (Takis_PushGlobals(L, word))
+	if (E_PushGlobals(L, word))
+	{
+		// seems like a bad idea, but i dont think
+		// itll matter much since thisll be removed
+		// with the takis_ fallbacks anyway
+		if (!strncmp(word, "takis_", 5))
+		{
+			LUA_UsageWarning(L, va(
+				"'%s' variables are deprecated and will be removed. Prefix your variables with 'edit_' instead.",
+				word
+			));
+		}
 		return 1;
-	
+	}
+
 	return 0;
 }
 

@@ -9,14 +9,15 @@
 /// \file  lua_custombuild.h
 /// \brief Custom Build BLua stuff
 
-#ifndef __TAKIS_LUA__
-#define __TAKIS_LUA__
+#ifndef __EDIT_LUA__
+#define __EDIT_LUA__
 
 #include "lua_script.h"
 
-extern boolean takis_custombuild;
-extern boolean takis_complexlocaladdons;
+extern boolean edit_complexlocaladdons;
 
-INT32 Takis_PushGlobals(lua_State *L, const char *word);
+// now that srb2-edit is officially called... srb2-edit,
+// all E functions will be related to srb2-Edit
+INT32 E_PushGlobals(lua_State *L, const char *word);
 
-#endif // __TAKIS_LUA__
+#endif // __EDIT_LUA__

@@ -259,7 +259,7 @@ consvar_t cv_defaultskin2 = CVAR_INIT ("defaultskin2", DEFAULTSKIN2, CV_SAVE, NU
 consvar_t cv_skipmapcheck = CVAR_INIT ("skipmapcheck", "Off", CV_SAVE, CV_OnOff, NULL);
 
 INT32 cv_debug;
-consvar_t cv_forceautomap = CVAR_INIT ("forceautomap", "Off", CV_NOINIT|CV_CLIENT, CV_OnOff, NULL);
+consvar_t cv_forceautomap = CVAR_INIT ("forceautomap", "Off", CV_CLIENT, CV_OnOff, NULL);
 
 consvar_t cv_usemouse = CVAR_INIT ("use_mouse", "On", CV_SAVE|CV_CALL,usemouse_cons_t, I_StartupMouse);
 consvar_t cv_usemouse2 = CVAR_INIT ("use_mouse2", "Off", CV_SAVE|CV_CALL,usemouse_cons_t, I_StartupMouse2);

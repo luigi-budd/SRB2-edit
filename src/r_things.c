@@ -2215,8 +2215,13 @@ static void R_ProjectSprite(mobj_t *thing)
 	if ((oldthing->flags2 & MF2_LINKDRAW) && oldthing->tracer)
 		trans = R_GetThingTransTable(oldthing->tracer->alpha, trans);
 	else
-		trans = R_GetThingTransTable(oldthing->alpha, trans);
-
+	{
+		fixed_t workalpha = oldthing->alpha;
+		if (oldthing->player)
+			workalpha = FixedMul(workalpha, oldthing->player->cameraalpha);
+		trans = R_GetThingTransTable(workalpha, trans);
+	}
+	
 	// Check if this sprite needs to be rendered like a shadow
 	shadowdraw = (!!(thing->renderflags & RF_SHADOWDRAW) && !(papersprite || splat));
 	shadoweffects = (thing->renderflags & RF_SHADOWEFFECTS);

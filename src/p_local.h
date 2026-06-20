@@ -117,6 +117,7 @@ extern consvar_t cv_cam2_speed, cv_cam2_rotate, cv_cam2_rotspeed, cv_cam2_turnmu
 
 extern consvar_t cv_earthquake;
 
+extern consvar_t cv_invisicam, cv_invisicam2;
 extern consvar_t cv_cam_savedist[2][2], cv_cam_saveheight[2][2];
 void CV_UpdateCamDist(void);
 void CV_UpdateCam2Dist(void);

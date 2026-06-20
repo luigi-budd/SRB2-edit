@@ -2771,6 +2771,7 @@ void G_PlayerReborn(INT32 player, boolean betweenmaps)
 	p->skin = skin;
 	p->availabilities = availabilities;
 	p->camerascale = camerascale;
+	p->cameraalpha = FRACUNIT;
 	p->shieldscale = shieldscale;
 	p->charability = charability;
 	p->charability2 = charability2;

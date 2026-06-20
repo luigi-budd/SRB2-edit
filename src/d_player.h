@@ -416,6 +416,8 @@ typedef struct player_s
 	fixed_t deltaviewheight;
 	// bounded/scaled total momentum.
 	fixed_t bob;
+	// makes the player transparent based on camera distance
+	fixed_t cameraalpha;
 
 	angle_t viewrollangle;
 

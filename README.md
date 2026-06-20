@@ -28,11 +28,12 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Toggle screen wipes to speed up gameplay! ("`wipes`", not effective in Marathon Mode)
 
 ## Visual
-- Toggable mobj pitch/roll functional (3d rotation for models on slopes, like DRRR). Option located in Video Settings -> Level -> "Pitch/Roll Rotation"
+- Toggable mobj pitch/roll functional (3d rotation for models on slopes, like DRRR). Option located in Video Settings -> Level -> "Pitch/Roll Rotation" or the "`pitchroll-tation`" cvar
 - Ring-Racers-styled screen quakes! ("`rr_quakes`" in console)
 - Toggleable Screenshake effects! ("`earthquake`", ported from SRB2Classic by @archiNiko)
 - Better "Fake Contrast"! (https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2680, @GLideKS)
 - View rollangle is interpolated!
+- FOV changes are interpolated! (use `"fovchange"` to see this in action!)
 - Experimental translation support for models! ("`gl_modeltranslations`")
 - Render distance for OpenGL! ("`gr_renderdistance`", https://git.srb2.org/Hanicef/SRB2Classic/-/merge_requests/4, @GLideKS)
 
@@ -43,6 +44,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Improved startup times! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
 - "`cam_centertoggle`" and "`cam2_centertoggle`" are no longer exclusive to Automatic!
 - See private messages as host! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
+- "Invisicam!" ("`cam_invisicam`", makes the player more transparent the closer they are to the camera, to help with visibility)
 
 ## Modding and Debugging
 - "`renderhitbox`" in multiplayer
@@ -52,6 +54,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - `v.cachePatch` accepts a second parameter for rotation! (https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2662)
 - Added "`TR`" as an alias to "`TICRATE`" in Lua
 - "`getlogfile`" command (Prints the absolute path of the current log, useful when latest-log.txt is sym-linked to a different log)
+- "`forceautomap`" cvar to use the automap outside of devmode and singleplayer
 
 ## GIFs
 - Adjustable gif size cap, toggable too! (`gif_maxsize`, "Max GIF Size (MB)")
@@ -85,6 +88,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
   --normal, gameplay editing code
   ```
 - "`demoplayback`" (Read only) (boolean) : True if viewing a demo.
+*Note: `takis_*` variables are still recognized by the game, however, they have been deprecated and will be removed soon. Use their `edit_*` counterparts instead.*
 
 ## Functions
 - `P_GetLocalAiming(player_t player)` : Returns the angle_t `aiming` of `player` if they are a local player. Returns 0 otherwise.
@@ -159,7 +163,7 @@ end)
 
 ## player_t
 - `player.ipaddress` (string) (read only): For use in moderation addons, this only returns a string for the server of the players IP address. Clients _cannot_ see other clients' IP addresses. The only way for other clients to know is if the server sends a command with them or something :p
-- `player.muted` (boolean) (read + write): Returns whether or not the player is muted. (though changes may not be reflected in servers not running edit)
+- `player.muted` (boolean) (read + write): Returns whether or not the player is muted. (though changes may not be reflected in servers not running SRB2-edit)
 
 
 ## renderflags_t

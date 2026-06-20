@@ -1712,6 +1712,7 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_cam_turnmultiplier);
 	CV_RegisterVar(&cv_cam_orbit);
 	CV_RegisterVar(&cv_cam_adjust);
+	CV_RegisterVar(&cv_invisicam);
 
 	CV_RegisterVar(&cv_cam2_dist);
 	CV_RegisterVar(&cv_cam2_still);
@@ -1722,6 +1723,7 @@ void R_RegisterEngineStuff(void)
 	CV_RegisterVar(&cv_cam2_turnmultiplier);
 	CV_RegisterVar(&cv_cam2_orbit);
 	CV_RegisterVar(&cv_cam2_adjust);
+	CV_RegisterVar(&cv_invisicam2);
 
 	CV_RegisterVar(&cv_cam_savedist[0][0]);
 	CV_RegisterVar(&cv_cam_savedist[0][1]);

@@ -1496,6 +1496,9 @@ boolean HWR_DrawModel(gl_vissprite_t *spr)
 			Surf.PolyFlags = HWR_GetBlendModeFlag(blendmode);
 		}
 
+		if (spr->mobj->player)
+			newalpha = FixedMul(newalpha, spr->mobj->player->cameraalpha);
+		
 		if (newalpha < FRACUNIT)
 		{
 			// TODO: The ternary operator is a hack to make alpha values roughly match what their FF_TRANSMASK equivalent would be

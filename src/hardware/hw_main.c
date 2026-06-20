@@ -3722,6 +3722,9 @@ static void HWR_DrawSprite(gl_vissprite_t *spr)
 			if (!occlusion) use_linkdraw_hack = true;
 		}
 
+		if (spr->mobj->player)
+			newalpha = FixedMul(newalpha, spr->mobj->player->cameraalpha);
+		
 		if (cv_translucency.value && newalpha < FRACUNIT)
 		{
 			// TODO: The ternary operator is a hack to make alpha values roughly match what their FF_TRANSMASK equivalent would be

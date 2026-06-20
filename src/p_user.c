@@ -9829,6 +9829,7 @@ static CV_PossibleValue_t rotation_cons_t[] = {{1, "MIN"}, {25, "MAX"}, {0, NULL
 static CV_PossibleValue_t CV_CamRotate[] = {{-720, "MIN"}, {720, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t multiplier_cons_t[] = {{0, "MIN"}, {3*FRACUNIT, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t campos_cons_t[] = { {INT32_MIN, "MIN"}, {INT32_MAX, "MAX"}, {0, NULL} };
+static CV_PossibleValue_t invisicam_cons_t[] = { {1, "On"}, {2, "Singleplayer only"}, {0, "Off"}, {0, NULL} };
 
 consvar_t cv_cam_dist = CVAR_INIT ("cam_curdist", "160", CV_FLOAT|CV_ALLOWLUA, campos_cons_t, NULL);
 consvar_t cv_cam_height = CVAR_INIT ("cam_curheight", "25", CV_FLOAT|CV_ALLOWLUA, campos_cons_t, NULL);
@@ -9850,6 +9851,8 @@ consvar_t cv_cam2_orbit = CVAR_INIT ("cam2_orbit", "Off", CV_SAVE|CV_ALLOWLUA, C
 consvar_t cv_cam2_adjust = CVAR_INIT ("cam2_adjust", "On", CV_SAVE|CV_ALLOWLUA, CV_OnOff, NULL);
 consvar_t cv_earthquake = CVAR_INIT("earthquake", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 
+consvar_t cv_invisicam = CVAR_INIT ("cam_invisicam", "On", CV_SAVE|CV_CLIENT, invisicam_cons_t, NULL);
+consvar_t cv_invisicam2 = CVAR_INIT ("cam2_invisicam", "On", CV_SAVE|CV_CLIENT, invisicam_cons_t, NULL);
 
 // [standard vs simple][p1 or p2]
 consvar_t cv_cam_savedist[2][2] = {
@@ -10115,7 +10118,11 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		camheight += thiscam->height;
 
 	if (twodlevel || (mo->flags2 & MF2_TWOD))
-		angle = ANGLE_90 - ANG10;
+	{
+		//SINT8 sidemove = player->cmd.sidemove;
+		//SINT8 sign = (sidemove == 0 ? 0 : (sidemove > 0 ? 1 : -1));
+		angle = ANGLE_90; //- (ANG15 * sign);
+	}
 	else if (camstill || resetcalled || player->playerstate == PST_DEAD)
 		angle = thiscam->angle;
 	else if (player->powers[pw_carry] == CR_NIGHTSMODE) // NiGHTS Level
@@ -10606,27 +10613,20 @@ boolean P_MoveChaseCamera(player_t *player, camera_t *thiscam, boolean resetcall
 		thiscam->aiming -= (dist>>3);
 	}
 
-	// Make player translucent if camera is too close (only in single player).
-	if (!(multiplayer || netgame) && !splitscreen)
+	// Make player translucent if camera is too close.
+	// player invisicam
+	consvar_t invisicam = ((players - player) == displayplayer) ? cv_invisicam : cv_invisicam2;
+	player->cameraalpha = FRACUNIT;
+	if (invisicam.value && !((multiplayer || netgame) && invisicam.value == 2) && !splitscreen && !(player->awayviewtics && player->awayviewmobj != NULL && !P_MobjWasRemoved(player->awayviewmobj)))
 	{
-		fixed_t vx = thiscam->x, vy = thiscam->y;
-		fixed_t vz = thiscam->z + thiscam->height / 2;
-		if (player->awayviewtics && player->awayviewmobj != NULL && !P_MobjWasRemoved(player->awayviewmobj))		// Camera must obviously exist
+		fixed_t thiscamdist = FixedHypot(FixedHypot(mo->x - thiscam->x, mo->y - thiscam->y), (mo->z+mo->height/2) - (thiscam->z + thiscam->height/2));
+		fixed_t close = 62 * mo->scale;
+		fixed_t pad = 12 * mo->scale;
+		if (thiscamdist - pad <= close)
 		{
-			vx = player->awayviewmobj->x;
-			vy = player->awayviewmobj->y;
-			vz = player->awayviewmobj->z + player->awayviewmobj->height / 2;
+			player->cameraalpha = FixedDiv(thiscamdist - pad, close - pad);
 		}
-
-		/* check z distance too for orbital camera */
-		if (P_AproxDistance(P_AproxDistance(vx - mo->x, vy - mo->y),
-					vz - ( mo->z + mo->height / 2 )) < FixedMul(48*FRACUNIT, mo->scale))
-			mo->flags2 |= MF2_SHADOW;
-		else
-			mo->flags2 &= ~MF2_SHADOW;
 	}
-	else
-		mo->flags2 &= ~MF2_SHADOW;
 
 /*	if (!resetcalled && (player->powers[pw_carry] == CR_NIGHTSMODE && player->exiting))
 	{

@@ -11731,6 +11731,7 @@ void P_SpawnPlayer(INT32 playernum)
 	p->bonustime = false;
 	p->realtime = leveltime;
 	p->followitem = skins[p->skin]->followitem;
+	p->cameraalpha = FRACUNIT; 
 
 	// Make sure player's stats are reset if they were in dashmode!
 	if (p->dashmode)

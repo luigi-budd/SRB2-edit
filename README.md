@@ -1,3 +1,5 @@
+SRB2-edit is a source mode of Sonic Robo Blast 2 aimed to add more development and modding tools, and general gameplay and QOL improvements, without getting in the way of netplay and performance.
+
 ## Compiling
 
 See [SRB2 Wiki/Source code compiling](http://wiki.srb2.org/wiki/Source_code_compiling)

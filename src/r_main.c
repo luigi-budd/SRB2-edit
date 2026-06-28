@@ -159,7 +159,8 @@ consvar_t cv_skybox = CVAR_INIT ("skybox", "On", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_allowmlook = CVAR_INIT ("allowmlook", "Yes", CV_NETVAR|CV_ALLOWLUA, CV_YesNo, NULL);
 consvar_t cv_showhud = CVAR_INIT ("showhud", "Yes", CV_CALL|CV_ALLOWLUA,  CV_YesNo, R_SetViewSize);
 consvar_t cv_translucenthud = CVAR_INIT ("translucenthud", "10", CV_SAVE, translucenthud_cons_t, NULL);
-consvar_t cv_moviemodeinfo = CVAR_INIT ("moviemodeinfo", "Yes", CV_ALLOWLUA|CV_CLIENT,  CV_YesNo, NULL);
+static CV_PossibleValue_t moviemodeinfo_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "SmallInfo"}, {0, NULL}};
+consvar_t cv_moviemodeinfo = CVAR_INIT ("moviemodeinfo", "On", CV_ALLOWLUA|CV_CLIENT,  moviemodeinfo_cons_t, NULL);
 
 consvar_t cv_translucency = CVAR_INIT ("translucency", "On", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_drawdist = CVAR_INIT ("drawdist", "Infinite", CV_SAVE, drawdist_cons_t, NULL);

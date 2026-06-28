@@ -2984,21 +2984,17 @@ void ST_Drawer(void)
 
 }
 
+// TODO: This is really messy, maybe clean it up later?
 void ST_ReallyCoolAndUsefulGIFDrawer(void)
 {
 	if (!moviemode)
 		return;
     
-    /*
-    if (moviemode != MM_GIF)
-        return;
-    */
-
 	if (!cv_moviemodeinfo.value)
 		return;
 
-	//the number of frames we wrote should be equivilant to the number of tics
-	//we recorded
+	boolean smallmode = (cv_moviemodeinfo.value == 2);
+	//the number of frames we wrote should be equivilant to the number of tics we recorded
 	INT32 gif_frames = M_RecordedFrames();
 	boolean gif_paused = GIF_RecordingPaused();
 
@@ -3007,25 +3003,42 @@ void ST_ReallyCoolAndUsefulGIFDrawer(void)
 	float gif_size = (float)orig_gif_size;
 	gif_size /= kMb;
 
-	// muh ternary
+	// lots ternary here...
 	INT32 cmap = gif_paused ? V_YELLOWMAP : (((2*gif_frames)/TICRATE) & 1) ? V_REDMAP : 0;
-	INT32 mheight = BASEVIDHEIGHT - 8;
-	V_DrawThinString(0, mheight,
-		cmap|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM,
-        gif_paused ? "II" : (moviemode == MM_APNG ? "APNG" : "GIF")
-	);
+	INT32 mheight = BASEVIDHEIGHT - (smallmode ? 4 : 8);
+	if (smallmode)
+		V_DrawSmallThinString(0, mheight,
+			cmap|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM,
+	        gif_paused ? "II" : (moviemode == MM_APNG ? "APNG" : "GIF")
+		);
+	else
+		V_DrawThinString(0, mheight,
+			cmap|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM,
+	        gif_paused ? "II" : (moviemode == MM_APNG ? "APNG" : "GIF")
+		);
 
 	boolean withincap = (cv_gif_maxsize.value != 0 ? (orig_gif_size >= (unsigned)(max(cv_gif_maxsize.value - 2, 0) * kMb)) : false);
-
-	V_DrawThinString((gif_paused ? 12 : (moviemode == MM_APNG ? 22 : 17)), mheight,
-		V_ALLOWLOWERCASE|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM,
-		va(
-			//shitty ik lol
-			(withincap ? "\x86(%d.%02ds,\x82 %.2f mb\x86)" : "\x86(%d.%02ds, %.2f mb)"),
-			
-			G_TicsToSeconds(gif_frames),
-			G_TicsToCentiseconds(gif_frames),
-			gif_size
-		)
-	);
+	if (smallmode)
+		V_DrawSmallThinString((gif_paused ? 6 : (moviemode == MM_APNG ? 11 : 9)), mheight,
+			V_ALLOWLOWERCASE|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM,
+			va(
+				// some ugly ternary that turns the string yellow when nearing max size
+				(withincap ? "\x86%d.%02ds | \x82 %.2f mb\x86" : "\x86%d.%02ds | %.2f mb"),
+				
+				G_TicsToSeconds(gif_frames),
+				G_TicsToCentiseconds(gif_frames),
+				gif_size
+			)
+		);
+	else
+		V_DrawThinString((gif_paused ? 12 : (moviemode == MM_APNG ? 22 : 17)), mheight,
+			V_ALLOWLOWERCASE|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM,
+			va(
+				(withincap ? "\x86%d.%02ds | \x82 %.2f mb\x86" : "\x86%d.%02ds | %.2f mb"),
+				
+				G_TicsToSeconds(gif_frames),
+				G_TicsToCentiseconds(gif_frames),
+				gif_size
+			)
+		);
 }

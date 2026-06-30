@@ -173,7 +173,6 @@ hudinfo_t hudinfo[NUMHUDITEMS] =
 };
 
 static huddrawlist_h luahuddrawlist_game[2];
-static huddrawlist_h luahuddrawlist_uncappedgame[2];
 static huddrawlist_h luahuddrawlist_titlecard;
 
 // NiGHTS link colors; 3 sets with increasingly fancy colors (1 to 299, 300 to 599, 600 and above)
@@ -454,8 +453,6 @@ void ST_Init(void)
 
 	luahuddrawlist_game[0] = LUA_HUD_CreateDrawList();
 	luahuddrawlist_game[1] = LUA_HUD_CreateDrawList();
-	luahuddrawlist_uncappedgame[0] = LUA_HUD_CreateDrawList();
-	luahuddrawlist_uncappedgame[1] = LUA_HUD_CreateDrawList();
 	luahuddrawlist_titlecard = LUA_HUD_CreateDrawList();
 }
 
@@ -2873,11 +2870,6 @@ static void ST_overlayDrawer(void)
 			LUA_HUDHOOK(game, luahuddrawlist_game[hooklistindex]);
 		}
 		LUA_HUD_DrawList(luahuddrawlist_game[hooklistindex]);
-
-		// "Uncapped" hud hooks, similar to how the old SRB2 Uncapped build always ran hud during interp 
-		LUA_HUD_ClearDrawList(luahuddrawlist_uncappedgame[hooklistindex]);
-		LUA_HUDHOOK(uncappedgame, luahuddrawlist_uncappedgame[hooklistindex]);
-		LUA_HUD_DrawList(luahuddrawlist_uncappedgame[hooklistindex]);
 	}
 
 	// draw level title Tails

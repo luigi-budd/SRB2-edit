@@ -117,31 +117,8 @@ You can compile the source code normally (see "Compiling") and put the binary in
 
 - `v.interpolate/v.interpLatch(boolean/int)` : See [SRB2K Saturn's documentation](https://github.com/Indev450/SRB2Kart-Saturn/blob/Saturn/LUASTUFF.md)
 - `v.drawFixedFill` : Same as `v.drawFill`, but x, y, width, and height arguments are all in fixed point scale.
-### For "uncappedgame" HUD hooks:
-- `v.timeFraction()` : Returns the value of `rendertimefrac` [0, FRACUNIT]. "The fraction of a tic being drawn (for interpolation between two tics)"
-- `v.deltaTics()` : Returns the value of `renderdeltatics`. "Evaluated delta tics for this frame (how many tics since the last frame)"
-- `v.isNewTic()` : Returns whether the current render is the start of a new gamelogic tic or not. (boolean)
-- `v.usingInterpolation()` : Returns whether or not frame interpolation is enabled. (boolean)
-
-Example script that uses manual interpolation:
-```lua
-local scroll = 0
-addHook("HUD",function(v,p,cam)
-	local width = (v.width() / v.dupx())*FU
-	if v.isNewTic()
-		scroll = ($ + 4*FU) % width
-	end
-	local x = (scroll + (4*v.timeFraction())) % width
-	v.drawScaled(x, 100*FU, FU, v.cachePatch("MISSING"),V_SNAPTOLEFT)
-
-	v.drawScaled(scroll, 140*FU, FU, v.cachePatch("MISSING"),V_SNAPTOLEFT)
-end,"uncappedgame")
-```
 
 - `M_Random`* : Same as `v.Random*` functions, except also client-sided and not limited to HUD hooks.
-
-## Hooks
-- `"uncappedgame"` : A new hud hook that runs during gameplay, except not bound to the 35 fps limit. Introduces new functions into the draw for manual interpolation. (WIP)
 
 ## mobj_t
 - `mobj.pitch/roll` : Now rotates mobjs in 3D space, including models

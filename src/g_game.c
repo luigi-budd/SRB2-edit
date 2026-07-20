@@ -50,6 +50,7 @@
 #include "lua_script.h"
 #include "r_fps.h" // frame interpolation/uncapped
 #include "screen.h" // BASEVID*
+#include "m_easing.h" // for joy snapping
 
 #include "lua_hud.h"
 #include "lua_libs.h"
@@ -425,6 +426,7 @@ consvar_t cv_fireaxis = CVAR_INIT ("joyaxis_fire", "Z-Rudder", CV_SAVE, joyaxis_
 consvar_t cv_firenaxis = CVAR_INIT ("joyaxis_firenormal", "Z-Axis", CV_SAVE, joyaxis_cons_t, NULL);
 consvar_t cv_deadzone = CVAR_INIT ("joy_deadzone", "0.125", CV_FLOAT|CV_SAVE, zerotoone_cons_t, NULL);
 consvar_t cv_digitaldeadzone = CVAR_INIT ("joy_digdeadzone", "0.25", CV_FLOAT|CV_SAVE, zerotoone_cons_t, NULL);
+consvar_t cv_joysnapping = CVAR_INIT ("joy_snapping", "On", CV_FLOAT|CV_SAVE, CV_OnOff, NULL);
 
 consvar_t cv_moveaxis2 = CVAR_INIT ("joyaxis2_move", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL);
 consvar_t cv_sideaxis2 = CVAR_INIT ("joyaxis2_side", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL);
@@ -436,6 +438,7 @@ consvar_t cv_fireaxis2 = CVAR_INIT ("joyaxis2_fire", "Z-Rudder", CV_SAVE, joyaxi
 consvar_t cv_firenaxis2 = CVAR_INIT ("joyaxis2_firenormal", "Z-Axis", CV_SAVE, joyaxis_cons_t, NULL);
 consvar_t cv_deadzone2 = CVAR_INIT ("joy_deadzone2", "0.125", CV_FLOAT|CV_SAVE, zerotoone_cons_t, NULL);
 consvar_t cv_digitaldeadzone2 = CVAR_INIT ("joy_digdeadzone2", "0.25", CV_FLOAT|CV_SAVE, zerotoone_cons_t, NULL);
+consvar_t cv_joysnapping2 = CVAR_INIT ("joy2_snapping", "On", CV_FLOAT|CV_SAVE, CV_OnOff, NULL);
 
 // disable wipes entirely
 consvar_t cv_wipes = CVAR_INIT ("wipes", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
@@ -1117,6 +1120,25 @@ boolean ticcmd_centerviewdown[2]; // For simple controls, lock the camera behind
 mobj_t *ticcmd_ztargetfocus[2]; // Locking onto an object?
 
 #define JOYDECAY(x) (x*63)/100
+static angle_t SnapAngleToFortyFive(angle_t ang)
+{
+	// I prototyped this in Lua first and I know
+	// Lua more than I do C, so... the codes gonna
+	// look like Lua
+	fixed_t fang = AngleFixed(ang);
+	fang = FixedDiv(fang, 45 * FRACUNIT);
+
+	// This is here so you can still make little minor
+	// adjustments without full-on moving to the next
+	// 45-degree increment
+	fixed_t nudge = Easing_InOutQuint(
+		fang % FRACUNIT, 0, FRACUNIT
+	);
+	fang = FixedFloor(fang);
+
+	// Gotta nudge it by 90 degrees in C for some reason...
+	return FixedAngle(45 * (fang + nudge)) - ANGLE_270;
+}
 
 void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 {
@@ -1139,6 +1161,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	INT32 chasecam, chasefreelook, alwaysfreelook, usejoystick, invertmouse, turnmultiplier, mousemove;
 	controlstyle_e controlstyle = G_ControlStyle(ssplayer);
 	INT32 mdx, mdy, mldy;
+	boolean joysnapping = false;
 
 	static INT32 turnheld[2]; // for accelerative turning
 	static boolean keyboard_look[2]; // true if lookup/down using keyboard
@@ -1166,6 +1189,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		mdx = mouse.dx;
 		mdy = -mouse.dy;
 		mldy = -mouse.mlookdy;
+		joysnapping = cv_joysnapping.value == 1;
 		G_CopyTiccmd(cmd, I_BaseTiccmd(), 1); // empty, or external driver
 	}
 	else
@@ -1180,6 +1204,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		mdx = mouse2.dx;
 		mdy = -mouse2.dy;
 		mldy = -mouse2.mlookdy;
+		joysnapping = cv_joysnapping2.value == 1;
 		G_CopyTiccmd(cmd, I_BaseTiccmd2(), 1); // empty, or external driver
 	}
 
@@ -1620,6 +1645,17 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		INT32 maxside = abs(P_ReturnThrustX(NULL, angle, MAXPLMOVE));
 		forward = max(min(forward, maxforward), -maxforward);
 		side = max(min(side, maxside), -maxside);
+	}
+
+	// Try snapping analog inputs towards the 8 directions
+	if (joysnapping && movejoystickvector.xaxis != 0 && movejoystickvector.yaxis != 0)
+	{
+		angle_t moveang = R_PointToAngle2(0,0, movejoystickvector.xaxis, movejoystickvector.yaxis);
+		moveang = SnapAngleToFortyFive(moveang);
+		fixed_t force = min(FixedHypot(forward*FRACUNIT, side*FRACUNIT), MAXPLMOVE*FRACUNIT);
+		
+		forward = P_ReturnThrustX(NULL, moveang, force) >> FRACBITS;
+		side    = P_ReturnThrustY(NULL, moveang, force) >> FRACBITS;
 	}
 
 	//Silly hack to make 2d mode *somewhat* playable with no chasecam.

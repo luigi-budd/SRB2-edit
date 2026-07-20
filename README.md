@@ -18,7 +18,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - Easily rejoin servers you've played before! ("`connect last`", Multiplayer -> Rejoin Previous Servers...)
 - Draw gif information to hud ("`moviemodeinfo`")
 - Crosshairs can invert pixels behind, to improve their visibility ("`crosshair_invert`" and "`crosshair2_invert`")
-- Thin captions and thin FPS! (Load "tinyfontfix.pk3" for music note on thin captions)
+- Thin captions and thin FPS! (Load "tinyfontfix.pk3" for music note on thin captions, optional)
 - Countdown beep isn't ear piercingly loud!
 - Snake download game background fixed!
 - Master Server list background for better readability!
@@ -47,6 +47,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 - "`cam_centertoggle`" and "`cam2_centertoggle`" are no longer exclusive to Automatic!
 - See private messages as host! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
 - "Invisicam!" ("`cam_invisicam`", makes the player more transparent the closer they are to the camera, to help with visibility)
+- Analog movement can snap! Joystick movement can now snap to 8 directions, similar to Super Mario 3D World. ("`joy_snapping"`)
 
 ## Modding and Debugging
 - "`renderhitbox`" in multiplayer

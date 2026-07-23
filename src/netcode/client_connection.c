@@ -46,6 +46,7 @@ static boolean cl_vs_sa_tapped = false; // impeccable variable names
 static INT32 cl_vs_sa_scroll = 0;
 static INT32 cl_vs_sa_scrolltime = 0;
 static INT16 cl_vs_sa_animcount = 8;
+static INT32 cl_vs_ticanim = 0; // OMG DO I HAVE TO KEEP MAKING VARIABLES
 #define MAXBIGADDONS (11)
 //Shortcut for `fileneedednum - cap`
 #define ADDONSCROLLCAP (MAXBIGADDONS)
@@ -142,6 +143,53 @@ static void DrawOverallProgress(int y)
 
 	V_DrawString(BASEVIDWIDTH/2-128, y, V_20TRANS|V_ALLOWLOWERCASE, progress_str);
 	V_DrawRightAlignedString(BASEVIDWIDTH/2+128, y, V_20TRANS|V_ALLOWLOWERCASE, va("%2u/%2u Files ", downloadedfiles+1, totalfiles));
+}
+
+//
+// GamepadGlyphs
+//
+// Draws a little 4-faced gamepad glyph
+// highlighting `offset`'s button, centered at x,y
+//
+static void GamepadGlyphs(INT32 x, INT32 y, INT32 offset)
+{
+	/*
+		KEY_JOY1 + 
+		0: a
+		1: b
+		2: x
+		3: y
+	*/
+	static INT32 order[4][2] = {
+		{0, 1}, // bottom
+		{1, 0}, // right
+		{-1,0}, // left
+		{0,-1}  // top
+	};
+	static INT32 xbox2nintendo[4] = { // Bruh
+		1, 0, 3, 2
+	};
+	static INT32 xoffset = 3;
+	static INT32 yoffset = 3;
+	INT32 i;
+
+	if (cv_joynintendo.value)
+	{
+		offset = xbox2nintendo[offset];
+	}
+
+	for (i = 0; i < 4; i++) {
+		V_DrawFill(
+			x + xoffset*order[i][0] - 1,
+			y + yoffset*order[i][1],
+			3,3, 26
+		);
+		V_DrawFill(
+			x + xoffset*order[i][0] - 1,
+			y + yoffset*order[i][1],
+			2,2, (i == offset) ? 73 : 3
+		);
+	}
 }
 
 //
@@ -247,6 +295,8 @@ static void CL_DrawConnectionStatus(void)
 		}
 		else if (cl_mode == CL_VIEWSERVER)
 		{
+			cl_vs_ticanim++;
+
 			const INT32 ypos = 6;
 			V_DrawFill(8, ypos, BASEVIDWIDTH - 16, 54, 159);
 			
@@ -450,22 +500,54 @@ static void CL_DrawConnectionStatus(void)
 
 			// Buttons
 			V_DrawFill(8, BASEVIDHEIGHT - (ypos+18), BASEVIDWIDTH - 16, 13, 159);
-			V_DrawThinString(
-				16, BASEVIDHEIGHT - (ypos+15),
-				V_ALLOWLOWERCASE, "[""\x82""ESC""\x80""] = Back"
-			);
-			if (fileneedednum > 0)
+
+			if ((cl_vs_ticanim / (3*TICRATE/2)) & 1)
 			{
-				V_DrawCenteredThinString(
-					BASEVIDWIDTH/2, BASEVIDHEIGHT - (ypos+15),
-					V_ALLOWLOWERCASE,
-					va("[""\x82""SPACE""\x80""] = %s", (cl_vs_showaddons ? "Players" : "Addons"))
+				V_DrawThinString(
+					16, BASEVIDHEIGHT - (ypos+15),
+					V_ALLOWLOWERCASE, "[""\x82""ESC""\x80""] = Back"
+				);
+				if (fileneedednum > 0)
+				{
+					V_DrawCenteredThinString(
+						BASEVIDWIDTH/2, BASEVIDHEIGHT - (ypos+15),
+						V_ALLOWLOWERCASE,
+						va("[""\x82""SPACE""\x80""] = %s", (cl_vs_showaddons ? "Players" : "Addons"))
+					);
+				}
+				V_DrawRightAlignedThinString(
+					BASEVIDWIDTH - 12, BASEVIDHEIGHT - (ypos+15),
+					V_ALLOWLOWERCASE, "[""\x82""ENTER""\x80""] = Join"
 				);
 			}
-			V_DrawRightAlignedThinString(
-				BASEVIDWIDTH - 12, BASEVIDHEIGHT - (ypos+15),
-				V_ALLOWLOWERCASE, "[""\x82""ENTER""\x80""] = Join"
-			);			
+			else // Alternate to gamepad face buttons
+			{
+				V_DrawThinString(
+					16 + V_ThinStringWidth("[ESC] ", 0), BASEVIDHEIGHT - (ypos+15),
+					V_ALLOWLOWERCASE, "= Back"
+				);
+				GamepadGlyphs(16 + V_ThinStringWidth("[ESC] ", 0) - 7, BASEVIDHEIGHT - (ypos+15 - 2), 1);
+
+				if (fileneedednum > 0)
+				{	
+					// this ones gonna be a mess
+					INT32 fullwid = V_ThinStringWidth(va("[""\x82""SPACE""\x80""] = %s", (cl_vs_showaddons ? "Players" : "Addons")), 0);
+					INT32 partx = (-fullwid/2) + V_ThinStringWidth("[SPACE]", 0) - (cl_vs_showaddons ? 1 : 0);
+
+					V_DrawThinString(
+						BASEVIDWIDTH/2 + partx, BASEVIDHEIGHT - (ypos+15),
+						V_ALLOWLOWERCASE,
+						va(" = %s", (cl_vs_showaddons ? "Players" : "Addons"))
+					);
+					GamepadGlyphs(BASEVIDWIDTH/2 + partx - 6, BASEVIDHEIGHT - (ypos+15 - 2), 2);
+				}
+
+				V_DrawRightAlignedThinString(
+					BASEVIDWIDTH - 12, BASEVIDHEIGHT - (ypos+15),
+					V_ALLOWLOWERCASE, "= Join"
+				);
+				GamepadGlyphs(BASEVIDWIDTH - 12 - V_ThinStringWidth("[ENTER] ",0) - 1, BASEVIDHEIGHT - (ypos+15 - 2), 0);
+			}
 		}
 		else if ((cl_mode == CL_CHECKFILES) || (cl_mode == CL_ASKFULLFILELIST))
 		{
@@ -1498,13 +1580,13 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 		
 		if (cl_mode == CL_VIEWSERVER)
 		{
-			if (gamekeydown[KEY_ENTER])
+			if (gamekeydown[KEY_ENTER] || gamekeydown[KEY_JOY1])
 				cl_mode = CL_CHECKFILES;
-			else if (gamekeydown[KEY_ESCAPE])
+			else if (gamekeydown[KEY_ESCAPE] || gamekeydown[KEY_JOY1 + 1])
 				cl_mode = CL_ABORTED;
 
 			// SURELY i can write better code than this...
-			if (gamekeydown[KEY_SPACE] && fileneedednum)
+			if ((gamekeydown[KEY_SPACE] || gamekeydown[KEY_JOY1 + 2]) && fileneedednum)
 			{
 				if (!cl_vs_sa_tapped)
 				{
@@ -1520,7 +1602,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 			// maybe some macros could clean this up
 			if (cl_vs_showaddons && fileneedednum > MAXBIGADDONS)
 			{
-				if (gamekeydown[KEY_DOWNARROW])
+				if (gamekeydown[KEY_DOWNARROW] || gamekeydown[KEY_JOY1 + 12])
 				{
 					if (!cl_vs_sa_tapped || cl_vs_sa_scrolltime >= TICRATE>>1)
 					{
@@ -1536,7 +1618,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 					cl_vs_sa_tapped = true;
 					cl_vs_sa_scrolltime++;
 				}
-				else if (gamekeydown[KEY_UPARROW])
+				else if (gamekeydown[KEY_UPARROW] || gamekeydown[KEY_JOY1 + 11])
 				{
 					if (!cl_vs_sa_tapped || cl_vs_sa_scrolltime >= TICRATE>>1)
 					{
@@ -1551,7 +1633,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 					cl_vs_sa_tapped = true;
 					cl_vs_sa_scrolltime++;
 				}
-				else if (!gamekeydown[KEY_SPACE]) // Bruh
+				else if (!(gamekeydown[KEY_SPACE] || gamekeydown[KEY_JOY1 + 2])) // Bruh
 				{
 					cl_vs_sa_tapped = false;
 					cl_vs_sa_scrolltime = 0;

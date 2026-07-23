@@ -153,7 +153,7 @@ typedef enum
 levellist_mode_t levellistmode = LLM_CREATESERVER;
 UINT8 maplistoption = 0;
 
-static char joystickInfo[MAX_JOYSTICKS+1][29];
+static char joystickInfo[MAX_JOYSTICKS+1][65];
 static UINT32 serverlistpage;
 
 static UINT8 numsaves = 0;
@@ -3281,9 +3281,11 @@ boolean M_Responder(event_t *ev)
 						ch = KEY_BACKSPACE;
 						break;
 					case KEY_HAT1:
+					case KEY_JOY1 + 11:
 						ch = KEY_UPARROW;
 						break;
 					case KEY_HAT1 + 1:
+					case KEY_JOY1 + 12:
 						ch = KEY_DOWNARROW;
 						break;
 					case KEY_HAT1 + 2:
@@ -11442,10 +11444,28 @@ static void M_DrawConnectMenu(void)
 			|((itemOn == FIRSTSERVERLINE+i) ? V_YELLOWMAP : 0)|V_ALLOWLOWERCASE;
 
 		// min width is probably like 268px (sorry for shitty formatting)
+		// this is STILL a huge mess, but listen servers will have a blue background,
+		// and dedicated servers will have an orange background
+		static INT32 bgcolors[2][6] = {
+			// listen servers
+			{
+				156, // checker pattern 1
+				159, // checker pattern 2
+				153  // selected
+			},
+			// dedicated servers
+			{
+				167, // checker pattern 1
+				169, // checker pattern 2
+				165  // selected
+			}
+		};
+
+		INT32 colorindex = (serverlist[slindex].info.flags & SV_DEDICATED) ? 1 : 0;
 		V_DrawFill(currentMenu->x - 3,
 			S_LINEY(i) - (i == 0 ? 3 : 0),
 			268 + 6, (i == 0 ? 15 : 12),
-			(itemOn == FIRSTSERVERLINE+i) ? 153 : ((i & 1) ? 159 : 156)
+			(itemOn == FIRSTSERVERLINE+i) ? bgcolors[colorindex][2] : ((i & 1) ? bgcolors[colorindex][1] : bgcolors[colorindex][0])
 		);
 		
 		V_DrawString(currentMenu->x, S_LINEY(i), globalflags, serverlist[slindex].info.servername);
@@ -11458,8 +11478,12 @@ static void M_DrawConnectMenu(void)
 		if (Net_IsNodeIPv6(serverlist[slindex].node))
 			V_DrawSmallString(currentMenu->x+252, S_LINEY(i)+8, globalflags, "\x84" "IPv6");
 
-		V_DrawSmallString(currentMenu->x, S_LINEY(i)+8, globalflags,
-		                     va("Ping: %u", (UINT32)LONG(serverlist[slindex].info.time)));
+		if (cv_pingmeasurement.value)
+			V_DrawSmallString(currentMenu->x, S_LINEY(i)+8, globalflags,
+			                     va("Delay: %.1f", HU_pingMSToDelay((UINT32)LONG(serverlist[slindex].info.time))));
+		else
+			V_DrawSmallString(currentMenu->x, S_LINEY(i)+8, globalflags,
+			                     va("Ping: %u", (UINT32)LONG(serverlist[slindex].info.time)));
 
 		gt = serverlist[slindex].info.gametypename;
 
@@ -13407,9 +13431,9 @@ static void M_DrawJoystick(void)
 
 		if ((setupcontrols_secondaryplayer && (i == compareval2))
 			|| (!setupcontrols_secondaryplayer && (i == compareval)))
-			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,V_GREENMAP,joystickInfo[i]);
+			V_DrawThinString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,V_GREENMAP|V_ALLOWLOWERCASE,joystickInfo[i]);
 		else
-			V_DrawString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,0,joystickInfo[i]);
+			V_DrawThinString(OP_JoystickSetDef.x, OP_JoystickSetDef.y+LINEHEIGHT*i-4,V_ALLOWLOWERCASE,joystickInfo[i]);
 
 		if (i == itemOn)
 		{
@@ -13431,7 +13455,7 @@ void M_SetupJoystickMenu(INT32 choice)
 	for (i = 1; i <= MAX_JOYSTICKS; i++)
 	{
 		if (i <= n && (I_GetJoyName(i)) != NULL)
-			strncpy(joystickInfo[i], I_GetJoyName(i), 28);
+			strncpy(joystickInfo[i], I_GetJoyName(i), 64);
 		else
 			strcpy(joystickInfo[i], joyNA);
 
@@ -13486,6 +13510,7 @@ static void M_AssignJoystick(INT32 choice)
 	{
 		oldchoice = oldstringchoice = atoi(cv_usejoystick2.string) > numjoys ? atoi(cv_usejoystick2.string) : cv_usejoystick2.value;
 		CV_SetValue(&cv_usejoystick2, choice);
+		CV_SetValue(&cv_joynintendo2, strncmp(joystickInfo[choice], "Nintendo", strlen("Nintendo")) == 0 ? 1 : 0);
 
 		// Just in case last-minute changes were made to cv_usejoystick.value,
 		// update the string too
@@ -13505,10 +13530,13 @@ static void M_AssignJoystick(INT32 choice)
 
 				if (oldstringchoice ==
 					(atoi(cv_usejoystick2.string) > numjoys ? atoi(cv_usejoystick2.string) : cv_usejoystick2.value))
+				{
 					M_StartMessage("This gamepad is used by another\n"
 					               "player. Reset the gamepad\n"
 					               "for that player first.\n\n"
 					               "(Press a key)\n", NULL, MM_NOTHING);
+					CV_SetValue(&cv_joynintendo2, 0);
+				}
 			}
 		}
 	}
@@ -13516,6 +13544,7 @@ static void M_AssignJoystick(INT32 choice)
 	{
 		oldchoice = oldstringchoice = atoi(cv_usejoystick.string) > numjoys ? atoi(cv_usejoystick.string) : cv_usejoystick.value;
 		CV_SetValue(&cv_usejoystick, choice);
+		CV_SetValue(&cv_joynintendo, strncmp(joystickInfo[choice], "Nintendo", strlen("Nintendo")) == 0 ? 1 : 0);
 
 		// Just in case last-minute changes were made to cv_usejoystick.value,
 		// update the string too
@@ -13535,10 +13564,13 @@ static void M_AssignJoystick(INT32 choice)
 
 				if (oldstringchoice ==
 					(atoi(cv_usejoystick.string) > numjoys ? atoi(cv_usejoystick.string) : cv_usejoystick.value))
+				{
 					M_StartMessage("This gamepad is used by another\n"
 					               "player. Reset the gamepad\n"
 					               "for that player first.\n\n"
 					               "(Press a key)\n", NULL, MM_NOTHING);
+					CV_SetValue(&cv_joynintendo, 0);
+				}
 			}
 		}
 	}

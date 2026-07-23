@@ -870,6 +870,8 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_digitaldeadzone2);
 	CV_RegisterVar(&cv_joysnapping);
 	CV_RegisterVar(&cv_joysnapping2);
+	CV_RegisterVar(&cv_joynintendo);
+	CV_RegisterVar(&cv_joynintendo2);
 
 	// filesrch.c
 	//CV_RegisterVar(&cv_addons_option); // These two are now defined

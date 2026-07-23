@@ -1599,6 +1599,7 @@ static int joy_open2(int joyindex)
 void I_InitJoystick(void)
 {
 	SDL_Joystick *newjoy = NULL;
+	char joyname[64] = "\0";
 
 	//I_ShutdownJoystick();
 	if (M_CheckParm("-nojoy"))
@@ -1625,13 +1626,21 @@ void I_InitJoystick(void)
 		newjoy = SDL_JoystickOpen(cv_usejoystick.value-1);
 
 	if (newjoy && JoyInfo2.dev == newjoy) // don't override an active device
+	{
 		cv_usejoystick.value = I_GetJoystickDeviceIndex(JoyInfo.dev) + 1;
+
+		strncpy(joyname, I_GetJoyName(cv_usejoystick.value), 63);
+		G_CheckNintendoGamepad(joyname, &cv_joynintendo);
+	}
 	else if (newjoy && joy_open(cv_usejoystick.value) != -1)
 	{
 		// SDL's device indexes are unstable, so cv_usejoystick may not match
 		// the actual device index. So let's cheat a bit and find the device's current index.
 		JoyInfo.oldjoy = I_GetJoystickDeviceIndex(JoyInfo.dev) + 1;
 		joystick_started = 1;
+
+		strncpy(joyname, I_GetJoyName(JoyInfo.oldjoy), 63);
+		G_CheckNintendoGamepad(joyname, &cv_joynintendo);
 	}
 	else
 	{
@@ -1648,6 +1657,7 @@ void I_InitJoystick(void)
 void I_InitJoystick2(void)
 {
 	SDL_Joystick *newjoy = NULL;
+	char joyname[64] = "\0";
 
 	//I_ShutdownJoystick2();
 	if (M_CheckParm("-nojoy"))
@@ -1674,13 +1684,21 @@ void I_InitJoystick2(void)
 		newjoy = SDL_JoystickOpen(cv_usejoystick2.value-1);
 
 	if (newjoy && JoyInfo.dev == newjoy) // don't override an active device
+	{
 		cv_usejoystick2.value = I_GetJoystickDeviceIndex(JoyInfo2.dev) + 1;
+
+		strncpy(joyname, I_GetJoyName(cv_usejoystick2.value), 63);
+		G_CheckNintendoGamepad(joyname, &cv_joynintendo2);
+	}
 	else if (newjoy && joy_open2(cv_usejoystick2.value) != -1)
 	{
 		// SDL's device indexes are unstable, so cv_usejoystick may not match
 		// the actual device index. So let's cheat a bit and find the device's current index.
 		JoyInfo2.oldjoy = I_GetJoystickDeviceIndex(JoyInfo2.dev) + 1;
 		joystick2_started = 1;
+
+		strncpy(joyname, I_GetJoyName(JoyInfo.oldjoy), 63);
+		G_CheckNintendoGamepad(joyname, &cv_joynintendo2);
 	}
 	else
 	{

@@ -13510,7 +13510,7 @@ static void M_AssignJoystick(INT32 choice)
 	{
 		oldchoice = oldstringchoice = atoi(cv_usejoystick2.string) > numjoys ? atoi(cv_usejoystick2.string) : cv_usejoystick2.value;
 		CV_SetValue(&cv_usejoystick2, choice);
-		CV_SetValue(&cv_joynintendo2, strncmp(joystickInfo[choice], "Nintendo", strlen("Nintendo")) == 0 ? 1 : 0);
+		G_CheckNintendoGamepad(joystickInfo[choice], &cv_joynintendo2);
 
 		// Just in case last-minute changes were made to cv_usejoystick.value,
 		// update the string too
@@ -13544,7 +13544,7 @@ static void M_AssignJoystick(INT32 choice)
 	{
 		oldchoice = oldstringchoice = atoi(cv_usejoystick.string) > numjoys ? atoi(cv_usejoystick.string) : cv_usejoystick.value;
 		CV_SetValue(&cv_usejoystick, choice);
-		CV_SetValue(&cv_joynintendo, strncmp(joystickInfo[choice], "Nintendo", strlen("Nintendo")) == 0 ? 1 : 0);
+		G_CheckNintendoGamepad(joystickInfo[choice], &cv_joynintendo);
 
 		// Just in case last-minute changes were made to cv_usejoystick.value,
 		// update the string too

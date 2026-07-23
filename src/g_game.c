@@ -428,7 +428,7 @@ consvar_t cv_deadzone = CVAR_INIT ("joy_deadzone", "0.125", CV_FLOAT|CV_SAVE, ze
 consvar_t cv_digitaldeadzone = CVAR_INIT ("joy_digdeadzone", "0.25", CV_FLOAT|CV_SAVE, zerotoone_cons_t, NULL);
 consvar_t cv_joysnapping = CVAR_INIT ("joy_snapping", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 // this is literally just for the glyphs on the server viewer
-consvar_t cv_joynintendo = CVAR_INIT ("joy_nintendo", "No", CV_SAVE|CV_CLIENT, CV_YesNo, NULL);
+consvar_t cv_joynintendo = CVAR_INIT ("joy_nintendo", "No", CV_CLIENT, CV_YesNo, NULL);
 
 consvar_t cv_moveaxis2 = CVAR_INIT ("joyaxis2_move", "Y-Axis", CV_SAVE, joyaxis_cons_t, NULL);
 consvar_t cv_sideaxis2 = CVAR_INIT ("joyaxis2_side", "X-Axis", CV_SAVE, joyaxis_cons_t, NULL);
@@ -441,7 +441,13 @@ consvar_t cv_firenaxis2 = CVAR_INIT ("joyaxis2_firenormal", "Z-Axis", CV_SAVE, j
 consvar_t cv_deadzone2 = CVAR_INIT ("joy_deadzone2", "0.125", CV_FLOAT|CV_SAVE, zerotoone_cons_t, NULL);
 consvar_t cv_digitaldeadzone2 = CVAR_INIT ("joy_digdeadzone2", "0.25", CV_FLOAT|CV_SAVE, zerotoone_cons_t, NULL);
 consvar_t cv_joysnapping2 = CVAR_INIT ("joy2_snapping", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
-consvar_t cv_joynintendo2 = CVAR_INIT ("joy2_nintendo", "No", CV_SAVE|CV_CLIENT, CV_YesNo, NULL);
+consvar_t cv_joynintendo2 = CVAR_INIT ("joy2_nintendo", "No", CV_CLIENT, CV_YesNo, NULL);
+
+// Ugh!
+void G_CheckNintendoGamepad(char *gamepadname, consvar_t *dest)
+{
+	CV_SetValue(dest, strncmp(gamepadname, "Nintendo", strlen("Nintendo")) == 0 ? 1 : 0);
+}
 
 // disable wipes entirely
 consvar_t cv_wipes = CVAR_INIT ("wipes", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);

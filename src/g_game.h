@@ -137,6 +137,11 @@ INT16 G_SoftwareClipAimingPitch(INT32 *aiming);
 extern angle_t localangle, localangle2;
 extern INT32 localaiming, localaiming2; // should be an angle_t but signed
 
+// stupid ass nintendo gamepads
+// checks if the gamepad has nintendo at the start
+// and adjusts server viewer glpyhs accordingly
+void G_CheckNintendoGamepad(char *gamepadname, consvar_t *dest);
+
 //
 // GAME
 //

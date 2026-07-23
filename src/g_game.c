@@ -1177,6 +1177,7 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	static boolean zchange[2]; // only switch z targets once per press
 	static fixed_t tta_factor[2] = {FRACUNIT, FRACUNIT}; // disables turn-to-angle when manually turning camera until movement happens
 	boolean centerviewdown = false;
+	boolean centerviewsnap = false;
 
 	UINT8 forplayer = ssplayer-1;
 
@@ -1447,18 +1448,31 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		static boolean last_centerviewdown[2], centerviewhold[2]; // detect taps for toggle behavior
 		boolean down = PLAYERINPUTDOWN(ssplayer, GC_CENTERVIEW);
 
-		if (cv_cam_centertoggle[forplayer].value == 0) {
-				centerviewdown = down;
-			}
-		else
+		// im not sure where else this should go,
+		// but pressing centerview outside of automatic
+		// will recenter the camera towards
+		// your facing direction
+		if (controlstyle != CS_SIMPLE && down && !last_centerviewdown[forplayer])
 		{
-			if (down && !last_centerviewdown[forplayer])
-				centerviewhold[forplayer] = !centerviewhold[forplayer];
-			last_centerviewdown[forplayer] = down;
+			centerviewsnap = true;
+		}
 
-			if (cv_cam_centertoggle[forplayer].value == 2 && !down && !ticcmd_ztargetfocus[forplayer])
-				centerviewhold[forplayer] = false;
+		// Hold
+		if (cv_cam_centertoggle[forplayer].value == 0)
+		{
+			centerviewdown = down;
+		}
 
+		if (down && !last_centerviewdown[forplayer])
+			centerviewhold[forplayer] = !centerviewhold[forplayer];
+		last_centerviewdown[forplayer] = down;
+
+		if (cv_cam_centertoggle[forplayer].value == 2 && !down && !ticcmd_ztargetfocus[forplayer])
+			centerviewhold[forplayer] = false;
+
+		// Toggle
+		if (cv_cam_centertoggle[forplayer].value != 0)
+		{
 			centerviewdown = centerviewhold[forplayer];
 		}
 	}
@@ -1671,6 +1685,14 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 
 	cmd->forwardmove = (SINT8)(cmd->forwardmove + forward);
 	cmd->sidemove = (SINT8)(cmd->sidemove + side);
+
+	// and THEN we can snap the centerview
+	// down here, once directional inputs are ready
+	if (centerviewsnap)
+	{
+		angle_t faceangle = (cmd->angleturn << 16) + R_PointToAngle2(0,0, cmd->forwardmove<<16, -cmd->sidemove<<16);
+		cmd->angleturn = (INT16)(faceangle >> 16);
+	}
 
 	// Note: Majority of botstuffs are handled in G_Ticker now.
 	if (player->bot == BOT_2PAI

@@ -667,8 +667,6 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_chatspamprotection);
 	CV_RegisterVar(&cv_chatspamspeed);
 	CV_RegisterVar(&cv_chatspamburst);
-
-	CV_RegisterVar(&cv_forceautomap);
 }
 
 // =========================================================================
@@ -703,9 +701,13 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_flipcam);
 	CV_RegisterVar(&cv_flipcam2);
 	CV_RegisterVar(&cv_movebob);
-
+	
 	if (dedicated)
 		return;
+
+	// move this in the client stuff because i dont think
+	// the dedi server needs this
+	CV_RegisterVar(&cv_forceautomap);
 
 	COM_AddCommand("numthinkers", Command_Numthinkers_f, COM_LUA);
 	COM_AddCommand("countmobjs", Command_CountMobjs_f, COM_LUA);

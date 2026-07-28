@@ -1457,10 +1457,28 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		// im not sure where else this should go,
 		// but pressing centerview outside of automatic
 		// will recenter the camera towards
-		// your facing direction
+		// your facing direction, only on gamepads though
 		if (controlstyle != CS_SIMPLE && down && !last_centerviewdown[forplayer])
 		{
-			centerviewsnap = true;
+			INT32 key = 0;
+			if (ssplayer == 2) // Splitplayer
+			{
+				if (gamekeydown[gamecontrolbis[GC_CENTERVIEW][1]])
+					key = gamecontrolbis[GC_CENTERVIEW][1];
+				else if (gamekeydown[gamecontrolbis[GC_CENTERVIEW][0]])
+					key = gamecontrolbis[GC_CENTERVIEW][0];
+			}
+			else
+			{
+				if (gamekeydown[gamecontrol[GC_CENTERVIEW][1]])
+					key = gamecontrol[GC_CENTERVIEW][1];
+				else if (gamekeydown[gamecontrol[GC_CENTERVIEW][0]])
+					key = gamecontrol[GC_CENTERVIEW][0];
+			}
+
+			// again, only if its a gamepad button
+			if (key >= KEY_JOY1)
+				centerviewsnap = true;
 		}
 
 		// Hold

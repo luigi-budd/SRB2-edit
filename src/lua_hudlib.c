@@ -340,8 +340,10 @@ static int camera_get(lua_State *L)
 	if (cam == NULL /*|| !(stplyr && stplyr->mo)*/)
 		return LUA_ErrInvalid(L, "camera_t");
 
+	// checking leveltime here looks like such a shitty fix but
+	// it seems like its the only way to fix this shitty code i wrote
 	boolean awayvalid = false;
-	if (r_viewmobj && !P_MobjWasRemoved(r_viewmobj))
+	if (leveltime > 0 && r_viewmobj != NULL && !P_MobjWasRemoved(r_viewmobj))
 	{
 		// only if this is a separate camera
 		if (stplyr && (stplyr->mo && !P_MobjWasRemoved(stplyr->mo)) && stplyr->mo != r_viewmobj)

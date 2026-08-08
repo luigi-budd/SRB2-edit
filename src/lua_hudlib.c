@@ -337,18 +337,8 @@ static int camera_get(lua_State *L)
 	enum cameraf field = Lua_optoption(L, 2, -1, camera_fields_ref);
 
 	// something has gone horribly wrong...
-	if (cam == NULL /*|| !(stplyr && stplyr->mo)*/)
+	if (cam == NULL)
 		return LUA_ErrInvalid(L, "camera_t");
-
-	// checking leveltime here looks like such a shitty fix but
-	// it seems like its the only way to fix this shitty code i wrote
-	boolean awayvalid = false;
-	if (leveltime > 0 && r_viewmobj != NULL && !P_MobjWasRemoved(r_viewmobj))
-	{
-		// only if this is a separate camera
-		if (stplyr && (stplyr->mo && !P_MobjWasRemoved(stplyr->mo)) && stplyr->mo != r_viewmobj)
-			awayvalid = true;
-	}
 
 	switch (field)
 	{
@@ -356,22 +346,22 @@ static int camera_get(lua_State *L)
 		lua_pushboolean(L, cam->chase);
 		break;
 	case camera_x:
-	    lua_pushinteger(L, (awayvalid ? r_viewmobj->x : cam->x) + quake.x);
+	    lua_pushinteger(L, cam->x + quake.x);
 		break;
 	case camera_y:
-	    lua_pushinteger(L, (awayvalid ? r_viewmobj->y : cam->y) + quake.y);
+	    lua_pushinteger(L, cam->y + quake.y);
 		break;
 	case camera_z:
-	    lua_pushinteger(L, (awayvalid ? r_viewmobj->z + 20*FRACUNIT : cam->z) + quake.z);
+	    lua_pushinteger(L, cam->z + quake.z);
 		break;
 	case camera_reset:
 		lua_pushboolean(L, cam->reset);
 		break;
 	case camera_angle:
-		lua_pushangle(L, (awayvalid ? newview->angle : cam->angle));
+		lua_pushangle(L, cam->angle);
 		break;
 	case camera_aiming:
-		lua_pushangle(L, (awayvalid ? newview->aim : cam->aiming));
+		lua_pushangle(L, cam->aiming);
 		break;
 	case camera_subsector:
 		LUA_PushUserdata(L, cam->subsector, META_SUBSECTOR);

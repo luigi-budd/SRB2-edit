@@ -74,7 +74,7 @@ BOOL InitBugTrap(void)
 
 	if (g_hmodBugTrap)
 	{
-		lpfnBT_SetAppName(TEXT("Sonic Robo Blast 2"));
+		lpfnBT_SetAppName(TEXT("Sonic Robo Blast 2 edit"));
 		lpfnBT_SetAppVersion(TEXT(VERSIONSTRING));
 		lpfnBT_SetFlags(BTF_DETAILEDMODE | BTF_ATTACHREPORT);
 		lpfnBT_SetSupportURL(TEXT("http://www.srb2.org/"));

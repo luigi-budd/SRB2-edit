@@ -281,6 +281,7 @@ static int lib_userdataType(lua_State *L)
 static int lib_registerMetatable(lua_State *L)
 {
 	static UINT16 nextid = 1;
+	static UINT16 local_nextid = 1;
 
 	if (!lua_lumploading)
 		return luaL_error(L, "This function cannot be called from within a hook or coroutine!");
@@ -289,19 +290,38 @@ static int lib_registerMetatable(lua_State *L)
 	if (nextid == 0)
 		return luaL_error(L, "Too many metatables registered?! Please consider rewriting your script once you are sober again.\n");
 
-	lua_getfield(L, LUA_REGISTRYINDEX, LREG_METATABLES); // 2
-		// registry.metatables[metatable] = nextid
-		lua_pushvalue(L, 1); // 3
-			lua_pushnumber(L, nextid); // 4
-		lua_settable(L, 2);
+	if (lua_locallyloading)
+	{
+		lua_getfield(L, LUA_REGISTRYINDEX, LREG_LOCALMETATABLES); // 2
+			// registry.metatables[metatable] = nextid
+			lua_pushvalue(L, 1); // 3
+				lua_pushnumber(L, local_nextid); // 4
+			lua_settable(L, 2);
 
-		// registry.metatables[nextid] = metatable
-		lua_pushnumber(L, nextid); // 3
-			lua_pushvalue(L, 1); // 4
-		lua_settable(L, 2);
-	lua_pop(L, 1);
+			// registry.metatables[nextid] = metatable
+			lua_pushnumber(L, local_nextid); // 3
+				lua_pushvalue(L, 1); // 4
+			lua_settable(L, 2);
+		lua_pop(L, 1);
 
-	nextid++;
+		local_nextid++;
+	}
+	else
+	{
+		lua_getfield(L, LUA_REGISTRYINDEX, LREG_METATABLES); // 2
+			// registry.metatables[metatable] = nextid
+			lua_pushvalue(L, 1); // 3
+				lua_pushnumber(L, nextid); // 4
+			lua_settable(L, 2);
+
+			// registry.metatables[nextid] = metatable
+			lua_pushnumber(L, nextid); // 3
+				lua_pushvalue(L, 1); // 4
+			lua_settable(L, 2);
+		lua_pop(L, 1);
+
+		nextid++;
+	}
 
 	return 0;
 }

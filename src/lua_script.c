@@ -595,6 +595,9 @@ static void LUA_ClearState(void)
 	// make LREG_METATABLES table for all registered metatables
 	lua_newtable(L);
 	lua_setfield(L, LUA_REGISTRYINDEX, LREG_METATABLES);
+	lua_newtable(L);
+	lua_setfield(L, LUA_REGISTRYINDEX, LREG_LOCALMETATABLES);
+
 
 	// open srb2 libraries
 	for(i = 0; liblist[i]; i++) {

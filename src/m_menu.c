@@ -185,8 +185,8 @@ static fixed_t char_scroll = 0;
 
 static tic_t keydown = 0;
 
-// now THIS is cool!
-static tic_t gc_ralt_down = 0;
+// Local addon menu stuff
+static boolean addons_localtoggle = false;
 static boolean addons_forcelocal = false; 
 
 // Lua
@@ -1115,16 +1115,16 @@ static menuitem_t OP_ChangeControlsMenu[] =
 	{IT_CALL | IT_STRING2, NULL, "Reset Camera",     M_ChangeControl, GC_CAMRESET    },
 	{IT_HEADER, NULL, "Meta", NULL, 0},
 	{IT_SPACE, NULL, NULL, NULL, 0}, // padding
-	{IT_CALL | IT_STRING2, NULL, "Game Status",
-    M_ChangeControl, GC_SCORES      },
-	{IT_CALL | IT_STRING2, NULL, "Pause / Run Retry", M_ChangeControl, GC_PAUSE      },
+	{IT_CALL | IT_STRING2, NULL, "Game Status",           M_ChangeControl, GC_SCORES        },
+	{IT_CALL | IT_STRING2, NULL, "Pause / Run Retry",     M_ChangeControl, GC_PAUSE         },
 	{IT_CALL | IT_STRING2, NULL, "Screenshot",            M_ChangeControl, GC_SCREENSHOT    },
 	{IT_CALL | IT_STRING2, NULL, "Toggle GIF Recording",  M_ChangeControl, GC_RECORDGIF     },
 	{IT_CALL | IT_STRING2, NULL, "Pause GIF Recording",   M_ChangeControl, GC_PAUSEGIF      },
 	{IT_CALL | IT_STRING2, NULL, "Open/Close Menu (ESC)", M_ChangeControl, GC_SYSTEMMENU    },
 	{IT_CALL | IT_STRING2, NULL, "Next Viewpoint",        M_ChangeControl, GC_VIEWPOINTNEXT },
 	{IT_CALL | IT_STRING2, NULL, "Prev Viewpoint",        M_ChangeControl, GC_VIEWPOINTPREV },
-	{IT_CALL | IT_STRING2, NULL, "Console",          M_ChangeControl, GC_CONSOLE     },
+	{IT_CALL | IT_STRING2, NULL, "Console",               M_ChangeControl, GC_CONSOLE       },
+	{IT_CALL | IT_STRING2, NULL, "Local-addon Toggle",    M_ChangeControl, GC_LOCALTOGGLE   },
 	{IT_HEADER, NULL, "Multiplayer", NULL, 0},
 	{IT_SPACE, NULL, NULL, NULL, 0}, // padding
 	{IT_CALL | IT_STRING2, NULL, "Talk",             M_ChangeControl, GC_TALKKEY     },
@@ -3257,15 +3257,6 @@ boolean M_Responder(event_t *ev)
 				// added 5-2-98 remap virtual keys (mouse & joystick buttons)
 				switch (ch)
 				{
-                    case KEY_RALT:
-                        if (keydown == 1)
-                        {
-                            if (gc_ralt_down == 0)
-                                gc_ralt_down = 2;
-                            else
-                                gc_ralt_down = 0;
-                        }
-                        break;
 					case KEY_MOUSE1:
 					case KEY_JOY1:
 						ch = KEY_ENTER;
@@ -3294,6 +3285,14 @@ boolean M_Responder(event_t *ev)
 					case KEY_HAT1 + 3:
 						ch = KEY_RIGHTARROW;
 						break;
+				}
+
+				// also, local addon toggle
+				if ((ch == gamecontrol[GC_LOCALTOGGLE][0] || ch == gamecontrol[GC_LOCALTOGGLE][1]) && keydown == 1)
+				{
+					// dont think we can eat this input, so be careful
+					// binding this control to a character
+					addons_localtoggle = !addons_localtoggle;
 				}
 			}
 		}
@@ -6519,7 +6518,7 @@ static void M_DrawAddons(void)
 	size_t t, b; // top and bottom item #s to draw in directory
 	const UINT8 *flashcol = NULL;
 	UINT8 hilicol;
-    boolean locally = (gc_ralt_down > 0 || addons_forcelocal);
+    boolean locally = (addons_localtoggle || addons_forcelocal);
 
 	// hack - need to refresh at end of frame to handle addfile...
 	if (refreshdirmenu & M_AddonsRefresh())
@@ -6538,10 +6537,27 @@ static void M_DrawAddons(void)
     }
     else
     {
-        V_DrawCenteredString(BASEVIDWIDTH/2, 5, V_ALLOWLOWERCASE,
-            va("Loading locally. %s", addons_forcelocal ? "" : "(R-ALT)")
-        );
-    }
+		if (addons_forcelocal)
+			V_DrawCenteredString(BASEVIDWIDTH/2, 5, V_ALLOWLOWERCASE,
+				"Loading locally."
+			);
+		else
+		{
+			char keynameone[60] = "\0";
+			strncpy(keynameone, G_KeyNumToName(gamecontrol[GC_LOCALTOGGLE][0]), 59);
+			
+			char keynametwo[60] = "\0";
+			if (gamecontrol[GC_LOCALTOGGLE][1] != KEY_NULL)
+				strncpy(keynametwo, G_KeyNumToName(gamecontrol[GC_LOCALTOGGLE][1]), 59);
+
+			V_DrawCenteredString(BASEVIDWIDTH/2, 5, V_ALLOWLOWERCASE,
+				va(
+					(gamecontrol[GC_LOCALTOGGLE][1] != KEY_NULL) ? "Loading locally. \x86(%s, %s)" : "Loading locally. \x86(%s)",
+					strupr(keynameone), strupr(keynametwo)
+				)
+			);
+		}
+	}
 #ifdef ENFORCE_WAD_LIMIT
 	if (numwadfiles <= mainwads+1)
 		y = 0;
@@ -6770,7 +6786,7 @@ static void M_HandleAddons(INT32 choice)
 #endif
 	}
 
-    boolean locally = (gc_ralt_down > 0 || addons_forcelocal);
+    boolean locally = (addons_localtoggle || addons_forcelocal);
     
 	switch (choice)
 	{
@@ -6889,7 +6905,7 @@ static void M_HandleAddons(INT32 choice)
 	if (exitmenu)
 	{
         addons_forcelocal = false;
-        gc_ralt_down = 0;
+        addons_localtoggle = false;
 		closefilemenu(true);
 
 		// secrets disabled by addfile...
@@ -13597,20 +13613,20 @@ static void M_Setup1PControlsMenu(INT32 choice)
 	//OP_ChangeControlsMenu[18+0].status = IT_HEADER;
 	//OP_ChangeControlsMenu[18+1].status = IT_SPACE;
 	// ...
-	OP_ChangeControlsMenu[19+2].status = IT_CALL|IT_STRING2;
-	OP_ChangeControlsMenu[19+3].status = IT_CALL|IT_STRING2;
-	OP_ChangeControlsMenu[19+4].status = IT_CALL|IT_STRING2;
-	OP_ChangeControlsMenu[19+5].status = IT_CALL|IT_STRING2;
-	OP_ChangeControlsMenu[19+6].status = IT_CALL|IT_STRING2;
-	//OP_ChangeControlsMenu[18+7].status = IT_CALL|IT_STRING2;
-	//OP_ChangeControlsMenu[18+8].status = IT_CALL|IT_STRING2;
-	OP_ChangeControlsMenu[19+9].status = IT_CALL|IT_STRING2;
+	OP_ChangeControlsMenu[19+2].status = IT_CALL|IT_STRING2; // pause
+	OP_ChangeControlsMenu[19+3].status = IT_CALL|IT_STRING2; // screenshot
+	OP_ChangeControlsMenu[19+4].status = IT_CALL|IT_STRING2; // gif recording
+	OP_ChangeControlsMenu[19+5].status = IT_CALL|IT_STRING2; // pause gif
+	OP_ChangeControlsMenu[19+6].status = IT_CALL|IT_STRING2; // menu
+	OP_ChangeControlsMenu[19+7].status = IT_CALL|IT_STRING2; // f12
+	OP_ChangeControlsMenu[19+8].status = IT_CALL|IT_STRING2; // next viewpoint
+	OP_ChangeControlsMenu[19+9].status = IT_CALL|IT_STRING2; // prev viewpoint
 	// ...
-	OP_ChangeControlsMenu[29+0].status = IT_HEADER;
-	OP_ChangeControlsMenu[29+1].status = IT_SPACE;
+	OP_ChangeControlsMenu[30+0].status = IT_HEADER;
+	OP_ChangeControlsMenu[30+1].status = IT_SPACE;
 	// ...
-	OP_ChangeControlsMenu[29+2].status = IT_CALL|IT_STRING2;
-	OP_ChangeControlsMenu[29+3].status = IT_CALL|IT_STRING2;
+	OP_ChangeControlsMenu[30+2].status = IT_CALL|IT_STRING2;
+	OP_ChangeControlsMenu[30+3].status = IT_CALL|IT_STRING2;
 
 	OP_ChangeControlsDef.prevMenu = &OP_P1ControlsDef;
 	OP_ChangeControlsDef.menuid &= ~(((1 << MENUBITS) - 1) << MENUBITS); // remove second level
@@ -13634,15 +13650,18 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	OP_ChangeControlsMenu[19+4].status = IT_GRAYEDOUT2;
 	OP_ChangeControlsMenu[19+5].status = IT_GRAYEDOUT2;
 	OP_ChangeControlsMenu[19+6].status = IT_GRAYEDOUT2;
+	OP_ChangeControlsMenu[19+7].status = IT_GRAYEDOUT2;
+	OP_ChangeControlsMenu[19+8].status = IT_GRAYEDOUT2;
+	OP_ChangeControlsMenu[19+9].status = IT_GRAYEDOUT2;
 	//OP_ChangeControlsMenu[18+7].status = IT_GRAYEDOUT2;
 	//OP_ChangeControlsMenu[18+8].status = IT_GRAYEDOUT2;
 	OP_ChangeControlsMenu[19+9].status = IT_GRAYEDOUT2;
 	// ...
-	OP_ChangeControlsMenu[29+0].status = IT_GRAYEDOUT2;
-	OP_ChangeControlsMenu[29+1].status = IT_GRAYEDOUT2;
+	OP_ChangeControlsMenu[30+0].status = IT_GRAYEDOUT2;
+	OP_ChangeControlsMenu[30+1].status = IT_GRAYEDOUT2;
 	// ...
-	OP_ChangeControlsMenu[29+2].status = IT_GRAYEDOUT2;
-	OP_ChangeControlsMenu[29+3].status = IT_GRAYEDOUT2;
+	OP_ChangeControlsMenu[30+2].status = IT_GRAYEDOUT2;
+	OP_ChangeControlsMenu[30+3].status = IT_GRAYEDOUT2;
 
 	OP_ChangeControlsDef.prevMenu = &OP_P2ControlsDef;
 	OP_ChangeControlsDef.menuid &= ~(((1 << MENUBITS) - 1) << MENUBITS); // remove second level

@@ -604,6 +604,7 @@ static const char *gamecontrolname[NUM_GAMECONTROLS] =
 	"custom2",
 	"custom3",
 	"pausegif",
+	"localtoggle",
 };
 
 #define NUMKEYNAMES (sizeof (keynames)/sizeof (keyname_t))
@@ -744,6 +745,7 @@ void G_DefineDefaultControls(void)
 		gamecontroldefault[i][GC_RECORDGIF    ][0] = KEY_F9;
 		gamecontroldefault[i][GC_PAUSEGIF     ][0] = KEY_F2;
 		gamecontroldefault[i][GC_VIEWPOINTNEXT][0] = KEY_F12;
+		gamecontroldefault[i][GC_LOCALTOGGLE  ][0] = KEY_RALT;
 
 		// Gamepad controls -- same for both schemes
 		gamecontroldefault[i][GC_JUMP         ][1] = KEY_JOY1+0; // A

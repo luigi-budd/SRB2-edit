@@ -104,6 +104,7 @@ typedef enum
 	// this is here at the end instead of next to the moviemode stuff because i dont wanna mess
 	// with consistancy and have something bad happen
 	GC_PAUSEGIF,
+	GC_LOCALTOGGLE, // Local addon toggle
 	NUM_GAMECONTROLS
 } gamecontrols_e;
 

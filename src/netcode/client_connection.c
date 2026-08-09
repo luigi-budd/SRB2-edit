@@ -187,7 +187,7 @@ static void GamepadGlyphs(INT32 x, INT32 y, INT32 offset)
 		V_DrawFill(
 			x + xoffset*order[i][0] - 1,
 			y + yoffset*order[i][1],
-			2,2, (i == offset) ? 73 : 3
+			2,2, (i == offset) ? 73 : 20
 		);
 	}
 }
@@ -355,43 +355,86 @@ static void CL_DrawConnectionStatus(void)
 				INT32 count = 0;
 				INT32 x = 14;
 				INT32 y = ypos + 68;
-				INT32 statuscolor = 1;
+				INT32 numplayers = serverlist[joinnode].info.numberofplayer;
 				char player_name[MAXPLAYERNAME+1];
-				if (serverlist[joinnode].info.numberofplayer > 0)
+				if (numplayers > 0)
 				{
+					// I suppose we can iterate once for the backgrounds...
+					// stupid +1 just to fill all 33 slots
+					for (i = 0; i < MAXPLAYERS+1; i++)
+					{
+						if (i < numplayers)
+						{
+							if (i & 1)
+								V_DrawFill(x,y-1, 98, 9, 156);
+						}
+						else
+						{
+							if (i & 1)
+								V_DrawFill(x,y-1, 98, 9, 254);
+							else
+								V_DrawFill(x,y-1, 98, 9, 253);
+						}
+
+						y += 9;
+						if ((i == 10) || (i == 21))
+						{
+							x += 98;
+							y = ypos + 68;
+						}
+					}
+					
+					// then iterate again for the player names...
+					x = 14;
+					y = ypos + 68; // 67
 					for (i = 0; i < MAXPLAYERS; i++)
 					{
-						if (playerinfo[i].num < 255)
+						if (playerinfo[i].num == 255) continue;
+
+						// just a little off the top
+						strncpy(player_name, playerinfo[i].name, MAXPLAYERNAME - 3);
+						player_name[MAXPLAYERNAME - 2] = '\0';
+						V_DrawThinString(x+1, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE, player_name);
+						
+						y += 9;
+						count++;
+						if ((count == 11) || (count == 22))
 						{
-							strncpy(player_name, playerinfo[i].name, MAXPLAYERNAME);
-							player_name[MAXPLAYERNAME] = '\0';
-							V_DrawThinString(x + 10, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE, player_name);
+							x += 98;
+							y = ypos + 68;
+						}
+					}
+
+					// we didnt draw enough names, so there has to be
+					// people on rejointimeout
+					if (count < numplayers)
+					{
+						for (i = count-1; i < MAXPLAYERS; i++)
+						{
+							if (count >= numplayers) break;
 							
-							if (playerinfo[i].team == 0) { statuscolor = 112; } // playing
-							if (playerinfo[i].data & 0x20) { statuscolor = 54; } // tag IT
-							if (playerinfo[i].team == 1) { statuscolor = 35; } // ctf red team
-							if (playerinfo[i].team == 2) { statuscolor = 152; } // ctf blue team
-							if (playerinfo[i].team == 255) { statuscolor = 16; } // spectator or non-team
-							
-							V_DrawFill(x, y, 7, 7, 31);
-							V_DrawFill(x, y, 6, 6, statuscolor);
+							V_DrawThinString(x+1, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE|V_GRAYMAP, "(Player left)");
 							
 							y += 9;
 							count++;
 							if ((count == 11) || (count == 22))
 							{
-								x += 104;
+								x += 98;
 								y = ypos + 68;
 							}
 						}
 					}
+				}
+				else
+				{
+					V_DrawThinString(x+1, y, V_ALLOWLOWERCASE|V_20TRANS, "There's no one in here.");
 				}
 			}
 			else
 			{
 				V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|V_YELLOWMAP, "Addons");
 
-#define charsonside (18)
+#define charsonside (21)
 #define maxcharlen ((charsonside*2) + 3) // 3 for the 3 dots
 				INT32 i;
 				INT32 count = 0;
@@ -410,11 +453,11 @@ static void CL_DrawConnectionStatus(void)
 					strncpy(file_name, addon_file.filename, MAX_WADPATH);
 					if ((UINT8)(strlen(file_name)+1) > maxcharlen)
 						V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE,
-							va("\x82[#%.2d]\x80: %.*s...%s",i+1, charsonside, file_name, file_name+strlen(file_name)-((charsonside+1)))
+							va("\x82[%.2d]\x80 %.*s...%s", i+1, charsonside, file_name, file_name+strlen(file_name)-((charsonside+1)))
 						);
 					else
 						V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE,
-							va("\x82[#%.2d]\x80: %s",i+1, file_name)
+							va("\x82[%.2d]\x80 %s", i+1, file_name)
 						);
 
 					{
@@ -437,7 +480,8 @@ static void CL_DrawConnectionStatus(void)
 							y, V_YELLOWMAP|V_ALLOWLOWERCASE,
 							// "~" since its approx this size, we mightve lost some
 							// accuracy from only having 4 bytes carry the size
-							va("~%.1f %s", file_size, size_mode == 0 ? "b" : (size_mode == 2 ? "kb" : "mb"))
+							// though, maybe its best we remove it since it does look a little off
+							va("%.1f %s", file_size, size_mode == 0 ? "b" : (size_mode == 2 ? "kb" : "mb"))
 						);
 					}
 
@@ -474,7 +518,7 @@ static void CL_DrawConnectionStatus(void)
 				
 				V_DrawRightAlignedThinString(BASEVIDWIDTH - 18, ypos + 59,
 					V_ALLOWLOWERCASE|V_YELLOWMAP,
-					va("~%.1f%s total", (float)totalsize, size_mode == 0 ? "b" : (size_mode == 2 ? "kb" : "mb"))
+					va("%.1f%s total", (float)totalsize, size_mode == 0 ? "b" : (size_mode == 2 ? "kb" : "mb"))
 				);
 
 				// draw the little arrows
@@ -1586,6 +1630,7 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 				cl_mode = CL_ABORTED;
 
 			// SURELY i can write better code than this...
+			// Im So Sorry guys
 			if ((gamekeydown[KEY_SPACE] || gamekeydown[KEY_JOY1 + 2]) && fileneedednum)
 			{
 				if (!cl_vs_sa_tapped)

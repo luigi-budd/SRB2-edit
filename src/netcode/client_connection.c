@@ -363,18 +363,16 @@ static void CL_DrawConnectionStatus(void)
 					// stupid +1 just to fill all 33 slots
 					for (i = 0; i < MAXPLAYERS+1; i++)
 					{
-						if (i < numplayers)
-						{
-							if (i & 1)
-								V_DrawFill(x,y-1, 98, 9, 156);
-						}
-						else
-						{
-							if (i & 1)
-								V_DrawFill(x,y-1, 98, 9, 254);
-							else
-								V_DrawFill(x,y-1, 98, 9, 253);
-						}
+						INT32 color = -1;
+						if (i > serverlist[joinnode].info.maxplayer)
+							color = 29;
+						else if (i < numplayers && i & 1)
+							color = 156;
+						else if (i >= numplayers)
+							color = (i & 1) ? 254 : 253;
+
+						if (color != -1)
+							V_DrawFill(x,y-1, 98, 9, color);
 
 						y += 9;
 						if ((i == 10) || (i == 21))

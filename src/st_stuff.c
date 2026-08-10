@@ -1195,14 +1195,23 @@ static void ST_drawInput(void)
 	drawbutt( 4,-3, BT_JUMP, 'J', 10,10, false, 0, 0, false, NULL)
 	drawbutt(15,-3, BT_SPIN, 'S', 10,10, false, 0, 0, false, NULL)
 
-	drawbutt(26,    -3, 0,          'C', 7,10, true, 0, 1, false, NULL)
-	drawbutt(26 + 7,-3, BT_CUSTOM1, '1', 7,10, true, 0, 1, false, NULL)
-	drawbutt(33 + 7,-3, BT_CUSTOM2, '2', 7,10, true, 0, 1, false, NULL)
-	drawbutt(40 + 7,-3, BT_CUSTOM3, '3', 7,10, true, 0, 1, false, NULL)
+	drawbutt(26,    -3, 0,          'C', 9,10, true, 1, 1, false, NULL)
+	drawbutt(29 + 7,-3, BT_CUSTOM1, '1', 7,10, true, 0, 1, false, NULL)
+	drawbutt(36 + 8,-3, BT_CUSTOM2, '2', 7,10, true, 0, 1, false, NULL)
+	drawbutt(43 + 9,-3, BT_CUSTOM3, '3', 7,10, true, 0, 1, false, NULL)
 
-	static const char *tosschar = "TOSS";
-	drawbutt(26,     9, BT_TOSSFLAG, 'T', 20, 9, true, -1, 0, true, tosschar)
-	drawbutt(40 + 7, 9, BT_ATTACK,   'F',  7, 9, true, 0, 0, false, NULL)
+	static const char *tosschar = "TF";
+	static const char *firenchar = "FN";
+	drawbutt(26,      9, BT_TOSSFLAG,   'T', 12, 9, true, -1, 0, true, tosschar)
+	drawbutt(26 + 13, 9, BT_ATTACK,     'F',  7, 9, true, 0, 0, false, NULL)
+	drawbutt(38 + 9,  9, BT_FIRENORMAL, 'F', 12, 9, true, -1, 0, true, firenchar)
+	
+	/*
+	static const char *nextchar = "\26";
+	static const char *prevchar = "\27";
+	drawbutt(58, -3, BT_WEAPONNEXT, 'T', 7, 9, true, 0, 0, true, nextchar)
+	drawbutt(58,  9, BT_WEAPONPREV, 'T', 7, 9, true, 0, 0, true, prevchar)
+	*/
 
 	V_DrawFill(x+16+4, y+8, 21, 10, hudinfo[HUD_INPUT].f|20); // sundial backing
 	if (stplyr->mo)

@@ -364,7 +364,7 @@ static void CL_DrawConnectionStatus(void)
 					for (i = 0; i < MAXPLAYERS+1; i++)
 					{
 						INT32 color = -1;
-						if (i > serverlist[joinnode].info.maxplayer)
+						if (i >= serverlist[joinnode].info.maxplayer)
 							color = 29;
 						else if (i < numplayers && i & 1)
 							color = 156;

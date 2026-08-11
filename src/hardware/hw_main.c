@@ -5432,7 +5432,7 @@ static void HWR_SetTransformAiming(FTransform *trans, player_t *player, boolean 
 	// 3 = 2d mode only
 	if (cv_glshearing.value == 1 ||
 		(cv_glshearing.value == 2 && R_IsViewpointThirdPerson(player, skybox)) ||
-		(cv_glshearing.value == 3 && (twodlevel || player->mo->flags2 & MF2_TWOD))
+		(cv_glshearing.value == 3 && !skybox && (twodlevel || (player && !P_MobjWasRemoved(player->mo) && player->mo->flags2 & MF2_TWOD)))
 	) {
 		fixed_t fixedaiming = AIMINGTODY(aimingangle);
 		trans->viewaiming = FIXED_TO_FLOAT(fixedaiming) * ((float)vid.width / vid.height) / ((float)BASEVIDWIDTH / BASEVIDHEIGHT);

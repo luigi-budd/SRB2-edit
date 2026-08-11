@@ -606,6 +606,8 @@ typedef enum
 // ---------------------
 static menuitem_t SPauseMenu[] =
 {
+	{IT_CALL | IT_STRING,    NULL, "Add-ons...",           M_Addons,         8},
+
 	// Pandora's Box will be shifted up if both options are available
 	{IT_CALL | IT_STRING,    NULL, "Pandora's Box...",     M_PandorasBox,         16},
 	{IT_CALL | IT_STRING,    NULL, "Emblem Hints...",      M_EmblemHints,         24},
@@ -621,7 +623,8 @@ static menuitem_t SPauseMenu[] =
 
 typedef enum
 {
-	spause_pandora = 0,
+	spause_addons = 0,
+	spause_pandora,
 	spause_hints,
 	spause_levelselect,
 
@@ -6447,9 +6450,9 @@ static char *M_AddonsHeaderPath(void)
 
 	strlcpy(header, va("%s folder%s", cv_addons_option.string, menupath+menupathindex[menudepth-1]-1), 1024);
 	len = strlen(header);
-	if (len > 34)
+	if (len > 55)
 	{
-		len = len-34;
+		len = len-55;
 		header[len] = header[len+1] = header[len+2] = '.';
 	}
 	else
@@ -6530,7 +6533,7 @@ static void M_DrawAddons(void)
     if (!locally)
     {
         if (Playing())
-            V_DrawCenteredString(BASEVIDWIDTH/2, 5, warningflags, "Adding files mid-game may cause problems.");
+            V_DrawCenteredString(BASEVIDWIDTH/2, 5, warningflags|MENUCAPS, "Adding files mid-game may cause problems.");
         else
             V_DrawCenteredString(BASEVIDWIDTH/2, 5, MENUCAPS, LOCATIONSTRING1);
                 // (recommendedflags == V_SKYMAP ? LOCATIONSTRING2 : LOCATIONSTRING1)
@@ -6593,7 +6596,7 @@ static void M_DrawAddons(void)
     }
 
 	// draw the file path and the top white + black lines of the box
-	V_DrawString(x-21, (y - 16) + (lsheadingheight - 12), highlightflags|V_ALLOWLOWERCASE, M_AddonsHeaderPath());
+	V_DrawThinString(x-21, (y - 16) + (lsheadingheight - 12), highlightflags|V_ALLOWLOWERCASE, M_AddonsHeaderPath());
 	V_DrawFill(x-21, (y - 16) + (lsheadingheight - 3), boxwidth, 1, hilicol);
 	V_DrawFill(x-21, (y - 16) + (lsheadingheight - 2), boxwidth, 1, 30);
 
@@ -6667,12 +6670,12 @@ static void M_DrawAddons(void)
 			}
 
 			// draw name of the item, use ... if too long
-#define charsonside (((boxwidth - x) / 16) - 1)
+#define charsonside (((boxwidth - x) / 8) - 1)
 			if (dirmenu[i][DIR_LEN] > (charsonside*2 + 3))
-				V_DrawString(x, y+4, flags, va("%.*s...%s", charsonside, dirmenu[i]+DIR_STRING, dirmenu[i]+DIR_STRING+dirmenu[i][DIR_LEN]-(charsonside+1)));
+				V_DrawThinString(x, y+4, flags, va("%.*s...%s", charsonside, dirmenu[i]+DIR_STRING, dirmenu[i]+DIR_STRING+dirmenu[i][DIR_LEN]-(charsonside+1)));
 #undef charsonside
 			else
-				V_DrawString(x, y+4, flags, dirmenu[i]+DIR_STRING);
+				V_DrawThinString(x, y+4, flags, dirmenu[i]+DIR_STRING);
 		}
 #undef type
 		y += 16;

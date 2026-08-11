@@ -5429,8 +5429,11 @@ static void HWR_SetTransformAiming(FTransform *trans, player_t *player, boolean 
 {
 	// 1 = always on
 	// 2 = chasecam only
-	if (cv_glshearing.value == 1 || (cv_glshearing.value == 2 && R_IsViewpointThirdPerson(player, skybox)))
-	{
+	// 3 = 2d mode only
+	if (cv_glshearing.value == 1 ||
+		(cv_glshearing.value == 2 && R_IsViewpointThirdPerson(player, skybox)) ||
+		(cv_glshearing.value == 3 && (twodlevel || player->mo->flags2 & MF2_TWOD))
+	) {
 		fixed_t fixedaiming = AIMINGTODY(aimingangle);
 		trans->viewaiming = FIXED_TO_FLOAT(fixedaiming) * ((float)vid.width / vid.height) / ((float)BASEVIDWIDTH / BASEVIDHEIGHT);
 		if (splitscreen)
@@ -5844,7 +5847,7 @@ void HWR_LoadLevel(void)
 static CV_PossibleValue_t glshaders_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Ignore custom shaders"}, {0, NULL}};
 static CV_PossibleValue_t glmodelinterpolation_cons_t[] = {{0, "Off"}, {1, "Sometimes"}, {2, "Always"}, {0, NULL}};
 static CV_PossibleValue_t glfakecontrast_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Smooth"}, {0, NULL}};
-static CV_PossibleValue_t glshearing_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Third-person"}, {0, NULL}};
+static CV_PossibleValue_t glshearing_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Third-person"}, {3, "2D Mode"}, {0, NULL}};
 static CV_PossibleValue_t glsprbillboard_cons_t[] = {{0, "Off"}, {1, "On"}, {2, "Players"}, {0, NULL}};
 
 static void CV_glfiltermode_OnChange(void);

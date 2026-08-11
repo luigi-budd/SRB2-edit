@@ -1,3 +1,30 @@
+# Sonic Robo Blast 2
+[![latest release](https://badgen.net/github/release/STJr/SRB2/stable)](https://github.com/STJr/SRB2/releases/latest)
+
+[![Build status](https://ci.appveyor.com/api/projects/status/399d4hcw9yy7hg2y?svg=true)](https://ci.appveyor.com/project/STJr/srb2)
+[![Build status](https://travis-ci.org/STJr/SRB2.svg?branch=master)](https://travis-ci.org/STJr/SRB2)
+[![CircleCI](https://circleci.com/gh/STJr/SRB2/tree/master.svg?style=svg)](https://circleci.com/gh/STJr/SRB2/tree/master)
+
+[Sonic Robo Blast 2](https://srb2.org/) is a 3D Sonic the Hedgehog fangame based on a modified version of [Doom Legacy](http://doomlegacy.sourceforge.net/).
+
+## Dependencies
+- SDL2 (Linux/OS X only)
+- SDL2-Mixer (Linux/OS X only)
+- libupnp (Linux/OS X only)
+- libgme (Linux/OS X only)
+- libopenmpt (Linux/OS X only)
+
+## Disclaimer
+Sonic Team Junior is in no way affiliated with SEGA or Sonic Team. We do not claim ownership of any of SEGA's intellectual property used in SRB2.
+
+----------------------
+
+<p align="center">
+  <img width="500" height="150" alt="SRB2-edit" src="https://raw.githubusercontent.com/luigi-budd/SRB2-edit/refs/heads/master/srb2banner.png" />
+</p>
+
+# About SRB2-edit
+
 SRB2-edit is a source mode of Sonic Robo Blast 2 aimed to add more development and modding tools, and general gameplay and QOL improvements, without getting in the way of netplay and performance.
 
 ## Compiling
@@ -6,9 +33,13 @@ See [SRB2 Wiki/Source code compiling](http://wiki.srb2.org/wiki/Source_code_comp
 
 If you get compilation errors referring to booleans and/or pointers, try reverting [this commit](https://github.com/luigi-budd/SRB2-edit/commit/8b70f986a65a735030e611c0bcf36161b4cdd505) and/or [this commit](https://github.com/luigi-budd/SRB2-edit/commit/2160051f055eed0fa1cdf0f4034534f60dfe2c0a) and [this commit](https://github.com/luigi-budd/SRB2-edit/commit/0cb43b90763d58386bf97ab6fcf732636cb5d48e) (or [this one](https://github.com/luigi-budd/SRB2-edit/commit/6acca940af796845b64ec6a3db74451735c9c023))
 
-# Installation:
+## Installation:
 
-You can compile the source code normally (see "Compiling") and put the binary in your SRB2 directory. No additional assets required, it works right out the box!
+You can compile the source code normally (see "Compiling") and put the binary in your SRB2 directory. Don't forget to install the Discord RPC libraries as well.
+
+If you're downloading a release from the Actions tab, make sure to download the correct Discord RPC libraries from the source code and put them in your SRB2 directory. The game will not start otherwise.
+
+Please refer to `libs/DLL-README.txt` if you need help locating any libraries.
 
 # Changes
 
@@ -65,23 +96,23 @@ You can compile the source code normally (see "Compiling") and put the binary in
     - ^ When gif is capped, gif_rolling allows for another gif to immediately start! (`gif_rolling`, "Keep recording when capped")
 - Pause GIFs *WHILE* Recording! (Bound to F2 by default)
 
-## Console && Misc. Commands
+## Console & Misc. Commands
 - `help` now lists commands and variables by origin. Parameters are as follows:
-  | Param      | Desc      |
+  | Param      | Description      |
   | ------------- | ------------- |
   | `-v` | Only show variables and/or commands from vanilla SRB2 only.  |
   | `-c` | Only show variables and/or commands that are in SRB2-edit, and not vanilla. |
-  | `-a` | Only show variables and/or commands created by addons |
+  | `-a` | Only show variables and/or commands created by addons. |
 
-- Console variables can no longer be used as an argument for `help`, they now print their info instead of just their current and default value. "`cvarinfo`" lets you hide the flags and origin sections ("Show All" by default).
+- Console variables can no longer be used as an argument for `help`, they now print their info instead of just their current and default value when entered into the console alone. "`cvarinfo`" lets you hide the flags and origin sections ("Show All" by default).
 - "`cycle`" command (`cycle <cvar> [values]`): Inaccessible by Lua. Cycles given values on the cvar if the current value is found in the list (also loops around). Fails if the current value is not found, unless `-b` is specified (starts at the first arg if so).
 
 # Lua Additions
 
 ## Global variables
-- "`edit_custombuild`" (Read only) (boolean) :  Global to detect if the client is using this build
-- "`edit_complexlocaladdons`" (Read only) (boolean) : Global to detect if the client has loaded local addons with lua in them
-- "`edit_locallyloading`" (Read only) (boolean) : Only set during script loading, detects whether the script is being loaded locally
+- "`edit_custombuild`" (Read only) (boolean) :  Global to detect if the client is using this build.
+- "`edit_complexlocaladdons`" (Read only) (boolean) : Global to detect if the client has loaded local addons with lua in them.
+- "`edit_locallyloading`" (Read only) (boolean) : Only set during script loading, detects whether the script is being loaded locally.
 
   Example:
   ```lua
@@ -91,7 +122,23 @@ You can compile the source code normally (see "Compiling") and put the binary in
   end
   --normal, gameplay editing code
   ```
+  Please note that this variable will always return false during runtime, so you will need to store this variable in a different one to preserve it.
+  
+  Example:
+  ```lua
+  local addon_is_local = edit_locallyloading
+  addHook("ThinkFrame",do
+      if (addon_is_local) then
+        print("This addon is local!")
+        M_RandomRange(0,10)
+      else
+        print("This is a regular addon.")
+        P_RandomRange(0,10)
+      end
+  end)
+  ```
 - "`demoplayback`" (Read only) (boolean) : True if viewing a demo.
+
 *Note: `takis_*` variables are still recognized by the game, however, they have been deprecated and will be removed soon. Use their `edit_*` counterparts instead.*
 
 ## Functions
@@ -155,23 +202,3 @@ end)
 
 ## eflags_t
 - `MFE_NOPITCHROLLEASING` : When "pitchroll-easing" is toggled, adding this eflag will not ease the pitch/roll axis this tic. Removed at the end of MobjThinker.
-
-
-# Sonic Robo Blast 2
-[![latest release](https://badgen.net/github/release/STJr/SRB2/stable)](https://github.com/STJr/SRB2/releases/latest)
-
-[![Build status](https://ci.appveyor.com/api/projects/status/399d4hcw9yy7hg2y?svg=true)](https://ci.appveyor.com/project/STJr/srb2)
-[![Build status](https://travis-ci.org/STJr/SRB2.svg?branch=master)](https://travis-ci.org/STJr/SRB2)
-[![CircleCI](https://circleci.com/gh/STJr/SRB2/tree/master.svg?style=svg)](https://circleci.com/gh/STJr/SRB2/tree/master)
-
-[Sonic Robo Blast 2](https://srb2.org/) is a 3D Sonic the Hedgehog fangame based on a modified version of [Doom Legacy](http://doomlegacy.sourceforge.net/).
-
-## Dependencies
-- SDL2 (Linux/OS X only)
-- SDL2-Mixer (Linux/OS X only)
-- libupnp (Linux/OS X only)
-- libgme (Linux/OS X only)
-- libopenmpt (Linux/OS X only)
-
-## Disclaimer
-Sonic Team Junior is in no way affiliated with SEGA or Sonic Team. We do not claim ownership of any of SEGA's intellectual property used in SRB2.

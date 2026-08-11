@@ -244,6 +244,12 @@ debug_opts=-DNDEBUG
 opts+=-O3
 endif
 
+ifdef HAVE_DISCORDRPC
+LIBS+=-ldiscord-rpc
+CFLAGS+=-DHAVE_DISCORDRPC
+OBJS+=$(OBJDIR)/discord.o
+endif
+
 # debug_opts also get passed to windres
 opts+=$(debug_opts)
 

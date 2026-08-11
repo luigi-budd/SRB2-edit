@@ -5,7 +5,7 @@
 passthru_opts+=\
 	NO_IPV6 NOHW NOMD5 NOPOSTPROCESSING\
 	MOBJCONSISTANCY PACKETDROP ZDEBUG\
-	NOUPNP NOEXECINFO\
+	NOUPNP NOEXECINFO HAVE_DISCORDRPC\
 
 # build with debugging information
 ifdef DEBUGMODE
@@ -46,6 +46,13 @@ MINIUPNPC_PKGCONFIG?=miniupnpc
 $(eval $(call Use_pkg_config,MINIUPNPC))
 HAVE_MINIUPNPC=1
 opts+=-DHAVE_MINIUPNPC
+endif
+
+ifdef HAVE_DISCORDRPC
+$(eval $(call Propogate_flags,DISCORDRPC))
+libs+=-ldiscord-rpc
+opts+=-DUSE_STUN
+sources+=discord.c stun.c
 endif
 
 # (Valgrind is a memory debugger.)

@@ -27,6 +27,10 @@ ifndef NOHW
 opts+=-DUSE_WGL_SWAP
 endif
 
+ifndef NODISCORDRPC
+HAVE_DISCORDRPC=1
+endif
+
 ifdef MINGW64
 libs+=-lws2_32
 else
@@ -104,3 +108,8 @@ lib:=../libs/miniupnpc
 MINIUPNPC_opts:=-I$(lib)/include -DMINIUPNP_STATICLIB
 MINIUPNPC_libs:=-L$(lib)/mingw$(32) -lminiupnpc -lws2_32 -liphlpapi
 $(eval $(call _set,MINIUPNPC))
+
+lib:=../libs/discord-rpc/win$(32)-dynamic
+DISCORDRPC_opts+=-I$(lib)/include
+DISCORDRPC_libs+=-L$(lib)/lib -ldiscord-rpc
+$(eval $(call _set,DISCORDRPC))

@@ -94,6 +94,10 @@
 
 #include "lua_script.h"
 
+#ifdef HAVE_DISCORDRPC
+#include "discord.h"
+#endif
+
 // Version numbers for netplay :upside_down_face:
 int    VERSION;
 int SUBVERSION;
@@ -903,6 +907,12 @@ void D_SRB2Loop(void)
 
 		LUA_Step();
 
+#ifdef HAVE_DISCORDRPC
+		if (!dedicated && renderisnewtic)
+		{
+			Discord_RunCallbacks();
+		}
+#endif
 		// Fully completed frame made.
 		finishprecise = I_GetPreciseTime();
 		if (!singletics)
@@ -1784,6 +1794,13 @@ void D_SRB2Main(void)
 		if (!P_LoadLevel(false, false))
 			I_Quit(); // fail so reset game stuff
 	}
+
+#ifdef HAVE_DISCORDRPC
+	if (!dedicated)
+	{
+		DRPC_Init();
+	}
+#endif
 }
 
 const char *D_Home(void)

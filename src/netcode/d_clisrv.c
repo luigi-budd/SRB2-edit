@@ -54,6 +54,10 @@
 #include "commands.h"
 #include "protocol.h"
 
+#ifdef HAVE_DISCORDRPC
+#include "../discord.h"
+#endif
+
 //
 // NETWORKING
 //
@@ -321,6 +325,10 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 
 	if (!rejoined)
 		LUA_HookInt(newplayernum, HOOK(PlayerJoin));
+
+	#ifdef HAVE_DISCORDRPC
+		DRPC_UpdatePresence();
+	#endif
 }
 
 static void UnlinkPlayerFromNode(INT32 playernum)
@@ -639,6 +647,10 @@ void CL_RemovePlayer(INT32 playernum, kickreason_t reason)
 		P_CheckSurvivors();
 	else if (gametyperules & GTR_RACE)
 		P_CheckRacers();
+
+#ifdef HAVE_DISCORDRPC
+	DRPC_UpdatePresence();
+#endif
 }
 
 //

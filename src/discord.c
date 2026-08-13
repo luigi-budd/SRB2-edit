@@ -354,12 +354,6 @@ void DRPC_UpdatePresence(void)
 
 	char detailstr[48+1];
 
-	char mapimg[8+1];
-	char mapname[5+21+21+2+1];
-
-	char charimg[4+SKINNAMESIZE+1];
-	char charname[11+SKINNAMESIZE+1];
-
 	boolean joinSecretSet = false;
 
 	DiscordRichPresence discordPresence;
@@ -381,8 +375,6 @@ void DRPC_UpdatePresence(void)
 
 #ifdef DEVELOP
 	// This way, we can use the invite feature in-dev, but not have snoopers seeing any potential secrets! :P
-	discordPresence.largeImageKey = "miscdevelop";
-	discordPresence.largeImageText = "No peeking!";
 	discordPresence.state = "Testing the game";
 
 	DRPC_EmptyRequests();
@@ -435,44 +427,6 @@ void DRPC_UpdatePresence(void)
 	if ((gamestate == GS_LEVEL || gamestate == GS_INTERMISSION) // Map info
 		&& !(demoplayback && titledemo))
 	{
-		if ((gamemap >= 1 && gamemap <= 60) // supported race maps
-			|| (gamemap >= 136 && gamemap <= 164)) // supported battle maps
-		{
-			snprintf(mapimg, 8, "%s", G_BuildMapName(gamemap));
-			strlwr(mapimg);
-			discordPresence.largeImageKey = mapimg; // Map image
-		}
-		else if (mapheaderinfo[gamemap-1]->menuflags & LF2_HIDEINMENU)
-		{
-			// Hell map, use the method that got you here :P
-			discordPresence.largeImageKey = "miscdice";
-		}
-		else
-		{
-			// This is probably a custom map!
-			discordPresence.largeImageKey = "mapcustom";
-		}
-
-		if (mapheaderinfo[gamemap-1]->menuflags & LF2_HIDEINMENU)
-		{
-			// Hell map, hide the name
-			discordPresence.largeImageText = "Map: ???";
-		}
-		else
-		{
-			// Map name on tool tip
-			char *title = G_BuildMapTitle(gamemap);
-			if (title)
-			{
-				snprintf(mapname, 48, "Map: %s", title);
-				Z_Free(title);
-			}
-			else
-				snprintf(mapname, 48, "Map: UNKNOWN");
-
-			discordPresence.largeImageText = mapname;
-		}
-
 		if (gamestate == GS_LEVEL && Playing())
 		{
 			const time_t currentTime = time(NULL);
@@ -486,11 +440,6 @@ void DRPC_UpdatePresence(void)
 				discordPresence.endTimestamp = mapTimeEnd;
 			}
 		}
-	}
-	else
-	{
-		discordPresence.largeImageKey = "misctitle";
-		discordPresence.largeImageText = "Title Screen";
 	}
 
 	if (joinSecretSet == false)

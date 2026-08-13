@@ -1144,7 +1144,7 @@ static angle_t SnapAngleToFortyFive(angle_t ang)
 	// This is here so you can still make little minor
 	// adjustments without full-on moving to the next
 	// 45-degree increment
-	fixed_t nudge = Easing_InOutQuint(
+	fixed_t nudge = Easing_InOutExpo(
 		fang % FRACUNIT, 0, FRACUNIT
 	);
 	fang = FixedFloor(fang);
@@ -1695,12 +1695,17 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 	// Try snapping analog inputs towards the 8 directions
 	if (joysnapping && movejoystickvector.xaxis != 0 && movejoystickvector.yaxis != 0)
 	{
+#define MAXJOYMOVE (MAXPLMOVE*FRACUNIT)
 		angle_t moveang = R_PointToAngle2(0,0, movejoystickvector.xaxis, movejoystickvector.yaxis);
 		moveang = SnapAngleToFortyFive(moveang);
-		fixed_t force = min(FixedHypot(forward*FRACUNIT, side*FRACUNIT), MAXPLMOVE*FRACUNIT);
+		fixed_t force = min(FixedHypot(forward*FRACUNIT, side*FRACUNIT), MAXJOYMOVE);
+		// Lol! My gamepad cant reach 50 so lets just add a fix here
+		if (force < MAXJOYMOVE && force >= (MAXJOYMOVE - (3*FRACUNIT)/2))
+			force = MAXJOYMOVE;
 		
 		forward = P_ReturnThrustX(NULL, moveang, force) >> FRACBITS;
 		side    = P_ReturnThrustY(NULL, moveang, force) >> FRACBITS;
+#undef MAXJOYMOVE
 	}
 
 	//Silly hack to make 2d mode *somewhat* playable with no chasecam.

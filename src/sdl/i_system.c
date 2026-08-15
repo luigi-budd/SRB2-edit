@@ -3117,12 +3117,10 @@ const char *I_LocateWad(void)
 
 	if (waddir)
 	{
-		// change to the directory where we found srb2.pk3
+		// change to the directory where we found bios.pk3
 #if defined (_WIN32)
-		waddir = _fullpath(NULL, waddir, MAX_PATH);
 		SetCurrentDirectoryA(waddir);
 #else
-		waddir = realpath(waddir, NULL);
 		if (chdir(waddir) == -1)
 			I_OutputMsg("Couldn't change working directory\n");
 #endif

@@ -76,6 +76,7 @@ typedef enum
 	MN_MP_ROOM,
 	MN_MP_PLAYERSETUP,
 	MN_MP_SERVER_OPTIONS,
+	MN_MP_DISCORDREQUESTS,
 
 	// Options
 	MN_OP_MAIN,
@@ -463,6 +464,8 @@ void M_ModeAttackRetry(INT32 choice);
 
 // Level select updating
 void Nextmap_OnChange(void);
+
+void M_RefreshPauseMenu(void);
 
 // Screenshot menu updating
 void Moviemode_mode_Onchange(void);

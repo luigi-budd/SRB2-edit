@@ -29,6 +29,7 @@
 #include "g_input.h"
 #include "m_argv.h"
 #include "m_anigif.h"
+#include "m_easing.h"
 
 // Data.
 #include "sounds.h"
@@ -74,6 +75,10 @@
 
 // And just some randomness for the exits.
 #include "m_random.h"
+
+#ifdef HAVE_DISCORDRPC
+#include "discord.h"
+#endif
 
 #if defined(HAVE_SDL)
 #include "SDL.h"
@@ -212,6 +217,12 @@ static void M_RoomMenu(INT32 choice);
 menu_t MessageDef;
 
 menu_t SPauseDef;
+
+#ifdef HAVE_DISCORDRPC
+menu_t MISC_DiscordRequestsDef;
+static void M_HandleDiscordRequests(INT32 choice);
+static void M_DrawDiscordRequests(void);
+#endif
 
 // Level Select
 static levelselect_t levelselect = {0, NULL};
@@ -564,6 +575,10 @@ static menuitem_t MPauseMenu[] =
 	{IT_STRING | IT_CALL,    NULL, "Emblem Hints...",           M_EmblemHints,         24},
 	{IT_STRING | IT_CALL,    NULL, "Switch Gametype/Level...",  M_MapChange,           32},
 
+#ifdef HAVE_DISCORDRPC
+	{IT_STRING | IT_SUBMENU,  NULL, "Discord Requests...",      &MISC_DiscordRequestsDef, 40},
+#endif
+
 	{IT_STRING | IT_CALL,    NULL, "Continue",                  M_SelectableClearMenus,48},
 
 	{IT_STRING | IT_CALL,    NULL, "Player 1 Setup",            M_SetupMultiPlayer,    56}, // splitscreen
@@ -588,6 +603,9 @@ typedef enum
 	mpause_hints,
 	mpause_switchmap,
 
+#ifdef HAVE_DISCORDRPC
+	mpause_discordrequests,
+#endif
 	mpause_continue,
 	mpause_psetupsplit,
 	mpause_psetupsplit2,
@@ -635,6 +653,13 @@ typedef enum
 	spause_title,
 	spause_quit
 } spause_e;
+
+#ifdef HAVE_DISCORDRPC
+static menuitem_t MISC_DiscordRequestsMenu[] =
+{
+	{IT_KEYHANDLER|IT_NOTHING, NULL, "", M_HandleDiscordRequests, 0},
+};
+#endif
 
 // -----------------
 // Misc menu options
@@ -1711,7 +1736,21 @@ menu_t MISC_AddonsDef =
 
 menu_t MAPauseDef = PAUSEMENUSTYLE(MAPauseMenu, 40, 72);
 menu_t SPauseDef = PAUSEMENUSTYLE(SPauseMenu, 40, 72);
-menu_t MPauseDef = PAUSEMENUSTYLE(MPauseMenu, 40, 72);
+menu_t MPauseDef = PAUSEMENUSTYLE(MPauseMenu, 40, 80);
+
+#ifdef HAVE_DISCORDRPC
+menu_t MISC_DiscordRequestsDef = {
+	MN_MP_DISCORDREQUESTS,
+	NULL,
+	sizeof (MISC_DiscordRequestsMenu)/sizeof (menuitem_t),
+	&MPauseDef,
+	MISC_DiscordRequestsMenu,
+	M_DrawDiscordRequests,
+	0, 0,
+	0,
+	NULL
+};
+#endif
 
 // Misc Main Menu
 menu_t MISC_ScrambleTeamDef = DEFAULTMENUSTYLE(MN_SPECIAL, NULL, MISC_ScrambleTeamMenu, &MPauseDef, 27, 40);
@@ -3836,6 +3875,21 @@ void M_StartControlPanel(void)
 		}
 
 		MPauseMenu[mpause_hints].status = (M_SecretUnlocked(SECRET_EMBLEMHINTS, clientGamedata) && G_CoopGametype()) ? (IT_STRING | IT_CALL) : (IT_DISABLED);
+
+#ifdef HAVE_DISCORDRPC
+		{
+			/*
+			UINT8 i;
+
+			for (i = 0; i < mpause_discordrequests; i++)
+				MPauseMenu[i].alphaKey -= 8;
+
+			MPauseMenu[mpause_discordrequests].alphaKey = MPauseMenu[i].alphaKey;
+			*/
+
+			M_RefreshPauseMenu();
+		}
+#endif
 
 		currentMenu = &MPauseDef;
 		itemOn = mpause_continue;
@@ -7070,6 +7124,20 @@ static void M_SelectableClearMenus(INT32 choice)
 {
 	(void)choice;
 	M_ClearMenus(true);
+}
+
+void M_RefreshPauseMenu(void)
+{
+#ifdef HAVE_DISCORDRPC
+	if (discordRequestList != NULL)
+	{
+		MPauseMenu[mpause_discordrequests].status = IT_STRING | IT_SUBMENU;
+	}
+	else
+	{
+		MPauseMenu[mpause_discordrequests].status = IT_GRAYEDOUT;
+	}
+#endif
 }
 
 // ======
@@ -14539,3 +14607,157 @@ static void M_QuitSRB2(INT32 choice)
 	(void)choice;
 	M_StartMessage(quitmsg[M_RandomKey(NUM_QUITMESSAGES)], M_QuitResponse, MM_YESNO);
 }
+
+#ifdef HAVE_DISCORDRPC
+
+// =====================================================================
+// DiscordRPC specific options
+// =====================================================================
+
+// Ring Racers LOL!
+static fixed_t M_TimeFrac(tic_t tics, tic_t duration)
+{
+	return tics < duration ? (tics * FRACUNIT + rendertimefrac) / duration : FRACUNIT;
+}
+
+static const tic_t confirmLength = 3*TICRATE/4;
+static tic_t confirmDelay = 0;
+static const tic_t nudgeLength = 7;
+static tic_t nudgeTime = 0;
+static boolean confirmAccept = false;
+
+static void M_HandleDiscordRequests(INT32 choice)
+{
+	if (confirmDelay > 0)
+		return;
+
+	switch (choice)
+	{
+		case KEY_ENTER:
+			// Discord_Respond(discordRequestList->userID, DISCORD_REPLY_YES);
+			confirmAccept = true;
+			confirmDelay = confirmLength;
+			nudgeTime = nudgeLength;
+			S_StartSound(NULL, sfx_s3k63);
+			break;
+
+		case KEY_ESCAPE:
+			// Discord_Respond(discordRequestList->userID, DISCORD_REPLY_NO);
+			confirmAccept = false;
+			confirmDelay = confirmLength;
+			nudgeTime = nudgeLength;
+			S_StartSound(NULL, sfx_s3kb2);
+			break;
+	}
+}
+
+static const char *M_GetDiscordName(discordRequest_t *r)
+{
+	if (r == NULL)
+		return "";
+
+	if (cv_discordstreamer.value)
+		return DRPC_HideUsername(r->username);
+
+	return r->username;
+}
+
+static void M_DrawTag(fixed_t x, fixed_t y, INT32 width, boolean dark)
+{
+	V_DrawFixedFill(x - 2*FRACUNIT, y - 2*FRACUNIT, (width + 4) * FRACUNIT, 11*FRACUNIT, dark ? 254 : 159);
+}
+
+static void M_DrawDiscordRequests(void)
+{
+	discordRequest_t *curRequest = discordRequestList;
+	boolean removeRequest = false;
+
+	const char *wantText = "...would like to join!";
+	const char *controlText = "\x82" "[ENTER]" "\x80" " - Accept    " "\x82" "[ESC]" "\x80" " - Decline";
+
+	const char *acceptText = "Accepted!";
+	const char *denyText = "Declined.";
+
+	fixed_t x = 60 * FRACUNIT;
+	fixed_t y = 133 * FRACUNIT;
+
+	fixed_t slide = 0;
+	fixed_t maxYSlide = 18 * FRACUNIT;
+
+	if (confirmDelay > 0)
+	{
+		fixed_t nudge = 0;
+		INT32 colormap = (confirmAccept == true) ? V_GREENMAP : V_ORANGEMAP;
+		if (nudgeTime > 0)
+		{
+			if (nudgeTime > nudgeLength - 4)
+				colormap = 0;
+			
+			nudge = Easing_InExpo(M_TimeFrac(nudgeLength - nudgeTime, nudgeLength), 8*FRACUNIT, 0);
+			if (renderisnewtic)
+				nudgeTime--;
+		}
+		M_DrawTag(x + nudge, y + 35*FRACUNIT, V_ThinStringWidth((confirmAccept == true) ? acceptText : denyText, V_ALLOWLOWERCASE|V_6WIDTHSPACE), false);
+		V_DrawThinStringAtFixed(x + nudge, y + 35*FRACUNIT, V_ALLOWLOWERCASE|V_6WIDTHSPACE|colormap, (confirmAccept == true) ? acceptText : denyText);
+
+		slide = Easing_InOutBackParameterized(M_TimeFrac(confirmLength - confirmDelay, confirmLength), 0, confirmLength*FRACUNIT, FRACUNIT);
+		
+		if (renderisnewtic)
+			confirmDelay--;
+
+		if (confirmDelay == 0)
+			removeRequest = true;
+	}
+
+	fixed_t blur = 0;
+	if (slide > 0 && confirmAccept == true)
+		blur = (slide / 3) * 16;
+	INT32 slide_sign = (confirmAccept == true) ? 1 : -1;
+
+	M_DrawTag(x + (slide * 32 * slide_sign) - blur, y, V_ThinStringWidth(M_GetDiscordName(curRequest), V_ALLOWLOWERCASE|V_6WIDTHSPACE) + (blur/FRACUNIT), false);
+	V_DrawThinStringAtFixed(x + (slide * 32 * slide_sign), y, V_ALLOWLOWERCASE|V_6WIDTHSPACE|V_YELLOWMAP, M_GetDiscordName(curRequest));
+
+	M_DrawTag(x, y + 10*FRACUNIT, V_ThinStringWidth(wantText, V_ALLOWLOWERCASE|V_6WIDTHSPACE), false);
+	V_DrawThinStringAtFixed(x, y + 10*FRACUNIT, V_ALLOWLOWERCASE|V_6WIDTHSPACE, wantText);
+
+	M_DrawTag(x, y + 24*FRACUNIT, V_ThinStringWidth(controlText, V_ALLOWLOWERCASE|V_6WIDTHSPACE), false);
+	V_DrawThinStringAtFixed(x, y + 24*FRACUNIT, V_ALLOWLOWERCASE|V_6WIDTHSPACE, controlText);
+
+	y -= 18*FRACUNIT;
+
+	while (curRequest->next != NULL)
+	{
+		INT32 ySlide = min(slide * 4, maxYSlide);
+
+		curRequest = curRequest->next;
+
+		M_DrawTag(x, y + ySlide, V_ThinStringWidth(M_GetDiscordName(curRequest), V_ALLOWLOWERCASE|V_6WIDTHSPACE), true);
+		V_DrawThinStringAtFixed(x, y + ySlide, V_ALLOWLOWERCASE|V_6WIDTHSPACE,M_GetDiscordName(curRequest));
+
+		y -= 12*FRACUNIT;
+		maxYSlide = 12 * FRACUNIT;
+	}
+
+	if (removeRequest == true)
+	{
+		DRPC_RemoveRequest(discordRequestList);
+
+		if (discordRequestList == NULL)
+		{
+			// No other requests
+			MPauseMenu[mpause_discordrequests].status = IT_GRAYEDOUT;
+
+			if (currentMenu->prevMenu)
+			{
+				M_SetupNextMenu(currentMenu->prevMenu);
+				if (currentMenu == &MPauseDef)
+					itemOn = mpause_continue;
+			}
+			else
+				M_ClearMenus(true);
+
+			return;
+		}
+	}
+}
+#endif

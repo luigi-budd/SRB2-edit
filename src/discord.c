@@ -43,6 +43,7 @@ static void Discordrp_OnChange(void);
 
 consvar_t cv_discordrp = CVAR_INIT ("discordrp", "On", CV_SAVE|CV_CALL|CV_CLIENT, CV_OnOff, Discordrp_OnChange);
 consvar_t cv_discordstreamer = CVAR_INIT ("discordstreamer", "Off", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
+consvar_t cv_discordasks = CVAR_INIT ("discordasks", "Yes", CV_SAVE|CV_CLIENT, CV_YesNo, NULL);
 
 struct discordInfo_s discordInfo;
 
@@ -190,6 +191,122 @@ static void DRPC_HandleJoin(const char *secret)
 }
 
 /*--------------------------------------------------
+	static boolean DRPC_InvitesAreAllowed(void)
+
+		Determines whenever or not invites or
+		ask to join requests are allowed.
+
+	Input Arguments:-
+		None
+
+	Return:-
+		true if invites are allowed, false otherwise.
+--------------------------------------------------*/
+static boolean DRPC_InvitesAreAllowed(void)
+{
+	if (!Playing())
+	{
+		// We're not playing, so we should not be getting invites.
+		return false;
+	}
+
+	if (cv_discordasks.value == 0)
+	{
+		// Client has the CVar set to off, so never allow invites from this client.
+		return false;
+	}
+
+	/*
+	// Maybe these will be added back in the future..?
+	if (discordInfo.joinsAllowed == true)
+	{
+		if (discordInfo.everyoneCanInvite == true)
+		{
+			// Everyone's allowed!
+			return true;
+		}
+		else if (consoleplayer == serverplayer || IsPlayerAdmin(consoleplayer))
+		{
+			// Only admins are allowed!
+			return true;
+		}
+	}
+	*/
+
+	// Did not pass any of the checks
+	return true;
+}
+
+/*--------------------------------------------------
+	static void DRPC_HandleJoinRequest(const DiscordUser *requestUser)
+
+		Callback function, ran when Discord wants to
+		ask the player if another Discord user can join
+		or not.
+
+	Input Arguments:-
+		requestUser - DiscordUser struct for the user trying to connect.
+
+	Return:-
+		None
+--------------------------------------------------*/
+static void DRPC_HandleJoinRequest(const DiscordUser *requestUser)
+{
+	discordRequest_t *append = discordRequestList;
+	discordRequest_t *newRequest;
+
+	if (DRPC_InvitesAreAllowed() == false)
+	{
+		// Something weird happened if this occurred...
+		Discord_Respond(requestUser->userId, DISCORD_REPLY_IGNORE);
+		return;
+	}
+
+	newRequest = Z_Calloc(sizeof(discordRequest_t), PU_STATIC, NULL);
+
+	newRequest->username = Z_Calloc(344, PU_STATIC, NULL);
+	snprintf(newRequest->username, 344, "%s", requestUser->username);
+
+#if 0
+	newRequest->discriminator = Z_Calloc(8, PU_STATIC, NULL);
+	snprintf(newRequest->discriminator, 8, "%s", requestUser->discriminator);
+#endif
+
+	newRequest->userID = Z_Calloc(32, PU_STATIC, NULL);
+	snprintf(newRequest->userID, 32, "%s", requestUser->userId);
+
+	if (append != NULL)
+	{
+		discordRequest_t *prev = NULL;
+
+		while (append != NULL)
+		{
+			// CHECK FOR DUPES!! Ignore any that already exist from the same user.
+			if (fastcmp(newRequest->userID, append->userID))
+			{
+				Discord_Respond(newRequest->userID, DISCORD_REPLY_IGNORE);
+				DRPC_RemoveRequest(newRequest);
+				return;
+			}
+
+			prev = append;
+			append = append->next;
+		}
+
+		newRequest->prev = prev;
+		prev->next = newRequest;
+	}
+	else
+	{
+		discordRequestList = newRequest;
+		M_RefreshPauseMenu();
+	}
+
+	// Made it to the end, request was valid, so play the request sound :)
+	S_StartSound(NULL, sfx_nxitem);
+}
+
+/*--------------------------------------------------
 	void DRPC_RemoveRequest(discordRequest_t *removeRequest)
 
 		See header file for description.
@@ -243,6 +360,7 @@ void DRPC_Init(void)
 	handlers.disconnected = DRPC_HandleDisconnect;
 	handlers.errored = DRPC_HandleError;
 	handlers.joinGame = DRPC_HandleJoin;
+	handlers.joinRequest = DRPC_HandleJoinRequest;
 
 	Discord_Initialize(DISCORD_APPID, &handlers, 1, NULL);
 	I_AddExitFunc(DRPC_Shutdown);
@@ -393,6 +511,18 @@ void DRPC_UpdatePresence(void)
 		discordPresence.partyId = server_context; // Thanks, whoever gave us Mumble support, for implementing the EXACT thing Discord wanted for this field!
 		discordPresence.partySize = D_NumPlayers(); // Players in server
 		discordPresence.partyMax = cv_maxplayers.value; // Max players
+
+		if (DRPC_InvitesAreAllowed() == true)
+		{
+			const char *join;
+
+			// Grab the host's IP for joining.
+			if ((join = DRPC_GetServerIP()) != NULL)
+			{
+				discordPresence.joinSecret = DRPC_XORIPString(join);
+				joinSecretSet = true;
+			}
+		}
 	}
 	else
 	{

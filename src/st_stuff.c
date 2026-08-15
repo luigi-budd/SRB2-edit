@@ -52,6 +52,11 @@
 #include "lua_hook.h"
 
 #include "r_fps.h"
+#include "m_easing.h"
+
+#ifdef HAVE_DISCORDRPC
+#include "discord.h"
+#endif
 
 UINT16 objectsdrawn = 0;
 
@@ -2891,8 +2896,57 @@ static void ST_overlayDrawer(void)
 	if ((cv_showinput.value && !players[displayplayer].spectator) || (modeattacking && !(demoplayback && hu_showscores)))
 		ST_drawInput();
 
+#ifdef HAVE_DISCORDRPC
+	ST_AskToJoinNotice();
+#endif
+
 	ST_drawDebugInfo();
 }
+
+#ifdef HAVE_DISCORDRPC
+// Ring Racers LOL!
+static fixed_t M_TimeFrac(tic_t tics, tic_t duration)
+{
+	return tics < duration ? (tics * FRACUNIT + rendertimefrac) / duration : FRACUNIT;
+}
+
+#define NOTICE_DUR (TICRATE/2)
+void ST_AskToJoinNotice(void)
+{
+	static tic_t counter = 0;
+
+	if (discordRequestList == NULL)
+	{
+		counter = 0;
+		return;
+	}
+	
+	if (counter < NOTICE_DUR)
+		counter++;
+
+	if (menuactive)
+		return;
+
+	INT32 i = 0;
+	INT32 width = 20;
+	INT32 height = 10;
+	fixed_t x = Easing_OutQuad(M_TimeFrac(counter,NOTICE_DUR), (BASEVIDWIDTH + height)*FRACUNIT, (BASEVIDWIDTH - width)*FRACUNIT);
+	fixed_t y = 4*FRACUNIT;
+	INT32 flags = V_SNAPTORIGHT|V_SNAPTOTOP;
+	INT32 cmap = ((leveltime / (TICRATE/4)) & 2) ? V_YELLOWMAP : 0;
+
+	for (i = height; i > 0; i--)
+	{
+		V_DrawFixedFill(x - i*FRACUNIT, y + (height - i)*FRACUNIT,
+			(width + i)*FRACUNIT, FRACUNIT,
+			159|flags
+		);
+	}
+
+	V_DrawCenteredStringAtFixed(x + (width/2)*FRACUNIT, y + FRACUNIT, flags|cmap, "!");
+}
+#undef NOTICE_DUR
+#endif
 
 void ST_Drawer(void)
 {

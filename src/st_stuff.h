@@ -28,7 +28,12 @@ void ST_Ticker(boolean run);
 
 // Called by main loop.
 void ST_Drawer(void);
-void ST_ReallyCoolAndUsefulGIFDrawer(void);
+void ST_ReallyCoolAndUsefulGIFDrawer(void); // TODO: Rename this
+
+#ifdef HAVE_DISCORDRPC
+// Called when you have Discord asks
+void ST_AskToJoinNotice(void);
+#endif
 
 // Called when the console player is spawned on each level.
 void ST_Start(void);

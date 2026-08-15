@@ -53,6 +53,7 @@
 #include "../m_perfstats.h"
 #include "../u_list.h"
 #include "../lua_custombuild.h"
+#include "../stun.h"
 
 #ifdef NETGAME_DEVMODE
 #define CV_RESTRICT CV_NETVAR
@@ -662,6 +663,8 @@ void D_RegisterServerCommands(void)
 
 	CV_RegisterVar(&cv_allowseenames);
 
+	CV_RegisterVar(&cv_stunserver);
+
 	// Other filesrch.c consvars are defined in D_RegisterClientCommands
 	CV_RegisterVar(&cv_addons_option);
 	CV_RegisterVar(&cv_addons_folder);
@@ -1014,6 +1017,7 @@ void D_RegisterClientCommands(void)
 #ifdef HAVE_DISCORDRPC
 	CV_RegisterVar(&cv_discordrp);
 	CV_RegisterVar(&cv_discordstreamer);
+	CV_RegisterVar(&cv_discordasks);
 #endif
 }
 

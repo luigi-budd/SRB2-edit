@@ -19,6 +19,7 @@
 
 extern consvar_t cv_discordrp;
 extern consvar_t cv_discordstreamer;
+extern consvar_t cv_discordasks;
 
 extern struct discordInfo_s {
 	UINT8 maxPlayers;

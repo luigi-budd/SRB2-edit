@@ -4920,6 +4920,7 @@ const char *const MENUTYPES_LIST[] = {
 	"MP_ROOM",
 	"MP_PLAYERSETUP",
 	"MP_SERVER_OPTIONS",
+	"MP_DISCORDREQUESTS"
 
 	// Options
 	"OP_MAIN",

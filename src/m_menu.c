@@ -7132,12 +7132,12 @@ void M_RefreshPauseMenu(void)
 	if (discordRequestList != NULL)
 	{
 		MPauseMenu[mpause_discordrequests].status = IT_STRING | IT_SUBMENU;
-		MPauseMenu[mpause_discordrequests].text = "Discord requests...";
+		MPauseMenu[mpause_discordrequests].text = "\x83" "Discord requests...";
 	}
 	else
 	{
 		MPauseMenu[mpause_discordrequests].status = IT_GRAYEDOUT;
-		MPauseMenu[mpause_discordrequests].text = "\x83" "Discord requests...";
+		MPauseMenu[mpause_discordrequests].text = "Discord requests... ";
 	}
 #endif
 }

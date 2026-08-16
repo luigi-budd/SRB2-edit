@@ -576,7 +576,7 @@ static menuitem_t MPauseMenu[] =
 	{IT_STRING | IT_CALL,    NULL, "Switch Gametype/Level...",  M_MapChange,           32},
 
 #ifdef HAVE_DISCORDRPC
-	{IT_STRING | IT_SUBMENU,  NULL, "Discord Requests... ",     &MISC_DiscordRequestsDef, 40},
+	{IT_STRING | IT_SUBMENU,  NULL, "\x80" "Discord Requests...",     &MISC_DiscordRequestsDef, 40},
 #endif
 
 	{IT_STRING | IT_CALL,    NULL, "Continue",                  M_SelectableClearMenus,48},
@@ -7137,7 +7137,7 @@ void M_RefreshPauseMenu(void)
 	else
 	{
 		MPauseMenu[mpause_discordrequests].status = IT_GRAYEDOUT;
-		MPauseMenu[mpause_discordrequests].text = "Discord requests... ";
+		MPauseMenu[mpause_discordrequests].text = "\x80" "Discord requests...";
 	}
 #endif
 }

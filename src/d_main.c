@@ -1178,9 +1178,20 @@ static void IdentifyVersion(addfilelist_t *startupwadfiles)
 
 	// Load the IWAD
 	if (srb2wad != NULL && FIL_ReadFileOK(srb2wad))
+	{
 		D_AddFile(startupwadfiles, srb2wad);
+		I_SaveCurrentWadDirectory();
+	}
 	else
-		I_Error("srb2.pk3 not found! Expected in %s, ss file: %s\n", srb2waddir, srb2wad);
+	{
+		if (!(I_UseSavedWadDirectory() && FIL_ReadFileOK(srb2path)))
+			I_Error("srb2.pk3 not found! Expected in %s, ss file: %s\n", srb2waddir, srb2wad);
+		else
+		{
+			D_AddFile(startupwadfiles, srb2wad);
+			srb2waddir = srb2path;
+		}
+	}
 
 	if (srb2wad)
 		free(srb2wad);

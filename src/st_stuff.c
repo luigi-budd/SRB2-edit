@@ -2920,7 +2920,7 @@ void ST_AskToJoinNotice(void)
 		counter = 0;
 		return;
 	}
-	
+
 	if (counter < NOTICE_DUR)
 		counter++;
 
@@ -2928,7 +2928,7 @@ void ST_AskToJoinNotice(void)
 		return;
 
 	INT32 i = 0;
-	INT32 width = 20;
+	INT32 width = 26;
 	INT32 height = 10;
 	fixed_t x = Easing_OutQuad(M_TimeFrac(counter,NOTICE_DUR), (BASEVIDWIDTH + height)*FRACUNIT, (BASEVIDWIDTH - width)*FRACUNIT);
 	fixed_t y = 4*FRACUNIT;
@@ -2943,7 +2943,9 @@ void ST_AskToJoinNotice(void)
 		);
 	}
 
-	V_DrawCenteredStringAtFixed(x + (width/2)*FRACUNIT, y + FRACUNIT, flags|cmap, "!");
+	V_DrawCenteredStringAtFixed(x + (width/2)*FRACUNIT, y + FRACUNIT, flags|cmap,
+		((leveltime / (TICRATE)) & 2) ? "ESC" : "!"
+	);
 }
 #undef NOTICE_DUR
 #endif

@@ -28,6 +28,7 @@
 #ifdef _WIN32
 #define RPC_NO_WINDOWS_H
 #include <windows.h>
+#include <shlobj.h>
 #include "../doomtype.h"
 typedef BOOL (WINAPI *p_GetDiskFreeSpaceExA)(LPCSTR, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER);
 typedef BOOL (WINAPI *p_IsProcessorFeaturePresent) (DWORD);
@@ -3057,10 +3058,17 @@ static const char *locateWad(void)
 	const char *WadPath;
 	int i;
 
-	I_OutputMsg("SRB2WADDIR");
 	// does SRB2WADDIR exist?
+	I_OutputMsg("$SRB2WADDIR: ");
 	if (((envstr = I_GetEnv("SRB2WADDIR")) != NULL) && isWadPathOk(envstr))
+	{
+		I_OutputMsg("%s", envstr);
 		return envstr;
+	}
+	else
+	{
+		I_OutputMsg("(not defined)");
+	}
 
 #ifndef NOCWD
 	// examine current dir
@@ -3084,7 +3092,7 @@ static const char *locateWad(void)
 
 #ifndef NOHOME
 	// find in $HOME
-	I_OutputMsg(",HOME/" DEFAULTDIR);
+	I_OutputMsg(",$HOME/" DEFAULTDIR);
 	if ((envstr = I_GetEnv("HOME")) != NULL)
 	{
 		char *tmp = malloc(strlen(envstr) + 1 + sizeof(DEFAULTDIR));
@@ -3107,6 +3115,65 @@ static const char *locateWad(void)
 	return NULL;
 }
 
+#ifdef _WIN32
+static FILE * openAppDataFile(const char *filename, const char *mode)
+{
+	FILE * file = NULL;
+	char   kdir[MAX_PATH];
+
+	if (SHGetFolderPathAndSubDirA(NULL, CSIDL_LOCAL_APPDATA|CSIDL_FLAG_CREATE,
+				NULL, 0, "SRB2edit", kdir) == S_OK)
+	{
+		strcat(kdir, "\\");
+		strcat(kdir, filename);
+		file = fopen(kdir, mode);
+	}
+
+	return file;
+}
+#endif
+
+void I_SaveCurrentWadDirectory(void)
+{
+#ifdef _WIN32
+	char   path[MAX_PATH];
+	FILE * file = openAppDataFile("lastwaddir", "w");
+	if (file != NULL)
+	{
+		if (strcmp(srb2path, ".") == 0)
+		{
+			GetCurrentDirectoryA(sizeof path, path);
+			fputs(path, file);
+		}
+		else
+		{
+			fputs(srb2path, file);
+		}
+		fclose(file);
+	}
+#endif
+}
+
+boolean I_UseSavedWadDirectory(void)
+{
+	boolean ok = false;
+#ifdef _WIN32
+	FILE * file = openAppDataFile("lastwaddir", "r");
+	if (file != NULL)
+	{
+		if (fgets(srb2path, sizeof srb2path, file) != NULL)
+		{
+			I_OutputMsg(
+					"Going to the last known directory with srb2.pk3: %s\n",
+					srb2path);
+			ok = SetCurrentDirectoryA(srb2path);
+		}
+		fclose(file);
+	}
+#endif
+	return ok;
+}
+
 const char *I_LocateWad(void)
 {
 	const char *waddir;
@@ -3117,10 +3184,12 @@ const char *I_LocateWad(void)
 
 	if (waddir)
 	{
-		// change to the directory where we found bios.pk3
+		// change to the directory where we found srb2.pk3
 #if defined (_WIN32)
+		waddir = _fullpath(NULL, waddir, MAX_PATH);
 		SetCurrentDirectoryA(waddir);
 #else
+		waddir = realpath(waddir, NULL);
 		if (chdir(waddir) == -1)
 			I_OutputMsg("Couldn't change working directory\n");
 #endif

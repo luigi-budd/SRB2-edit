@@ -576,7 +576,7 @@ static menuitem_t MPauseMenu[] =
 	{IT_STRING | IT_CALL,    NULL, "Switch Gametype/Level...",  M_MapChange,           32},
 
 #ifdef HAVE_DISCORDRPC
-	{IT_STRING | IT_SUBMENU,  NULL, "Discord Requests...",      &MISC_DiscordRequestsDef, 40},
+	{IT_STRING | IT_SUBMENU,  NULL, "Discord Requests... ",     &MISC_DiscordRequestsDef, 40},
 #endif
 
 	{IT_STRING | IT_CALL,    NULL, "Continue",                  M_SelectableClearMenus,48},
@@ -7132,10 +7132,12 @@ void M_RefreshPauseMenu(void)
 	if (discordRequestList != NULL)
 	{
 		MPauseMenu[mpause_discordrequests].status = IT_STRING | IT_SUBMENU;
+		MPauseMenu[mpause_discordrequests].text = "Discord requests...";
 	}
 	else
 	{
 		MPauseMenu[mpause_discordrequests].status = IT_GRAYEDOUT;
+		MPauseMenu[mpause_discordrequests].text = "\x83" "Discord requests...";
 	}
 #endif
 }
@@ -14634,7 +14636,7 @@ static void M_HandleDiscordRequests(INT32 choice)
 	switch (choice)
 	{
 		case KEY_ENTER:
-			// Discord_Respond(discordRequestList->userID, DISCORD_REPLY_YES);
+			Discord_Respond(discordRequestList->userID, DISCORD_REPLY_YES);
 			confirmAccept = true;
 			confirmDelay = confirmLength;
 			nudgeTime = nudgeLength;
@@ -14642,7 +14644,7 @@ static void M_HandleDiscordRequests(INT32 choice)
 			break;
 
 		case KEY_ESCAPE:
-			// Discord_Respond(discordRequestList->userID, DISCORD_REPLY_NO);
+			Discord_Respond(discordRequestList->userID, DISCORD_REPLY_NO);
 			confirmAccept = false;
 			confirmDelay = confirmLength;
 			nudgeTime = nudgeLength;

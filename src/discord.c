@@ -304,6 +304,7 @@ static void DRPC_HandleJoinRequest(const DiscordUser *requestUser)
 
 	// Made it to the end, request was valid, so play the request sound :)
 	S_StartSound(NULL, sfx_nxitem);
+	S_StartSound(NULL, sfx_hoop3);
 }
 
 /*--------------------------------------------------

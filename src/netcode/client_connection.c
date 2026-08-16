@@ -99,11 +99,11 @@ static void DrawFileProgress(fileneeded_t *file, int y)
 {
 	Net_GetNetStat();
 
-	INT32 dldlength = (INT32)((file->currentsize/(double)file->totalsize) * 256);
-	if (dldlength > 256)
-		dldlength = 256;
+	fixed_t dldlength = 256 * DoubleToFixed((file->currentsize/(double)file->totalsize));
+	if (dldlength > 256 * FRACUNIT)
+		dldlength = 256 * FRACUNIT;
 	V_DrawFill(BASEVIDWIDTH/2-128, y, 256, 8, 111);
-	V_DrawFill(BASEVIDWIDTH/2-128, y, dldlength, 8, 96);
+	V_DrawFixedFill((BASEVIDWIDTH/2-128)*FRACUNIT, y*FRACUNIT, dldlength, 8*FRACUNIT, 96);
 
 	const char *progress_str;
 	if (file->totalsize >= 1024*1024)
@@ -127,11 +127,11 @@ static void DrawOverallProgress(int y)
 	if (fileneeded[filedownload.current].currentsize != fileneeded[filedownload.current].totalsize)
 		downloaded = filedownload.completedsize + fileneeded[filedownload.current].currentsize;
 
-	INT32 dldlength = (INT32)((downloaded/(double)totalsize) * 256);
-	if (dldlength > 256)
-		dldlength = 256;
+	fixed_t dldlength = 256 * DoubleToFixed((downloaded/(double)totalsize));
+	if (dldlength > 256 * FRACUNIT)
+		dldlength = 256 * FRACUNIT;
 	V_DrawFill(BASEVIDWIDTH/2-128, y, 256, 8, 111);
-	V_DrawFill(BASEVIDWIDTH/2-128, y, dldlength, 8, 96);
+	V_DrawFixedFill((BASEVIDWIDTH/2-128)*FRACUNIT, y*FRACUNIT, dldlength, 8*FRACUNIT, 96);
 
 	const char *progress_str;
 	if (totalsize >= 1024*1024)
@@ -593,7 +593,7 @@ static void CL_DrawConnectionStatus(void)
 		}
 		else if ((cl_mode == CL_CHECKFILES) || (cl_mode == CL_ASKFULLFILELIST))
 		{
-			INT32 totalfileslength;
+			fixed_t totalfileslength;
 			INT32 checkcompletednum = 0;
 			INT32 i;
 
@@ -609,10 +609,12 @@ static void CL_DrawConnectionStatus(void)
 
 			// Check progress
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, V_YELLOWMAP|V_ALLOWLOWERCASE, "Checking server addon list...");
-			totalfileslength = (INT32)((checkcompletednum/(double)(fileneedednum)) * 256);
 			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-16-8, 32, 1);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-16, 256, 8, 111);
-			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-16, totalfileslength, 8, 96);
+			totalfileslength = 256 * DoubleToFixed(checkcompletednum/(double)(fileneedednum));
+			if (totalfileslength > 256 * FRACUNIT)
+				totalfileslength = 256 * FRACUNIT;
+			V_DrawFixedFill((BASEVIDWIDTH/2-128)*FRACUNIT, (BASEVIDHEIGHT-16)*FRACUNIT, totalfileslength, 8*FRACUNIT, 96);
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16, V_20TRANS|V_MONOSPACE|V_ALLOWLOWERCASE,
 				va(" %2u/%2u files",checkcompletednum,fileneedednum));
         }

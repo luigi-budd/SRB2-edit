@@ -25,6 +25,6 @@ void PT_AskInfo(SINT8 node);
 extern tic_t jointimeout;
 extern tic_t joindelay;
 extern char playeraddress[MAXPLAYERS][64];
-extern consvar_t cv_showjoinaddress, cv_allownewplayer, cv_maxplayers, cv_joindelay, cv_rejointimeout, cv_stunserver;
+extern consvar_t cv_showjoinaddress, cv_allownewplayer, cv_maxplayers, cv_joindelay, cv_rejointimeout;
 
 #endif

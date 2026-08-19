@@ -28,7 +28,8 @@ void ST_Ticker(boolean run);
 
 // Called by main loop.
 void ST_Drawer(void);
-void ST_ReallyCoolAndUsefulGIFDrawer(void); // TODO: Rename this
+
+void ST_MovieModeInfo(void);
 
 #ifdef HAVE_DISCORDRPC
 // Called when you have Discord asks

@@ -3041,8 +3041,8 @@ void ST_Drawer(void)
 
 }
 
-// TODO: This is really messy, maybe clean it up later?
-void ST_ReallyCoolAndUsefulGIFDrawer(void)
+#define KMB (1024.f * 1024.f)
+void ST_MovieModeInfo(void)
 {
 	if (!moviemode)
 		return;
@@ -3050,52 +3050,51 @@ void ST_ReallyCoolAndUsefulGIFDrawer(void)
 	if (!cv_moviemodeinfo.value)
 		return;
 
-	boolean smallmode = (cv_moviemodeinfo.value == 2);
 	//the number of frames we wrote should be equivilant to the number of tics we recorded
 	INT32 gif_frames = M_RecordedFrames();
 	boolean gif_paused = GIF_RecordingPaused();
+	boolean smallmode = (cv_moviemodeinfo.value == 2);
 
-    const float kMb = 1024.f * 1024.f;
 	unsigned long int orig_gif_size = M_SavedSize();
-	float gif_size = (float)orig_gif_size;
-	gif_size /= kMb;
+	float gif_size = (float)orig_gif_size / KMB;
+
+	boolean withincap = false;
+	if (cv_gif_maxsize.value != 0)
+		withincap = (orig_gif_size >= (unsigned)(max(cv_gif_maxsize.value - 2, 0) * KMB));
 
 	// lots ternary here...
-	INT32 cmap = gif_paused ? V_YELLOWMAP : (((2*gif_frames)/TICRATE) & 1) ? V_REDMAP : 0;
+	INT32 tagcmap = gif_paused ? V_YELLOWMAP : (((2*gif_frames)/TICRATE) & 1) ? V_REDMAP : 0;
 	INT32 mheight = BASEVIDHEIGHT - (smallmode ? 4 : 8);
+
+	const char *giftag = gif_paused ? "II" : (moviemode == MM_APNG ? "APNG" : "GIF");
+	const char *gifinfo = va(
+		// some ugly ternary that turns the string yellow when nearing max size
+		"\x86%d.%02ds | %s %.2f mb\x86",
+		
+		G_TicsToSeconds(gif_frames),
+		G_TicsToCentiseconds(gif_frames),
+		withincap ? "\x82" : "",
+		gif_size
+	);
+
+	// gif tag
 	if (smallmode)
 		V_DrawSmallThinString(0, mheight,
-			cmap|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM,
-	        gif_paused ? "II" : (moviemode == MM_APNG ? "APNG" : "GIF")
+			tagcmap|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM, giftag
 		);
 	else
 		V_DrawThinString(0, mheight,
-			cmap|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM,
-	        gif_paused ? "II" : (moviemode == MM_APNG ? "APNG" : "GIF")
+			tagcmap|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM, giftag
 		);
 
-	boolean withincap = (cv_gif_maxsize.value != 0 ? (orig_gif_size >= (unsigned)(max(cv_gif_maxsize.value - 2, 0) * kMb)) : false);
+	// the actual info
 	if (smallmode)
 		V_DrawSmallThinString((gif_paused ? 6 : (moviemode == MM_APNG ? 11 : 9)), mheight,
-			V_ALLOWLOWERCASE|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM,
-			va(
-				// some ugly ternary that turns the string yellow when nearing max size
-				(withincap ? "\x86%d.%02ds | \x82 %.2f mb\x86" : "\x86%d.%02ds | %.2f mb"),
-				
-				G_TicsToSeconds(gif_frames),
-				G_TicsToCentiseconds(gif_frames),
-				gif_size
-			)
+			V_ALLOWLOWERCASE|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM, gifinfo
 		);
 	else
 		V_DrawThinString((gif_paused ? 12 : (moviemode == MM_APNG ? 22 : 17)), mheight,
-			V_ALLOWLOWERCASE|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM,
-			va(
-				(withincap ? "\x86%d.%02ds | \x82 %.2f mb\x86" : "\x86%d.%02ds | %.2f mb"),
-				
-				G_TicsToSeconds(gif_frames),
-				G_TicsToCentiseconds(gif_frames),
-				gif_size
-			)
+			V_ALLOWLOWERCASE|V_USERHUDTRANS|V_SNAPTOLEFT|V_SNAPTOBOTTOM, gifinfo
 		);
 }
+#undef KMB

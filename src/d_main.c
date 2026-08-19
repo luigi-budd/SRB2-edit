@@ -611,7 +611,7 @@ static void D_Display(void)
 	// focus lost moved to M_Drawer
 
 	CON_Drawer();
-	ST_ReallyCoolAndUsefulGIFDrawer();
+	ST_MovieModeInfo();
 
 	PS_STOP_TIMING(ps_uitime);
 

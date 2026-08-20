@@ -88,6 +88,28 @@ consvar_t cv_constextsize = CVAR_INIT ("con_textsize", "Medium", CV_SAVE|CV_CALL
 
 consvar_t cv_menucaps = CVAR_INIT ("menucaps", "ON", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 
+static CV_PossibleValue_t menuhighlight_cons_t[] = {
+	{V_MAGENTAMAP,	"Magenta"},
+	{V_YELLOWMAP,	"Yellow"},
+	{V_GREENMAP,	"Green"},
+	{V_BLUEMAP,		"Blue"},
+	{V_REDMAP,		"Red"},
+	{V_GRAYMAP,		"Gray"},
+	{V_ORANGEMAP,	"Orange"},
+	{V_SKYMAP,		"Sky"},
+	{V_PURPLEMAP,	"Purple"},
+	{V_AQUAMAP,		"Aqua"},
+	{V_PERIDOTMAP,	"Peridot"},
+	{V_AZUREMAP,	"Azure"},
+	{V_BROWNMAP,	"Brown"},
+	{V_ROSYMAP,		"Rosy"},
+	{V_INVERTMAP,	"Inverted"},
+	{0, NULL},
+};
+consvar_t cv_menuhighlight = CVAR_INIT ("menuhighlight", "Yellow", CV_SAVE|CV_CLIENT, menuhighlight_cons_t, NULL);
+
+consvar_t cv_menucolor = CVAR_INIT ("menucolor", "Blue", CV_SAVE|CV_CLIENT, menuhighlight_cons_t, NULL);
+
 // local copy of the palette for V_GetColor()
 RGBA_t *pLocalPalette = NULL;
 RGBA_t *pMasterPalette = NULL;
@@ -2169,6 +2191,45 @@ UINT8 *V_GetStringColormap(INT32 colorflags)
 		return invertmap;
 	default: // reset
 		return NULL;
+	}
+}
+
+const char *V_GetStringColorCode(INT32 colorflags)
+{
+	switch ((colorflags & V_CHARCOLORMASK) >> V_CHARCOLORSHIFT)
+	{
+	case  1: // 0x81, magenta
+		return "\x81";
+	case  2: // 0x82, yellow
+		return "\x82";
+	case  3: // 0x83, lgreen
+		return "\x83";
+	case  4: // 0x84, blue
+		return "\x84";
+	case  5: // 0x85, red
+		return "\x85";
+	case  6: // 0x86, gray
+		return "\x86";
+	case  7: // 0x87, orange
+		return "\x87";
+	case  8: // 0x88, sky
+		return "\x88";
+	case  9: // 0x89, purple
+		return "\x89";
+	case 10: // 0x8A, aqua
+		return "\x8A";
+	case 11: // 0x8B, peridot
+		return "\x8B";
+	case 12: // 0x8C, azure
+		return "\x8C";
+	case 13: // 0x8D, brown
+		return "\x8D";
+	case 14: // 0x8E, rosy
+		return "\x8E";
+	case 15: // 0x8F, invert
+		return "\x8F";
+	default: // reset
+		return "";
 	}
 }
 

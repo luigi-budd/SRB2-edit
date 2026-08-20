@@ -92,7 +92,7 @@ static void DrawConnectionStatusBox(void)
 	if (cl_mode == CL_CONFIRMCONNECT || IsDownloadingFile())
 		return;
 
-	V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-16, V_YELLOWMAP|V_ALLOWLOWERCASE, "Press ESC to abort");
+	V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-16, MENUHIGHLIGHT|V_ALLOWLOWERCASE, "Press ESC to abort");
 }
 
 static void DrawFileProgress(fileneeded_t *file, int y)
@@ -187,7 +187,7 @@ static void GamepadGlyphs(INT32 x, INT32 y, INT32 offset)
 		V_DrawFill(
 			x + xoffset*order[i][0] - 1,
 			y + yoffset*order[i][1],
-			2,2, (i == offset) ? 73 : 20
+			2,2, (i == offset) ? M_GetMenuColor(MENUHIGHLIGHT, 3) : 23
 		);
 	}
 }
@@ -265,7 +265,7 @@ static void CL_DrawConnectionStatus(void)
 				cltext = M_GetText("Connecting to server...");
 				break;
 		}
-		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, V_YELLOWMAP|V_ALLOWLOWERCASE, cltext);
+		V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, MENUHIGHLIGHT|V_ALLOWLOWERCASE, cltext);
 	}
 	else
 	{
@@ -274,7 +274,7 @@ static void CL_DrawConnectionStatus(void)
 			INT32 totalfileslength;
 			INT32 loadcompletednum = 0;
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-16, V_YELLOWMAP|V_ALLOWLOWERCASE, "Press ESC to abort");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-16, MENUHIGHLIGHT|V_ALLOWLOWERCASE, "Press ESC to abort");
 
 			// ima just count files here
 			if (fileneeded)
@@ -285,7 +285,7 @@ static void CL_DrawConnectionStatus(void)
 			}
 
 			// Loading progress
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, V_YELLOWMAP|V_ALLOWLOWERCASE, "Loading server addons...");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, MENUHIGHLIGHT|V_ALLOWLOWERCASE, "Loading server addons...");
 			totalfileslength = (INT32)((loadcompletednum/(double)(fileneedednum)) * 256);
 			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-16-8, 32, 1);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-16, 256, 8, 111);
@@ -298,7 +298,7 @@ static void CL_DrawConnectionStatus(void)
 			cl_vs_ticanim++;
 
 			const INT32 ypos = 6;
-			V_DrawFill(8, ypos, BASEVIDWIDTH - 16, 54, 159);
+			V_DrawFill(8, ypos, BASEVIDWIDTH - 16, 54, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));
 			
 			V_DrawThinString(12 + 80, ypos+2, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.servername));
 			
@@ -344,12 +344,12 @@ static void CL_DrawConnectionStatus(void)
 				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+32, V_ALLOWLOWERCASE|V_GREENMAP, "Cheats");
 			}
 			
-			V_DrawFill(8, ypos+56, BASEVIDWIDTH - (ypos + 10), 112, 159);
+			V_DrawFill(8, ypos+56, BASEVIDWIDTH - (ypos + 10), 112, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));
 			
-			if (!cl_vs_showaddons)
+			if (!cl_vs_showaddons) // Players
 			{
-				V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|V_YELLOWMAP, "Players");
-				V_DrawRightAlignedString(BASEVIDWIDTH - 12, ypos+58, V_ALLOWLOWERCASE|V_YELLOWMAP, va("%i / %i", serverlist[joinnode].info.numberofplayer, serverlist[joinnode].info.maxplayer));
+				V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|MENUHIGHLIGHT, "Players");
+				V_DrawRightAlignedString(BASEVIDWIDTH - 12, ypos+58, V_ALLOWLOWERCASE|MENUHIGHLIGHT, va("%i / %i", serverlist[joinnode].info.numberofplayer, serverlist[joinnode].info.maxplayer));
 				
 				INT32 i;
 				INT32 count = 0;
@@ -365,11 +365,11 @@ static void CL_DrawConnectionStatus(void)
 					{
 						INT32 color = -1;
 						if (i >= serverlist[joinnode].info.maxplayer)
-							color = 29;
+							color = 30;
 						else if (i < numplayers && i & 1)
-							color = 156;
+							color = M_GetMenuBGColor(MENUBACKCOLOR, MC_CHECKER);
 						else if (i >= numplayers)
-							color = (i & 1) ? 254 : 253;
+							color = M_GetMenuBGColor(MENUBACKCOLOR, (i & 1) ? MC_DARKCHECKER2 : MC_DARKCHECKER1);
 
 						if (color != -1)
 							V_DrawFill(x,y-1, 98, 9, color);
@@ -430,7 +430,7 @@ static void CL_DrawConnectionStatus(void)
 			}
 			else
 			{
-				V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|V_YELLOWMAP, "Addons");
+				V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|MENUHIGHLIGHT, "Addons");
 
 #define charsonside (21)
 #define maxcharlen ((charsonside*2) + 3) // 3 for the 3 dots
@@ -444,18 +444,18 @@ static void CL_DrawConnectionStatus(void)
 					if (i & 1)
 						V_DrawFill(x,y-1,
 							288, 9,
-							156
+							M_GetMenuBGColor(MENUBACKCOLOR, MC_CHECKER)
 						);
 					
 					fileneeded_t addon_file = fileneeded[i];
 					strncpy(file_name, addon_file.filename, MAX_WADPATH);
 					if ((UINT8)(strlen(file_name)+1) > maxcharlen)
 						V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE,
-							va("\x82[%.2d]\x80 %.*s...%s", i+1, charsonside, file_name, file_name+strlen(file_name)-((charsonside+1)))
+							va("%s[%.2d]\x80 %.*s...%s", V_GetStringColorCode(MENUHIGHLIGHT), i+1, charsonside, file_name, file_name+strlen(file_name)-((charsonside+1)))
 						);
 					else
 						V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE,
-							va("\x82[%.2d]\x80 %s", i+1, file_name)
+							va("%s[%.2d]\x80 %s", V_GetStringColorCode(MENUHIGHLIGHT), i+1, file_name)
 						);
 
 					{
@@ -475,7 +475,7 @@ static void CL_DrawConnectionStatus(void)
 						}
 
 						V_DrawRightAlignedThinString(x + 288,
-							y, V_YELLOWMAP|V_ALLOWLOWERCASE,
+							y, MENUHIGHLIGHT|V_ALLOWLOWERCASE,
 							// "~" since its approx this size, we mightve lost some
 							// accuracy from only having 4 bytes carry the size
 							// though, maybe its best we remove it since it does look a little off
@@ -515,7 +515,7 @@ static void CL_DrawConnectionStatus(void)
 				}
 				
 				V_DrawRightAlignedThinString(BASEVIDWIDTH - 18, ypos + 59,
-					V_ALLOWLOWERCASE|V_YELLOWMAP,
+					V_ALLOWLOWERCASE|MENUHIGHLIGHT,
 					va("%.1f%s total", (float)totalsize, size_mode == 0 ? "b" : (size_mode == 2 ? "kb" : "mb"))
 				);
 
@@ -526,13 +526,13 @@ static void CL_DrawConnectionStatus(void)
 					// up arrow
 					if (cl_vs_sa_scroll)
 						V_DrawRightAlignedThinString(BASEVIDWIDTH - 10,
-							(ypos+58) - (cl_vs_sa_animcount/5), V_YELLOWMAP,
+							(ypos+58) - (cl_vs_sa_animcount/5), MENUHIGHLIGHT,
 							"\x1A"
 						);
 					
 					if (cl_vs_sa_scroll != fileneedednum - ADDONSCROLLCAP)
 						V_DrawRightAlignedThinString(BASEVIDWIDTH - 10,
-							y-9 + (cl_vs_sa_animcount/5), V_YELLOWMAP,
+							y-9 + (cl_vs_sa_animcount/5), MENUHIGHLIGHT,
 							"\x1B"
 						);
 				}
@@ -541,25 +541,25 @@ static void CL_DrawConnectionStatus(void)
 #undef charsonside
 
 			// Buttons
-			V_DrawFill(8, BASEVIDHEIGHT - (ypos+18), BASEVIDWIDTH - 16, 13, 159);
+			V_DrawFill(8, BASEVIDHEIGHT - (ypos+18), BASEVIDWIDTH - 16, 13, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));
 
 			if ((cl_vs_ticanim / (3*TICRATE/2)) & 1)
 			{
 				V_DrawThinString(
 					16, BASEVIDHEIGHT - (ypos+15),
-					V_ALLOWLOWERCASE, "[""\x82""ESC""\x80""] = Back"
+					V_ALLOWLOWERCASE, va("[%sESC\x80] = Back", V_GetStringColorCode(MENUHIGHLIGHT))
 				);
 				if (fileneedednum > 0)
 				{
 					V_DrawCenteredThinString(
 						BASEVIDWIDTH/2, BASEVIDHEIGHT - (ypos+15),
 						V_ALLOWLOWERCASE,
-						va("[""\x82""SPACE""\x80""] = %s", (cl_vs_showaddons ? "Players" : "Addons"))
+						va("[%sSPACE\x80] = %s", V_GetStringColorCode(MENUHIGHLIGHT), (cl_vs_showaddons ? "Players" : "Addons"))
 					);
 				}
 				V_DrawRightAlignedThinString(
 					BASEVIDWIDTH - 12, BASEVIDHEIGHT - (ypos+15),
-					V_ALLOWLOWERCASE, "[""\x82""ENTER""\x80""] = Join"
+					V_ALLOWLOWERCASE, va("[%sENTER\x80] = Join", V_GetStringColorCode(MENUHIGHLIGHT))
 				);
 			}
 			else // Alternate to gamepad face buttons
@@ -597,7 +597,7 @@ static void CL_DrawConnectionStatus(void)
 			INT32 checkcompletednum = 0;
 			INT32 i;
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-16, V_YELLOWMAP|V_ALLOWLOWERCASE, "Press ESC to abort");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-16, MENUHIGHLIGHT|V_ALLOWLOWERCASE, "Press ESC to abort");
 
 			//ima just count files here
 			if (fileneeded)
@@ -608,7 +608,7 @@ static void CL_DrawConnectionStatus(void)
 			}
 
 			// Check progress
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, V_YELLOWMAP|V_ALLOWLOWERCASE, "Checking server addon list...");
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, MENUHIGHLIGHT|V_ALLOWLOWERCASE, "Checking server addon list...");
 			M_DrawTextBox(BASEVIDWIDTH/2-128-8, BASEVIDHEIGHT-16-8, 32, 1);
 			V_DrawFill(BASEVIDWIDTH/2-128, BASEVIDHEIGHT-16, 256, 8, 111);
 			totalfileslength = 256 * DoubleToFixed(checkcompletednum/(double)(fileneedednum));
@@ -663,7 +663,7 @@ static void CL_DrawConnectionStatus(void)
 			const char *download_str = M_GetText("Downloading \"%s\"");
 #endif
 
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-46-24, V_ALLOWLOWERCASE|V_YELLOWMAP,
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-46-24, V_ALLOWLOWERCASE|MENUHIGHLIGHT,
 				va(download_str, tempname));
 
 			// Rusty: actually lets do this instead
@@ -683,17 +683,17 @@ static void CL_DrawConnectionStatus(void)
 					strlcpy(tempname, http_source, sizeof(tempname));
 				}
 
-				V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-46-16, V_ALLOWLOWERCASE|V_YELLOWMAP,
+				V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-46-16, V_ALLOWLOWERCASE|MENUHIGHLIGHT,
 					va(M_GetText("from %s"), tempname));
 			}
 			else
 			{
-				V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-46-16, V_ALLOWLOWERCASE|V_YELLOWMAP,
+				V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-46-16, V_ALLOWLOWERCASE|MENUHIGHLIGHT,
 					M_GetText("from the server"));
 			}
             DrawFileProgress(file, BASEVIDHEIGHT-46);
 
-            V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-14, V_ALLOWLOWERCASE|V_YELLOWMAP, "Total Progress");
+            V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-14, V_ALLOWLOWERCASE|MENUHIGHLIGHT, "Total Progress");
 			DrawOverallProgress(BASEVIDHEIGHT-16);
         }
 		else
@@ -702,7 +702,7 @@ static void CL_DrawConnectionStatus(void)
 				Snake_Draw(snake);
 
 			DrawConnectionStatusBox();
-			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, V_YELLOWMAP,
+			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-24, MENUHIGHLIGHT,
 				M_GetText("Waiting to download files..."));
 		}
 	}

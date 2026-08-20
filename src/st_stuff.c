@@ -2933,13 +2933,13 @@ void ST_AskToJoinNotice(void)
 	fixed_t x = Easing_OutQuad(M_TimeFrac(counter,NOTICE_DUR), (BASEVIDWIDTH + height)*FRACUNIT, (BASEVIDWIDTH - width)*FRACUNIT);
 	fixed_t y = 4*FRACUNIT;
 	INT32 flags = V_SNAPTORIGHT|V_SNAPTOTOP;
-	INT32 cmap = ((leveltime / (TICRATE/4)) & 2) ? V_YELLOWMAP : 0;
+	INT32 cmap = ((leveltime / (TICRATE/4)) & 2) ? MENUHIGHLIGHT : 0;
 
 	for (i = height; i > 0; i--)
 	{
 		V_DrawFixedFill(x - i*FRACUNIT, y + (height - i)*FRACUNIT,
 			(width + i)*FRACUNIT, FRACUNIT,
-			159|flags
+			M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE)|flags
 		);
 	}
 

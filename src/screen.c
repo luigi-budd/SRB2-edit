@@ -218,6 +218,8 @@ void SCR_Startup(void)
 	CV_RegisterVar(&cv_compactinfo);
 	CV_RegisterVar(&cv_constextsize);
 	CV_RegisterVar(&cv_menucaps);
+	CV_RegisterVar(&cv_menuhighlight);
+	CV_RegisterVar(&cv_menucolor);
 
 	V_SetPalette(0);
 }

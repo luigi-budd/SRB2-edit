@@ -1262,7 +1262,6 @@ static menuitem_t OP_CameraOptionsMenu[] =
 
 	{IT_HEADER,            NULL, "Display Options", NULL, 60},
 	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair, 66},
-	{IT_STRING  | IT_CVAR, NULL, "Inverted Crosshair", &cv_crosshair_invert, 71},
 };
 
 static menuitem_t OP_Camera2OptionsMenu[] =
@@ -1281,7 +1280,6 @@ static menuitem_t OP_Camera2OptionsMenu[] =
 
 	{IT_HEADER,            NULL, "Display Options", NULL, 60},
 	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair2, 66},
-	{IT_STRING  | IT_CVAR, NULL, "Inverted Crosshair", &cv_crosshair2_invert, 71},
 };
 
 static menuitem_t OP_CameraExtendedOptionsMenu[] =
@@ -1312,7 +1310,6 @@ static menuitem_t OP_CameraExtendedOptionsMenu[] =
 
 	{IT_HEADER,            NULL, "Display Options", NULL, 120},
 	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair, 126},
-	{IT_STRING  | IT_CVAR, NULL, "Inverted Crosshair", &cv_crosshair_invert, 131},
 };
 
 static menuitem_t OP_Camera2ExtendedOptionsMenu[] =
@@ -1343,7 +1340,6 @@ static menuitem_t OP_Camera2ExtendedOptionsMenu[] =
 
 	{IT_HEADER,            NULL, "Display Options", NULL, 120},
 	{IT_STRING  | IT_CVAR, NULL, "Crosshair", &cv_crosshair2, 126},
-	{IT_STRING  | IT_CVAR, NULL, "Inverted Crosshair", &cv_crosshair2_invert, 131},
 };
 
 enum
@@ -1384,39 +1380,34 @@ static menuitem_t OP_VideoOptionsMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Show Powerups",             &cv_powerupdisplay,   76},
 	{IT_STRING | IT_CVAR, NULL, "Local ping display",		&cv_showping,			81}, // shows ping next to framerate if we want to.
 	{IT_STRING | IT_CVAR, NULL, "Show player names",         &cv_seenames,         86},
-	{IT_STRING | IT_CVAR, NULL, "Uppercase Menus",         &cv_menucaps,         91},
 
-	{IT_HEADER, NULL, "Console", NULL, 100},
-	{IT_STRING | IT_CVAR, NULL, "Background color",          &cons_backcolor,      106},
-	{IT_STRING | IT_CVAR, NULL, "Text Size",                 &cv_constextsize,    111},
+	{IT_HEADER, NULL, "Console", NULL, 95},
+	{IT_STRING | IT_CVAR, NULL, "Background color",          &cons_backcolor,      101},
+	{IT_STRING | IT_CVAR, NULL, "Text Size",                 &cv_constextsize,    106},
 
-	{IT_HEADER, NULL, "Chat", NULL, 120},
-	{IT_STRING | IT_CVAR, NULL, "Chat Mode",            		 	 &cv_consolechat,  126},
-	{IT_STRING | IT_CVAR | IT_CV_SLIDER, NULL, "Chat Box Width",    &cv_chatwidth,     131},
-	{IT_STRING | IT_CVAR | IT_CV_SLIDER, NULL, "Chat Box Height",   &cv_chatheight,    136},
-	{IT_STRING | IT_CVAR, NULL, "Message Fadeout Time",              &cv_chattime,    141},
-	{IT_STRING | IT_CVAR, NULL, "Chat Notifications",           	 &cv_chatnotifications,  146},
-	{IT_STRING | IT_CVAR, NULL, "Spam Protection",           		 &cv_chatspamprotection,  151},
-	{IT_STRING | IT_CVAR, NULL, "Chat background tint",           	 &cv_chatbacktint,  156},
+	{IT_HEADER, NULL, "Chat", NULL, 115},
+	{IT_STRING | IT_CVAR, NULL, "Chat Mode",            		 	 &cv_consolechat,  121},
+	{IT_STRING | IT_CVAR | IT_CV_SLIDER, NULL, "Chat Box Width",    &cv_chatwidth,     126},
+	{IT_STRING | IT_CVAR | IT_CV_SLIDER, NULL, "Chat Box Height",   &cv_chatheight,    131},
+	{IT_STRING | IT_CVAR, NULL, "Message Fadeout Time",              &cv_chattime,    136},
+	{IT_STRING | IT_CVAR, NULL, "Chat Notifications",           	 &cv_chatnotifications,  141},
+	{IT_STRING | IT_CVAR, NULL, "Spam Protection",           		 &cv_chatspamprotection,  146},
+	{IT_STRING | IT_CVAR, NULL, "Chat background tint",           	 &cv_chatbacktint,  151},
 
-	{IT_HEADER, NULL, "Level", NULL, 165},
-	{IT_STRING | IT_CVAR, NULL, "Draw Distance",             &cv_drawdist,        171},
-	{IT_STRING | IT_CVAR, NULL, "Weather Draw Dist.",        &cv_drawdist_precip, 176},
-	{IT_STRING | IT_CVAR, NULL, "NiGHTS Hoop Draw Dist.",    &cv_drawdist_nights, 181},
-	{IT_STRING | IT_CVAR, NULL, "Pitch/Roll Rotation",    	 &cv_pitchroll_rotation, 186},
-	{IT_STRING | IT_CVAR, NULL, "Ring Racers Screen Quakes", &cv_ringracers_quakes, 191},
-    {IT_STRING | IT_CVAR, NULL, "Screenshake Effects", &cv_earthquake, 196},
+	{IT_HEADER, NULL, "Level", NULL, 160},
+	{IT_STRING | IT_CVAR, NULL, "Draw Distance",             &cv_drawdist,        166},
+	{IT_STRING | IT_CVAR, NULL, "Weather Draw Dist.",        &cv_drawdist_precip, 171},
+	{IT_STRING | IT_CVAR, NULL, "NiGHTS Hoop Draw Dist.",    &cv_drawdist_nights, 176},
 
-	{IT_HEADER, NULL, "Diagnostic", NULL, 205},
-	{IT_STRING | IT_CVAR, NULL, "Show FPS",                  &cv_ticrate,         211},
-	{IT_STRING | IT_CVAR, NULL, "Clear Before Redraw",       &cv_homremoval,      216},
-	{IT_STRING | IT_CVAR, NULL, "Show \"FOCUS LOST\"",       &cv_showfocuslost,   221},
-	{IT_STRING | IT_CVAR, NULL, "Show Movie Info",           &cv_moviemodeinfo,   226},
+	{IT_HEADER, NULL, "Diagnostic", NULL, 184},
+	{IT_STRING | IT_CVAR, NULL, "Show FPS",                  &cv_ticrate,         190},
+	{IT_STRING | IT_CVAR, NULL, "Clear Before Redraw",       &cv_homremoval,      195},
+	{IT_STRING | IT_CVAR, NULL, "Show \"FOCUS LOST\"",       &cv_showfocuslost,   200},
 
 #ifdef HWRENDER
-	{IT_HEADER, NULL, "Renderer", NULL, 235},
-	{IT_CALL | IT_STRING, NULL, "OpenGL Options...",         M_OpenGLOptionsMenu, 241},
-	{IT_STRING | IT_CVAR, NULL, "FPS Cap",                   &cv_fpscap,          246},
+	{IT_HEADER, NULL, "Renderer", NULL, 208},
+	{IT_CALL | IT_STRING, NULL, "OpenGL Options...",         M_OpenGLOptionsMenu, 214},
+	{IT_STRING | IT_CVAR, NULL, "FPS Cap",                   &cv_fpscap,          219},
 #endif
 };
 
@@ -1484,12 +1475,11 @@ static menuitem_t OP_OpenGLOptionsMenu[] =
 	{IT_STRING|IT_CVAR,         NULL, "Bit depth",           &cv_scr_depth,           124},
 	{IT_STRING|IT_CVAR,         NULL, "Texture filter",      &cv_glfiltermode,        134},
 	{IT_STRING|IT_CVAR,         NULL, "Anisotropic",         &cv_glanisotropicmode,   144},
-	{IT_STRING|IT_CVAR,         NULL, "Render distance",     &cv_glrenderdistance,    154},
 #ifdef ALAM_LIGHTING
-	{IT_SUBMENU|IT_STRING,      NULL, "Lighting...",         &OP_OpenGLLightingDef,   164},
+	{IT_SUBMENU|IT_STRING,      NULL, "Lighting...",         &OP_OpenGLLightingDef,   154},
 #endif
 #if defined (_WINDOWS) && (!(defined (__unix__) || defined (UNIXCOMMON) || defined (HAVE_SDL)))
-	{IT_STRING|IT_CVAR,         NULL, "Fullscreen",          &cv_fullscreen,          174},
+	{IT_STRING|IT_CVAR,         NULL, "Fullscreen",          &cv_fullscreen,          164},
 #endif
 };
 
@@ -1591,8 +1581,6 @@ static menuitem_t OP_ScreenshotOptionsMenu[] =
 	{IT_STRING|IT_CVAR, NULL, "Downscaling",       &cv_gif_downscale,              95},
 	{IT_STRING|IT_CVAR, NULL, "Region Optimizing", &cv_gif_optimize,              100},
 	{IT_STRING|IT_CVAR, NULL, "Local Color Table", &cv_gif_localcolortable,       105},
-	{IT_STRING|IT_CVAR|IT_CV_SLIDER, NULL, "Max GIF Size (MB)",      &cv_gif_maxsize,  110},
-	{IT_STRING|IT_CVAR, NULL, "Keep recording when capped",      &cv_gif_rolling_buffer,  	  115},
 
 	{IT_STRING|IT_CVAR, NULL, "Downscaling",       &cv_apng_downscale,             95},
 	{IT_STRING|IT_CVAR, NULL, "Memory Level",      &cv_zlib_memorya,              100},
@@ -1609,9 +1597,9 @@ enum
 	op_movie_folder = 11,
 	op_screenshot_capture = 12,
 	op_screenshot_gif_start = 13,
-	op_screenshot_gif_end = 17,
-	op_screenshot_apng_start = 18,
-	op_screenshot_apng_end = 22,
+	op_screenshot_gif_end = 15,
+	op_screenshot_apng_start = 16,
+	op_screenshot_apng_end = 20,
 };
 
 static menuitem_t OP_EraseDataMenu[] =

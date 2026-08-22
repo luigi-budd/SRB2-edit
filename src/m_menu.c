@@ -11658,6 +11658,9 @@ static void M_DrawConnectMenu(void)
 			V_DrawSmallString(currentMenu->x+218, S_LINEY(i)+8, globalflags, "\x83" "Cheats");
 		if (Net_IsNodeIPv6(serverlist[slindex].node))
 			V_DrawSmallString(currentMenu->x+248, S_LINEY(i)+8, globalflags, "\x84" "IPv6");
+		if (serverlist[slindex].info.refusereason == REFUSE_BANNED) // probably banned or something. Probably.
+			V_DrawSmallString(currentMenu->x+248, S_LINEY(i)+4, globalflags &~V_TRANSLUCENT, "\x85" "X");
+
 		V_DrawSmallString(currentMenu->x + 270, S_LINEY(i) + 8,
 			globalflags,
 			(isdedi) ? ("\x87" "DEDI.") : ("\x83" "LIST.")

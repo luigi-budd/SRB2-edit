@@ -132,7 +132,7 @@ The chat window's position can be freely adjusted. Have fun!
 
   Allows the automap to be used in netgames and in singleplayer, without the need for devmode.
 
-* **Show C-Says/C-Echos:** (`showcsays)
+* **Show C-Says/C-Echos:** (`showcsays`)
 
   Prints any CSays/CEchos to the console.
 

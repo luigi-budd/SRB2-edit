@@ -1020,6 +1020,9 @@ enum
 	mp_server_start
 };
 
+#define SERVERHEADERHEIGHT 41
+#define SERVERLINEHEIGHT 13
+
 static menuitem_t MP_ConnectMenu[] =
 {
 	{IT_STRING | IT_CALL,       NULL, "Room...",  M_RoomMenu,         4},
@@ -1027,17 +1030,16 @@ static menuitem_t MP_ConnectMenu[] =
 	{IT_STRING | IT_KEYHANDLER, NULL, "Page",     M_HandleServerPage, 20},
 	{IT_STRING | IT_CALL,       NULL, "Refresh",  M_Refresh,          28},
 
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          48-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          60-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          72-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          84-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          96-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         108-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         120-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         132-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         144-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         156-4},
-	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,         168-4},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          2 + SERVERHEADERHEIGHT},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          2 + SERVERHEADERHEIGHT + SERVERLINEHEIGHT},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          2 + SERVERHEADERHEIGHT + SERVERLINEHEIGHT*2},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          2 + SERVERHEADERHEIGHT + SERVERLINEHEIGHT*3},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          2 + SERVERHEADERHEIGHT + SERVERLINEHEIGHT*4},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          2 + SERVERHEADERHEIGHT + SERVERLINEHEIGHT*5},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          2 + SERVERHEADERHEIGHT + SERVERLINEHEIGHT*6},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          2 + SERVERHEADERHEIGHT + SERVERLINEHEIGHT*7},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          2 + SERVERHEADERHEIGHT + SERVERLINEHEIGHT*8},
+	{IT_STRING | IT_SPACE, NULL, "",              M_Connect,          2 + SERVERHEADERHEIGHT + SERVERLINEHEIGHT*9},
 };
 
 enum
@@ -11366,9 +11368,6 @@ static void M_EndGame(INT32 choice)
 //===========================================================================
 // Connect Menu
 //===========================================================================
-
-#define SERVERHEADERHEIGHT 41
-#define SERVERLINEHEIGHT 13
 
 #define S_LINEY(n) currentMenu->y + SERVERHEADERHEIGHT + (n * SERVERLINEHEIGHT)
 

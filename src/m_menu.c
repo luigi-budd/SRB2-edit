@@ -98,7 +98,7 @@
 #define SMALLLINEHEIGHT 8
 #define SLIDER_RANGE 9
 #define SLIDER_WIDTH 78
-#define SERVERS_PER_PAGE 11
+#define SERVERS_PER_PAGE 10
 
 typedef enum
 {
@@ -2395,7 +2395,7 @@ static UINT8 red_menu[]		= { 47,  43,  40,  44,  46,  47};
 static UINT8 gray_menu[]	= { 28,  20,  14,  30,  29,  31};
 static UINT8 orange_menu[]	= { 63,  57,  54,  71,  45,  47};
 static UINT8 sky_menu[]		= {138, 136, 132, 137, 139, 254};
-static UINT8 purple_menu[]	= {169, 164, 161, 167, 187, 169};
+static UINT8 purple_menu[]	= {169, 164, 161, 167, 187, 185};
 static UINT8 aqua_menu[]	= {138, 124, 138, 126, 139, 253};
 static UINT8 peridot_menu[]	= { 95, 190, 188, 107, 110, 111};
 static UINT8 azure_menu[]	= {175, 171, 145, 173, 253,  27};
@@ -11379,8 +11379,8 @@ static void M_EndGame(INT32 choice)
 // Connect Menu
 //===========================================================================
 
-#define SERVERHEADERHEIGHT 44
-#define SERVERLINEHEIGHT 12
+#define SERVERHEADERHEIGHT 41
+#define SERVERLINEHEIGHT 13
 
 #define S_LINEY(n) currentMenu->y + SERVERHEADERHEIGHT + (n * SERVERLINEHEIGHT)
 
@@ -11650,45 +11650,31 @@ static void M_DrawConnectMenu(void)
 		INT32 slindex = i + serverlistpage * SERVERS_PER_PAGE;
 		UINT32 globalflags = (serverlist[slindex].info.refusereason ? V_TRANSLUCENT : 0)
 			|((itemOn == FIRSTSERVERLINE+i) ? MENUHIGHLIGHT : 0)|V_ALLOWLOWERCASE;
-
-		// min width is probably like 268px (sorry for shitty formatting)
-		// this is STILL a huge mess, but listen servers will have a blue background,
-		// and dedicated servers will have an orange background
-		// TODO: dedicated servers have a longer entry, maybe a little
-		//       glyph on the left too?
-		/*
-		static INT32 bgcolors[2][6] = {
-			// listen servers
-			{
-				156, // checker pattern 1
-				159, // checker pattern 2
-				153  // selected
-			},
-			// dedicated servers
-			{
-				167, // checker pattern 1
-				169, // checker pattern 2
-				165  // selected
-			}
-		};
-
-		INT32 colorindex = (serverlist[slindex].info.flags & SV_DEDICATED) ? 1 : 0;
-		*/
-		V_DrawFill(currentMenu->x - 3,
-			S_LINEY(i) - (i == 0 ? 3 : 0),
-			268 + 6, (i == 0 ? 15 : 12),
-			M_GetMenuBGColor(MENUBACKCOLOR, (itemOn == FIRSTSERVERLINE+i) ? MC_HIGHLIGHT : ((i & 1) ? MC_BASE : MC_CHECKER))
-		);
+		INT32 yoffset;
+		UINT8 fillcolor = M_GetMenuBGColor(MENUBACKCOLOR, (itemOn == FIRSTSERVERLINE+i) ? MC_HIGHLIGHT : ((i & 1) ? MC_BASE : MC_CHECKER));
+		boolean isdedi = (serverlist[slindex].info.flags & SV_DEDICATED);
 		
+		for (yoffset = SERVERLINEHEIGHT; yoffset > 0; yoffset--)
+		{
+			V_DrawFill(currentMenu->x - 3,
+				S_LINEY(i) + yoffset - 1,
+				268 + SERVERLINEHEIGHT + yoffset, 1, //(i == 0 ? 15 : 12),
+				fillcolor
+			);
+		}
 		V_DrawString(currentMenu->x, S_LINEY(i), globalflags, serverlist[slindex].info.servername);
 
 		// Don't use color flags intentionally, the global yellow color will auto override the text color code
 		if (serverlist[slindex].info.modifiedgame)
 			V_DrawSmallString(currentMenu->x+202, S_LINEY(i)+8, globalflags, "\x85" "Mod");
 		if (serverlist[slindex].info.cheatsenabled)
-			V_DrawSmallString(currentMenu->x+222, S_LINEY(i)+8, globalflags, "\x83" "Cheats");
+			V_DrawSmallString(currentMenu->x+218, S_LINEY(i)+8, globalflags, "\x83" "Cheats");
 		if (Net_IsNodeIPv6(serverlist[slindex].node))
-			V_DrawSmallString(currentMenu->x+252, S_LINEY(i)+8, globalflags, "\x84" "IPv6");
+			V_DrawSmallString(currentMenu->x+248, S_LINEY(i)+8, globalflags, "\x84" "IPv6");
+		V_DrawSmallString(currentMenu->x + 270, S_LINEY(i) + 8,
+			globalflags,
+			(isdedi) ? ("\x87" "DEDI.") : ("\x83" "LIST.")
+		);
 
 		if (cv_pingmeasurement.value)
 			V_DrawSmallString(currentMenu->x, S_LINEY(i)+8, globalflags,

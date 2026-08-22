@@ -4663,6 +4663,7 @@ static void M_DrawMenuTitle(void)
 	if (currentMenu != prevmenu)\
 		seenheader = false;\
 	prevmenu = currentMenu;\
+	boolean nobackgrounds = false;\
 
 #define DRAWCHECKEREDBACKGROUND if (checkeri != i && seenheader) {\
 	V_DrawFill(x - 3,y - 1, (BASEVIDWIDTH-currentMenu->x) - x + 6, 10,\
@@ -4674,8 +4675,9 @@ static void M_DrawMenuTitle(void)
 // checks if this item is a text input
 #define CHECKEREDNOTEXTINPUT \
 	if (!(\
-		((currentMenu->menuitems[i].status & IT_TYPE) == IT_CVAR)\
-		&& ((currentMenu->menuitems[i].status & IT_CVARTYPE) == IT_CV_STRING)\
+		(((currentMenu->menuitems[i].status & IT_TYPE) == IT_CVAR)\
+		&& ((currentMenu->menuitems[i].status & IT_CVARTYPE) == IT_CV_STRING))\
+		|| nobackgrounds\
 	))\
 
 
@@ -4684,6 +4686,12 @@ static void M_DrawGenericMenu(void)
 	INT32 x, y, i, cursory = 0;
 	CHECKEREDINIT
 
+	// sorry for the hardcoded check
+	// I cant be bothered to actually make menus toggle this
+	// so this is the easiest fix
+	if (currentMenu == &MP_RejoinDef)
+		nobackgrounds = true;
+	
 	// DRAW MENU
 	x = currentMenu->x;
 	y = currentMenu->y;
@@ -11739,7 +11747,6 @@ static void M_DrawRejoinMenu(void)
 		MP_RejoinMenu[index + 2].status = IT_STRING | IT_CALL;
 		y += 12;
 	}
-
 
 	M_DrawGenericMenu();
 }

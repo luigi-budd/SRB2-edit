@@ -155,7 +155,7 @@ The chat window's position can be freely adjusted. Have fun!
 SRB2-edit provides Discord Rich Presence support. This feature can be toggled off with the `discordrp` cvar. Rich Presence also allows other users to join your netgames through Discord (`discordasks`), and for you to send out invites to netgames in Discord channels.
 
 <p align="center">
-  <img width="500" height="150" alt="SRB2-edit" src="https://raw.githubusercontent.com/luigi-budd/SRB2-edit/refs/heads/master/discordrp.png" />
+  <img width="296" height="190" alt="SRB2-edit" src="https://raw.githubusercontent.com/luigi-budd/SRB2-edit/refs/heads/master/discordrp.png" />
 </p>
 
 # Changes

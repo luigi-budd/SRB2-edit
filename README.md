@@ -41,66 +41,157 @@ If you're downloading a release from the Actions tab, make sure to download the 
 
 Please refer to `libs/DLL-README.txt` if you need help locating any libraries.
 
-# Changes
+# Settings
+
+All settings SRB2-edit adds can be found in game inside the "SRB2-edit Options..." menu.
+
+Binds for "Pause GIF Recording" and "Local-addon Toggle" can be found in the Player 1 Controls, under the "Meta" category.
+
+## UI & Menus
+* **Show Server Viewer:** (`showserverinfo`)
+  
+  Adds a menu detailing a server's info before you join. Lists addons, players, gametype, level, gamemode, and various other useful details.
+  
+  (Code originally from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
+
+* **Uppercase Menus:** (`menucaps`)
+
+  Adds a toggle for the all-uppercase menus, similar to SRB2Kart Saturn!
+
+* **Menu Highlight Color & Menu Color:** (`menuhighlight` & `menucolor`)
+
+  Adjustable colors for most of the game's menus. Time Attack, Marathon, and NiGHTS Attack remain unchanged.
+
+You can load local addons through the Addons menu by pressing R-ALT.
+
+## HUD & Visual
+* **Show TPS:** (`showtps`)
+
+  Adds a TPS counter alongside your FPS counter.
+
+  (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic) and TSoURDt3rd)
+
+* **Compact FPS/TPS/Ping Info:** (`compactinfo`)
+
+  Compacts all 3 displays into 1 line.
+
+* **Ping Measurement:** (`pingmeasurement`)
+
+  Measures latency in milliseconds or frames, just like SRB2Kart.
+
+* **Screen Flashes, Screenshake, Screenwipes:** (`flashes`, `earthquake`, `wipes`)
+
+  Togglable settings for anything that might be intrusive. Screenshake can also be set to look similar to Ring Racer's screenshake.
+
+  (Screenshake toggle originally from SRB2Classic, ported to Edit by @archiNiko)
+
+* **Caption Interpolation:** (`mischudinterpolation`)
+
+  Self explanatory. Only works with closed captioning.
+
+* **Inverted Crosshair (P1/P2):** (`crosshair(2)_invert`)
+
+  Crosshairs can be set to invert the colors behind them, similar to Minecraft. Can help with visibility.
+
+## Chat
+The chat window's position can be freely adjusted. Have fun!
+
+## Movie Mode
+* **Movie Info:** (`moviemodeinfo`)
+
+  Draws runtime and file size while recording gifs/aPNGs. Movies can also be paused with F2.
+
+* **Max Movie Size (mb):** (`gif_maxsize`)
+
+  Automatically stops recording when reaching this cap. Setting the cap to 0 disables it.
+
+* **Continous Recording:** (`gif_rolling`)
+
+  Only works when Max Movie Size is enabled. When the size limit is reached, recording will stop and immediately being recording a new movie.
+
+## Gameplay
+* **Analog Snapping (P1/P2):** (`joy(2)_snapping`)
+
+  Snaps gamepad movement to 8 directions, similar to Super Mario 3D World.
+
+* **Minimum Latency:** (`mindelay`)
+
+  When on, your controls will be delayed by this many frames.
+
+## Pitch & Roll Rotation (Slopes)
+* **3D Rotation:** (`pitchroll-tation`)
+
+  Toggles 3D rotations for sprites and models. Most visible when walking on slopes.
+
+* **Rotation Decay** (`pitchroll-easing`)
+
+  When airborne, you'll steadily orient yourself rightside-up. Most visible when going up half-pipes or when jumping off slopes.
+
+## Debugging / Diagnostics
+* **Force Automap:** (`forceautomap`)
+
+  Allows the automap to be used in netgames and in singleplayer, without the need for devmode.
+
+* **Show C-Says/C-Echos:** (`showcsays)
+
+  Prints any CSays/CEchos to the console.
+
+* **CVar Info:** (`cvarinfo`)
+
+  Toggles certain information from being printed when inputting a cvar's name into the console.
+
+## OpenGL
+* **Model Translations:** (`gr_modeltranslations`)
+
+  Models can be affected by translations when on. Note that this may cause lag for models with high resolution textures.
+
+* **Render Distance:** (`gr_renderdistance`)
+
+  Applies render distance cap in OpenGL.
+
+  (Code from [SRB2Classic](https://git.srb2.org/Hanicef/SRB2Classic/-/merge_requests/4), @GLideKS)
 
 ## Discord Integration
-SRB2-edit provides Discord Rich Presence support. This feature can be toggled off with the `discordrp` cvar. Rich Presence also allows other users to join your netgames through Discord (`discordasks`).
+SRB2-edit provides Discord Rich Presence support. This feature can be toggled off with the `discordrp` cvar. Rich Presence also allows other users to join your netgames through Discord (`discordasks`), and for you to send out invites to netgames in Discord channels.
+
 <p align="center">
   <img width="500" height="150" alt="SRB2-edit" src="https://raw.githubusercontent.com/luigi-budd/SRB2-edit/refs/heads/master/discordrp.png" />
 </p>
 
-## HUD
-- CEchos/CSays print message into console ("`showcsays`")
-- Joining netgame shows progress bar on "checking files" ([Lugent's PR](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2446) [Lugent's PR](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2556))
+# Changes
+Several QOL changes and bug fixes have been added to SRB2-edit.
+
+## UI & Menus
+- Joining netgames now show progress bars when "checking files" and downloading files (Code from [Lugent's PR](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2446), [Lugent's PR](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2556))
 - Easily rejoin servers you've played before! ("`connect last`", Multiplayer -> Rejoin Previous Servers...)
-- Draw gif information to hud ("`moviemodeinfo`")
-- Crosshairs can invert pixels behind, to improve their visibility ("`crosshair_invert`" and "`crosshair2_invert`")
-- Thin captions and thin FPS! (Load "tinyfontfix.pk3" for music note on thin captions, optional)
-- Countdown beep isn't ear piercingly loud!
 - Snake download game background fixed!
-- Master Server list background for better readability!
-- Server Menu before joining! ("`showserverinfo`") (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
-- See your ping in frame delay instead of milliseconds! ("`pingmeasurement`")
-- Tics per second counter! ("`showtps`") (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic) and TSoURDt3rd)
-- Compact FPS/TPS info! ("`compactinfo`")
-- Lowercase menus inspired by SRB2Kart Saturn! ("`menucaps`")
-- Toggle screen wipes to speed up gameplay! ("`wipes`", not effective in Marathon Mode)
-- Gamepads can now navigate menus with the D-Pad!
+- Gamepads can now navigate menus with the D-Pad.
+- Several menus now have backgrounds for better readability.
+- The volume for the countdown beeps in race/tag gamemodes has been fixed.
 
 ## Visual
-- Toggable mobj pitch/roll functional (3d rotation for models on slopes, like DRRR). Option located in Video Settings -> Level -> "Pitch/Roll Rotation" or the "`pitchroll-tation`" cvar
-- Ring-Racers-styled screen quakes! ("`rr_quakes`" in console)
-- Toggleable Screenshake effects! ("`earthquake`", ported from SRB2Classic by @archiNiko)
 - Better "Fake Contrast"! (https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2680, @GLideKS)
 - View rollangle is interpolated!
 - FOV changes are interpolated! (use `"fovchange"` to see this in action!)
-- Experimental translation support for models! ("`gl_modeltranslations`")
-- Render distance for OpenGL! ("`gr_renderdistance`", https://git.srb2.org/Hanicef/SRB2Classic/-/merge_requests/4, @GLideKS)
+- OpenGL Lack-of-Perspective can now be active only in 2D-Mode.
 
 ## Gameplay / Netplay
 - Skin change at any time
 - Addfilelocal from SRB2K Saturn! (use "`addfilelocal`" command or press R-ALT in the addons menu)
-- Minimum input delay from SRB2Kart Saturn/Ring Racers! ("`mindelay`")
 - Improved startup times! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
 - "`cam_centertoggle`" and "`cam2_centertoggle`" are no longer exclusive to Automatic!
 - See private messages as host! (Code from [SRB2Classic](https://codeberg.org/srb2classic/srb2classic))
 - "Invisicam!" ("`cam_invisicam`", makes the player more transparent the closer they are to the camera, to help with visibility)
-- Analog movement can snap! Joystick movement can now snap to 8 directions, similar to Super Mario 3D World. ("`joy_snapping"`)
+- Centering your camera with a gamepad will now snap your camera angle to the direction you are moving in, similar to Splatoon.
 
 ## Modding and Debugging
 - "`renderhitbox`" in multiplayer
 - Lua HUD interpolation from SRB2K Saturn
-- "`freezelevel`" debug command (Be careful using when clients are connected!)
+- "`freezelevel`" debug command (Will cause desynchs for clients!)
 - HUD camera struct updates position in first person! (credits [Jiskster](https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2629) & [Hanicef](https://git.do.srb2.org/Hanicef/SRB2Classic/-/commit/681bd160f5be3925a97d798d00e67b32a8c1df71))
 - `v.cachePatch` accepts a second parameter for rotation! (https://git.do.srb2.org/STJr/SRB2/-/merge_requests/2662)
 - Added "`TR`" as an alias to "`TICRATE`" in Lua
 - "`getlogfile`" command (Prints the absolute path of the current log, useful when latest-log.txt is sym-linked to a different log)
-- "`forceautomap`" cvar to use the automap outside of devmode and singleplayer
-
-## GIFs
-- Adjustable gif size cap, toggable too! (`gif_maxsize`, "Max GIF Size (MB)")
-    - ^ When gif is capped, gif_rolling allows for another gif to immediately start! (`gif_rolling`, "Keep recording when capped")
-- Pause GIFs *WHILE* Recording! (Bound to F2 by default)
 
 ## Console & Misc. Commands
 - `help` now lists commands and variables by origin. Parameters are as follows:
@@ -173,7 +264,7 @@ SRB2-edit provides Discord Rich Presence support. This feature can be toggled of
 - `v.interpolate/v.interpLatch(boolean/int)` : See [SRB2K Saturn's documentation](https://github.com/Indev450/SRB2Kart-Saturn/blob/Saturn/LUASTUFF.md)
 - `v.drawFixedFill` : Same as `v.drawFill`, but x, y, width, and height arguments are all in fixed point scale.
 
-- `M_Random`* : Same as `v.Random*` functions, except also client-sided and not limited to HUD hooks.
+- `M_Random`* : Same as `v.Random*` functions, except also client-sided and not limited to HUD hooks. Use these if you ever need to have randomness in a local addon outside of HUD hooks.
 
 ## mobj_t
 - `mobj.pitch/roll` : Now rotates mobjs in 3D space, including models

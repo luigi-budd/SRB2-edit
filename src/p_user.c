@@ -9830,6 +9830,7 @@ static CV_PossibleValue_t CV_CamRotate[] = {{-720, "MIN"}, {720, "MAX"}, {0, NUL
 static CV_PossibleValue_t multiplier_cons_t[] = {{0, "MIN"}, {3*FRACUNIT, "MAX"}, {0, NULL}};
 static CV_PossibleValue_t campos_cons_t[] = { {INT32_MIN, "MIN"}, {INT32_MAX, "MAX"}, {0, NULL} };
 static CV_PossibleValue_t invisicam_cons_t[] = { {1, "On"}, {2, "Singleplayer only"}, {0, "Off"}, {0, NULL} };
+static CV_PossibleValue_t earthquake_cons_t[] = { {1, "On/Vanilla"}, {2, "Ring Racers"}, {0, "Off"}, {0, NULL} };
 
 consvar_t cv_cam_dist = CVAR_INIT ("cam_curdist", "160", CV_FLOAT|CV_ALLOWLUA, campos_cons_t, NULL);
 consvar_t cv_cam_height = CVAR_INIT ("cam_curheight", "25", CV_FLOAT|CV_ALLOWLUA, campos_cons_t, NULL);
@@ -9849,7 +9850,7 @@ consvar_t cv_cam2_rotspeed = CVAR_INIT ("cam2_rotspeed", "10", CV_SAVE|CV_ALLOWL
 consvar_t cv_cam2_turnmultiplier = CVAR_INIT ("cam2_turnmultiplier", "0.75", CV_FLOAT|CV_SAVE|CV_ALLOWLUA, multiplier_cons_t, NULL);
 consvar_t cv_cam2_orbit = CVAR_INIT ("cam2_orbit", "Off", CV_SAVE|CV_ALLOWLUA, CV_OnOff, NULL);
 consvar_t cv_cam2_adjust = CVAR_INIT ("cam2_adjust", "On", CV_SAVE|CV_ALLOWLUA, CV_OnOff, NULL);
-consvar_t cv_earthquake = CVAR_INIT("earthquake", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
+consvar_t cv_earthquake = CVAR_INIT("earthquake", "On/Vanilla", CV_SAVE|CV_CLIENT, earthquake_cons_t, NULL);
 
 consvar_t cv_invisicam = CVAR_INIT ("cam_invisicam", "On", CV_SAVE|CV_CLIENT, invisicam_cons_t, NULL);
 consvar_t cv_invisicam2 = CVAR_INIT ("cam2_invisicam", "On", CV_SAVE|CV_CLIENT, invisicam_cons_t, NULL);

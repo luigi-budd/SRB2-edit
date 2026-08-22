@@ -375,6 +375,13 @@ static patch_t *addonsp[NUM_EXT+5];
 #define addonmenusize 9 // number of items actually displayed in the addons menu view, formerly (2*numaddonsshown + 1)
 #define numaddonsshown 4 // number of items to each side of the currently selected item, unless at top/bottom ends of directory
 
+//Edit
+menu_t ED_EditSettingsDef;
+#ifdef HWRENDER
+static void E_OpenGLOptionsMenu(void);
+menu_t ED_OpenGLOptionsDef;
+#endif
+
 static void M_DrawLevelPlatterHeader(INT32 y, const char *header, boolean headerhighlight, boolean allowlowercase);
 
 // Drawing functions
@@ -515,6 +522,76 @@ consvar_t cv_dummyloadless = CVAR_INIT ("dummyloadless", "In-game", CV_HIDEN, lo
 // Note: Ignore the above if you're working with the Pause menu.
 // Note: (Prefix)_MainMenu should be the target of all Main Menu options that
 //       point to submenus.
+
+// seems like a good place to put this?
+static menuitem_t ED_EditSettingsMenu[] =
+{
+	{IT_HEADER,						NULL, "UI & Menus",						NULL,				0},
+	{IT_STRING|IT_CVAR,				NULL, "Show Server Viewer",				&cv_showserverinfo,	6},
+	{IT_STRING|IT_CVAR,				NULL, "Uppercase Menus",				&cv_menucaps,		6 + 5},
+	{IT_STRING|IT_CVAR,				NULL, "Menu Highlight Color",			&cv_menuhighlight,	6 + 10},
+	{IT_STRING|IT_CVAR,				NULL, "Menu Color",						&cv_menucolor,		6 + 15},
+	// add cv_returnfromconnect maybe..?
+
+	{IT_HEADER,						NULL, "HUD & Visual",					NULL,				31},
+	{IT_STRING|IT_CVAR,				NULL, "Show TPS",						&cv_tpscounter,		37},
+	{IT_STRING|IT_CVAR,				NULL, "Compact FPS/TPS/Ping Info",		&cv_compactinfo,	37 + 5},
+	{IT_STRING|IT_CVAR,				NULL, "Ping Measurement",				&cv_pingmeasurement,37 + 10},
+	{IT_STRING|IT_CVAR,				NULL, "Screen Flashes",					&cv_flashes,		37 + 15},
+	{IT_STRING|IT_CVAR,				NULL, "Screenshake Style",				&cv_earthquake,		37 + 20},
+	{IT_STRING|IT_CVAR,				NULL, "Screenwipes",					&cv_wipes,			37 + 25},
+	{IT_STRING|IT_CVAR,				NULL, "Caption Interpolation",			&cv_consoleinterp,	37 + 30},
+	{IT_STRING|IT_CVAR,				NULL, "Inverted Crosshair (P1)",		&cv_crosshair_invert,37 + 35},
+	{IT_STRING|IT_CVAR,				NULL, "Inverted Crosshair (P2)",		&cv_crosshair2_invert,37 + 40},
+
+	{IT_HEADER,						NULL, "Chat",							NULL,				87},
+	{IT_STRING|IT_CVAR,				NULL, "Horizontal Snapping",			&cv_chats1,			93},
+	{IT_STRING|IT_CVAR,				NULL, "Vertical Snapping",				&cv_chats2,			93 + 5},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER,NULL, "Horizontal Position",			&cv_chatx,			93 + 10},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER,NULL, "Vertical Position",				&cv_chaty,			93 + 15},
+
+	{IT_HEADER,						NULL, "Movie Mode",						NULL,				118},
+	{IT_STRING|IT_CVAR,				NULL, "Movie Info",						&cv_moviemodeinfo,	124},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER,NULL, "Max Movie Size (mb)",			&cv_gif_maxsize,	124 + 5},
+	{IT_STRING|IT_CVAR,				NULL, "Continous Recording",			&cv_gif_rolling_buffer,	124 + 10},
+
+	{IT_HEADER,						NULL, "Gameplay",						NULL,				144},
+	{IT_STRING|IT_CVAR,				NULL, "Analog Snapping (P1)",			&cv_joysnapping,	150},
+	{IT_STRING|IT_CVAR,				NULL, "Analog Snapping (P2)",			&cv_joysnapping2,	150 + 5},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER,NULL, "Minimum Latency",				&cv_mindelay,		150 + 10},
+	// I think gentlemans delay is broken?
+
+	{IT_HEADER,						NULL, "Pitch & Roll Rotation (Slopes)",	NULL,				170},
+	{IT_STRING|IT_CVAR,				NULL, "3D Rotation",					&cv_pitchroll_rotation,	176},
+	{IT_STRING|IT_CVAR,				NULL, "Rotation Decay",					&cv_pitchroll_easing,	176 + 5},
+
+	{IT_HEADER,						NULL, "Debugging / Diagnostics",		NULL,				191},
+	{IT_STRING|IT_CVAR,				NULL, "Force Automap",					&cv_forceautomap,	197},
+	{IT_STRING|IT_CVAR,				NULL, "Fullbrite",						&cv_fullbrite_hack,	197 + 5},
+	{IT_STRING|IT_CVAR,				NULL, "Show C-Says/C-Echos",			&cv_showcsays,		197 + 10},
+	{IT_STRING|IT_CVAR,				NULL, "CVar Info",						&cv_cvarinformation,197 + 15},
+
+#ifdef HWRENDER
+	{IT_HEADER,						NULL, "Renderer",						NULL,				222},
+	{IT_STRING|IT_CALL,				NULL, "OpenGL Options...",				E_OpenGLOptionsMenu,228},
+#endif
+#ifdef HAVE_DISCORDRPC
+	{IT_HEADER,						NULL, "Discord Integration",			NULL,				238},
+	{IT_STRING|IT_CVAR,				NULL, "Rich Presence",					&cv_discordrp,		244},
+	{IT_STRING|IT_CVAR,				NULL, "Join Requests",					&cv_discordasks,	244 + 5},
+	{IT_STRING|IT_CVAR,				NULL, "Streamer Mode",					&cv_discordstreamer,	244 + 10},
+	// cuttting it REAL close ending on 254
+#endif
+};
+
+#ifdef HWRENDER
+static menuitem_t ED_OpenGLOptionsMenu[] =
+{
+	{IT_HEADER, NULL, "Visual", NULL, 0},
+	{IT_STRING|IT_CVAR,         NULL, "Model Translations",  &cv_glmodeltranslations,  12},
+	{IT_STRING|IT_CVAR,         NULL, "Render Distance",     &cv_glrenderdistance,     22},
+};
+#endif
 
 // ---------
 // Main Menu
@@ -1097,6 +1174,8 @@ static menuitem_t OP_MainMenu[] =
 	{IT_CALL    | IT_STRING, NULL, "Server Options...",    M_ServerOptions,     80},
 
 	{IT_SUBMENU | IT_STRING, NULL, "Data Options...",      &OP_DataOptionsDef, 100},
+
+	{IT_SUBMENU | IT_STRING, NULL, "\x89" "SRB2-edit Options...",      &ED_EditSettingsDef, 130},
 };
 
 static menuitem_t OP_P1ControlsMenu[] =
@@ -1723,6 +1802,27 @@ menu_t MISC_AddonsDef =
 	0,
 	NULL
 };
+
+// SORRY! I dont know what im doing, and this file
+// is CRAZY big
+#ifdef HWRENDER
+static void E_OpenGLOptionsMenu(void)
+{
+	if (rendermode == render_opengl)
+		M_SetupNextMenu(&ED_OpenGLOptionsDef);
+	else
+		M_StartMessage(M_GetText("You must be in OpenGL mode\nto access this menu.\n\n(Press a key)\n"), NULL, MM_NOTHING);
+}
+
+menu_t ED_OpenGLOptionsDef = DEFAULTMENUSTYLE(
+	MTREE3(MN_OP_MAIN, MN_OP_SRB2EDIT, MN_OP_OPENGL),
+	"M_VIDEO", ED_OpenGLOptionsMenu, &ED_EditSettingsDef, 30, 30);
+
+#endif
+
+menu_t ED_EditSettingsDef =  DEFAULTSCROLLMENUSTYLE(
+	MTREE2(MN_OP_MAIN, MN_OP_SRB2EDIT),
+	"M_OPTTTL", ED_EditSettingsMenu, &OP_MainDef, 30, 30);
 
 menu_t MAPauseDef = PAUSEMENUSTYLE(MAPauseMenu, 40, 72);
 menu_t SPauseDef = PAUSEMENUSTYLE(SPauseMenu, 40, 72);
@@ -4555,9 +4655,34 @@ static void M_DrawMenuTitle(void)
 	}
 }
 
+// checkeri is here so DRAWCHECKEREDBACKGROUND doesn't draw more than once in case of a fallthru.
+#define CHECKEREDINIT \
+	static boolean checkeri = -1;\
+	static boolean seenheader = false;\
+	static menu_t *prevmenu;\
+	if (currentMenu != prevmenu)\
+		seenheader = false;\
+	prevmenu = currentMenu;\
+
+#define DRAWCHECKEREDBACKGROUND if (checkeri != i && seenheader) {\
+	V_DrawFill(x - 3,y - 1, (BASEVIDWIDTH-currentMenu->x) - x + 6, 10,\
+		M_GetMenuBGColor(MENUBACKCOLOR, ((i == itemOn) ? MC_HIGHLIGHT : ((i & 1) ? MC_BASE : MC_CHECKER)))|V_TRANSLUCENT\
+	);\
+	checkeri = i;\
+}\
+
+// checks if this item is a text input
+#define CHECKEREDNOTEXTINPUT \
+	if (!(\
+		((currentMenu->menuitems[i].status & IT_TYPE) == IT_CVAR)\
+		&& ((currentMenu->menuitems[i].status & IT_CVARTYPE) == IT_CV_STRING)\
+	))\
+
+
 static void M_DrawGenericMenu(void)
 {
 	INT32 x, y, i, cursory = 0;
+	CHECKEREDINIT
 
 	// DRAW MENU
 	x = currentMenu->x;
@@ -4603,6 +4728,10 @@ static void M_DrawGenericMenu(void)
 				if (i == itemOn)
 					cursory = y;
 
+				// Dont draw checkered backgrounds for text inputs
+				CHECKEREDNOTEXTINPUT
+					DRAWCHECKEREDBACKGROUND
+				
 				if ((currentMenu->menuitems[i].status & IT_DISPLAY)==IT_STRING)
 					V_DrawString(x, y, MENUCAPS, currentMenu->menuitems[i].text);
 				else
@@ -4645,6 +4774,7 @@ static void M_DrawGenericMenu(void)
 					y += STRINGHEIGHT;
 					break;
 			case IT_STRING2:
+				DRAWCHECKEREDBACKGROUND
 				V_DrawString(x, y, MENUCAPS, currentMenu->menuitems[i].text);
 				/* FALLTHRU */
 			case IT_DYLITLSPACE:
@@ -4659,8 +4789,10 @@ static void M_DrawGenericMenu(void)
 			case IT_TRANSTEXT:
 				if (currentMenu->menuitems[i].alphaKey)
 					y = currentMenu->y+currentMenu->menuitems[i].alphaKey;
+				DRAWCHECKEREDBACKGROUND
 				/* FALLTHRU */
 			case IT_TRANSTEXT2:
+				DRAWCHECKEREDBACKGROUND
 				V_DrawString(x, y, V_TRANSLUCENT|MENUCAPS, currentMenu->menuitems[i].text);
 				y += SMALLLINEHEIGHT;
 				break;
@@ -4668,6 +4800,7 @@ static void M_DrawGenericMenu(void)
 				if (currentMenu->menuitems[i].alphaKey)
 					y = currentMenu->y+currentMenu->menuitems[i].alphaKey;
 
+				DRAWCHECKEREDBACKGROUND
 				V_DrawString(x, y, V_TRANSLUCENT|V_OLDSPACING, M_CreateSecretMenuOption(currentMenu->menuitems[i].text));
 				y += SMALLLINEHEIGHT;
 				break;
@@ -4678,6 +4811,7 @@ static void M_DrawGenericMenu(void)
 				//V_DrawString(x-16, y, V_YELLOWMAP, currentMenu->menuitems[i].text);
 				M_DrawLevelPlatterHeader(y - (lsheadingheight - 12), currentMenu->menuitems[i].text, true, false);
 				y += SMALLLINEHEIGHT;
+				seenheader = true;
 				break;
 		}
 	}
@@ -4799,6 +4933,7 @@ static void M_DrawControlsDefMenu(void)
 static void M_DrawGenericScrollMenu(void)
 {
 	INT32 x, y, i, max, bottom, tempcentery, cursory = 0;
+	CHECKEREDINIT
 
 	// DRAW MENU
 	x = currentMenu->x;
@@ -4859,6 +4994,9 @@ static void M_DrawGenericScrollMenu(void)
 				break;
 			case IT_STRING:
 			case IT_WHITESTRING:
+				CHECKEREDNOTEXTINPUT
+					DRAWCHECKEREDBACKGROUND
+
 				if (i != itemOn && (currentMenu->menuitems[i].status & IT_DISPLAY)==IT_STRING)
 					V_DrawString(x, y, MENUCAPS, currentMenu->menuitems[i].text);
 				else
@@ -4914,6 +5052,8 @@ static void M_DrawGenericScrollMenu(void)
 					}
 					break;
 			case IT_TRANSTEXT:
+				DRAWCHECKEREDBACKGROUND
+
 				switch (currentMenu->menuitems[i].status & IT_TYPE)
 				{
 					case IT_PAIR:
@@ -4928,11 +5068,13 @@ static void M_DrawGenericScrollMenu(void)
 				}
 				break;
 			case IT_QUESTIONMARKS:
+				DRAWCHECKEREDBACKGROUND
 				V_DrawString(x, y, V_TRANSLUCENT|V_OLDSPACING, M_CreateSecretMenuOption(currentMenu->menuitems[i].text));
 				break;
 			case IT_HEADERTEXT:
 				//V_DrawString(x-16, y, V_YELLOWMAP, currentMenu->menuitems[i].text);
 				M_DrawLevelPlatterHeader(y - (lsheadingheight - 12), currentMenu->menuitems[i].text, true, false);
+				seenheader = true;
 				break;
 		}
 	}
@@ -14567,16 +14709,15 @@ static void M_DrawScreenshotMenu(void)
 {
 	M_DrawGenericScrollMenu();
 #ifdef HWRENDER
-	if ((rendermode == render_opengl) && (itemOn < 7)) // where it starts to go offscreen; change this number if you change the layout of the screenshot menu
+	if ((rendermode == render_opengl) && (itemOn < 6)) // where it starts to go offscreen; change this number if you change the layout of the screenshot menu
 	{
 		INT32 y = currentMenu->y+currentMenu->menuitems[op_screenshot_colorprofile].alphaKey*2;
-		if (itemOn == 6)
-			y -= 10;
-		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, y, V_REDMAP, "Yes");
+		if (itemOn == 5)
+			y -= 12;
+		V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, y, V_REDMAP|MENUCAPS, "Yes");
 	}
 #endif
 }
-
 // ===============
 // Monitor Toggles
 // ===============

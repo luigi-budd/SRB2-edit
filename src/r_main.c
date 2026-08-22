@@ -152,7 +152,6 @@ consvar_t cv_chasecam = CVAR_INIT ("chasecam", "On", CV_CALL, CV_OnOff, ChaseCam
 consvar_t cv_chasecam2 = CVAR_INIT ("chasecam2", "On", CV_CALL, CV_OnOff, ChaseCam2_OnChange);
 consvar_t cv_flipcam = CVAR_INIT ("flipcam", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam_OnChange);
 consvar_t cv_flipcam2 = CVAR_INIT ("flipcam2", "No", CV_SAVE|CV_CALL|CV_NOINIT, CV_YesNo, FlipCam2_OnChange);
-consvar_t cv_ringracers_quakes = CVAR_INIT ("rr_quakes", "Yes", CV_SAVE|CV_CLIENT, CV_YesNo, NULL);
 
 consvar_t cv_shadow = CVAR_INIT ("shadow", "On", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_skybox = CVAR_INIT ("skybox", "On", CV_SAVE, CV_OnOff, NULL);
@@ -1191,17 +1190,11 @@ void R_SetupFrame(player_t *player)
 				ir = Easing_InQuad(FixedDiv(dist, quake.radius), ir, 0);
 		}
 
-		if (cv_ringracers_quakes.value)
+		// RR Quakes
+		if (cv_earthquake.value == 2)
 		{
-			ir = FixedMul(ir << 1, FRACUNIT + rendertimefrac);
-			ir = (3*ir)/4;
+			ir = FixedMul(ir, FRACUNIT + rendertimefrac);
 
-			/*
-			fixed_t max_shake = thiscam->height * 3 / 4;
-			if (ir > max_shake)
-				ir = max_shake;
-			*/
-			
 			quake.z = (leveltime & 1) ? ir : -ir;
 		}
 		else
@@ -1690,7 +1683,6 @@ void R_RegisterEngineStuff(void)
 
 	CV_RegisterVar(&cv_chasecam);
 	CV_RegisterVar(&cv_chasecam2);
-	CV_RegisterVar(&cv_ringracers_quakes);
 
 	CV_RegisterVar(&cv_shadow);
 	CV_RegisterVar(&cv_skybox);

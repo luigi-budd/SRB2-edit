@@ -68,6 +68,7 @@ void HWR_LoadLevel(void);
 #endif
 boolean P_AddWadFileLocal(const char *wadfilename);
 boolean P_AddWadFile(const char *wadfilename);
+boolean P_AddFolderLocal(const char *folderpath);
 boolean P_AddFolder(const char *folderpath);
 boolean P_RunSOC(const char *socfilename);
 void P_LoadSoundsRange(UINT16 wadnum, UINT16 first, UINT16 num);

@@ -134,6 +134,7 @@ static void Command_ResetCamera_f(void);
 static void Command_Addfilelocal(void);
 static void Command_Addfile(void);
 static void Command_Addfolder(void);
+static void Command_Addfolderlocal(void);
 static void Command_ListWADS_f(void);
 static void Command_RunSOC(void);
 static void Command_Pause(void);
@@ -526,6 +527,7 @@ void D_RegisterServerCommands(void)
 	COM_AddCommand("mapmd5", Command_Mapmd5_f, COM_LUA);
 
 	COM_AddCommand("addfolder", Command_Addfolder, COM_LUA);
+	COM_AddCommand("addfolderlocal", Command_Addfolderlocal, COM_LUA|COM_CLIENT);
 	COM_AddCommand("addfile", Command_Addfile, COM_LUA);
 	COM_AddCommand("addfilelocal", Command_Addfilelocal, COM_LUA|COM_CLIENT);
 	COM_AddCommand("listwad", Command_ListWADS_f, COM_LUA);
@@ -3766,6 +3768,127 @@ static void Command_Addfolder(void)
 			SendNetXCmd(XD_REQADDFOLDER, buf, buf_p - buf);
 		else
 			SendNetXCmd(XD_ADDFOLDER, buf, buf_p - buf);
+	}
+}
+
+// Yup. Just a code dupe. Lol
+static void Command_Addfolderlocal(void)
+{
+	size_t argc = COM_Argc(); // amount of arguments total
+	size_t curarg; // current argument index
+
+	addedfile_t *addedfolders = NULL; // list of filenames already processed
+
+	if (argc < 2)
+	{
+		CONS_Printf(M_GetText("addfolderlocal <path> [path2...] [...]: Load add-ons\n"));
+		return;
+	}
+
+	// start at one to skip command name
+	for (curarg = 1; curarg < argc; curarg++)
+	{
+		const char *fn, *p;
+		char *fullpath;
+		char buf[256];
+		char *buf_p = buf;
+		INT32 i, stat;
+		boolean folderadded = false;
+
+		fn = COM_Argv(curarg);
+
+		// For the amount of filenames previously processed...
+		folderadded = AddedFileContains(addedfolders, fn);
+		if (folderadded) // If we've added this one, skip to the next one.
+		{
+			CONS_Alert(CONS_WARNING, M_GetText("Already processed %s, skipping\n"), fn);
+			continue;
+		}
+
+		// Disallow non-printing characters and semicolons.
+		for (i = 0; fn[i] != '\0'; i++)
+			if (!isprint(fn[i]) || fn[i] == ';')
+			{
+				AddedFilesClearList(&addedfolders);
+				return;
+			}
+
+		// Add file on your client directly if you aren't in a netgame.
+		if (!(netgame || multiplayer) || server)
+		{
+			P_AddFolderLocal(fn);
+			AddedFilesAdd(&addedfolders, fn);
+			continue;
+		}
+
+		p = fn+strlen(fn);
+		while(--p >= fn)
+			if (*p == '\\' || *p == '/' || *p == ':')
+				break;
+		++p;
+
+		// Don't add an empty path.
+		if (M_IsStringEmpty(fn))
+		{
+			CONS_Alert(CONS_WARNING, M_GetText("Folder name is empty, skipping\n"));
+			continue;
+		}
+
+		// check no of files currently loaded
+		// See W_LoadWadFile in w_wad.c
+		if (numwadfiles >= MAX_WADFILES)
+		{
+			CONS_Alert(CONS_ERROR, M_GetText("Too many files loaded to add %s\n"), fn);
+			AddedFilesClearList(&addedfolders);
+			return;
+		}
+
+		// Check if the path is valid.
+		stat = W_IsPathToFolderValid(fn);
+
+		if (stat == 0)
+		{
+			CONS_Alert(CONS_WARNING, M_GetText("Path %s is invalid, skipping\n"), fn);
+			continue;
+		}
+		else if (stat < 0)
+		{
+#ifndef AVOID_ERRNO
+			CONS_Alert(CONS_WARNING, M_GetText("Error accessing %s (%s), skipping\n"), fn, strerror(direrror));
+#else
+			CONS_Alert(CONS_WARNING, M_GetText("Error accessing %s, skipping\n"), fn);
+#endif
+			continue;
+		}
+
+		// Get the full path for this folder.
+		fullpath = W_GetFullFolderPath(fn);
+
+		if (fullpath == NULL)
+		{
+			CONS_Alert(CONS_WARNING, M_GetText("Path %s is invalid, skipping\n"), fn);
+			continue;
+		}
+
+		// Check if the folder is already added.
+		for (i = 0; i < numwadfiles; i++)
+		{
+			if (wadfiles[i]->type != RET_FOLDER)
+				continue;
+
+			if (samepaths(wadfiles[i]->path, fullpath) > 0)
+			{
+				CONS_Alert(CONS_ERROR, M_GetText("%s is already loaded\n"), fn);
+				continue;
+			}
+		}
+
+		Z_Free(fullpath);
+
+		// just add it i think itll be fine
+		P_AddFolderLocal(fn);
+		AddedFilesAdd(&addedfolders, fn);
+		continue;
 	}
 }
 

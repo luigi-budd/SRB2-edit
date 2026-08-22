@@ -25,7 +25,7 @@ Sonic Team Junior is in no way affiliated with SEGA or Sonic Team. We do not cla
 
 # About SRB2-edit
 
-SRB2-edit is a source mode of Sonic Robo Blast 2 aimed to add more development and modding tools, and general gameplay and QOL improvements, without getting in the way of netplay and performance.
+SRB2-edit is a source mod of Sonic Robo Blast 2 aimed at adding more development/modding tools, and general gameplay and QOL improvements, without getting in the way of netplay and performance.
 
 ## Compiling
 
@@ -42,6 +42,12 @@ If you're downloading a release from the Actions tab, make sure to download the 
 Please refer to `libs/DLL-README.txt` if you need help locating any libraries.
 
 # Changes
+
+## Discord Integration
+SRB2-edit provides Discord Rich Presence support. This feature can be toggled off with the `discordrp` cvar. Rich Presence also allows other users to join your netgames through Discord (`discordasks`).
+<p align="center">
+  <img width="500" height="150" alt="SRB2-edit" src="https://raw.githubusercontent.com/luigi-budd/SRB2-edit/refs/heads/master/discordrp.png" />
+</p>
 
 ## HUD
 - CEchos/CSays print message into console ("`showcsays`")

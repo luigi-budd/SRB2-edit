@@ -4680,18 +4680,26 @@ static void M_DrawMenuTitle(void)
 		|| nobackgrounds\
 	))\
 
-
+static boolean nogenericbackgrounds = false;
+static boolean forcegenericbackgrounds = false;
 static void M_DrawGenericMenu(void)
 {
 	INT32 x, y, i, cursory = 0;
 	CHECKEREDINIT
 
-	// sorry for the hardcoded check
-	// I cant be bothered to actually make menus toggle this
-	// so this is the easiest fix
-	if (currentMenu == &MP_RejoinDef)
+	// lol?
+	if (nogenericbackgrounds)
+	{
 		nobackgrounds = true;
-	
+		nogenericbackgrounds = false;
+	}
+	// LOL????
+	if (forcegenericbackgrounds)
+	{
+		seenheader = true;
+		forcegenericbackgrounds = false;
+	}
+
 	// DRAW MENU
 	x = currentMenu->x;
 	y = currentMenu->y;
@@ -11748,6 +11756,7 @@ static void M_DrawRejoinMenu(void)
 		y += 12;
 	}
 
+	nogenericbackgrounds = true;
 	M_DrawGenericMenu();
 }
 
@@ -12204,6 +12213,7 @@ static void M_StartServer(INT32 choice)
 
 static void M_DrawServerMenu(void)
 {
+	forcegenericbackgrounds = true;
 	M_DrawGenericMenu();
 
 	// Room name

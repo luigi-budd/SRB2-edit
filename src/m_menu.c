@@ -12222,10 +12222,10 @@ static void M_DrawServerMenu(void)
 		M_DrawLevelPlatterHeader(currentMenu->y - lsheadingheight/2, "Server settings", true, false);
 		if (cv_masterserver_room_id.value < 0)
 			V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ServerMenu[mp_server_room].alphaKey,
-			                         MENUHIGHLIGHT, (itemOn == mp_server_room) ? "<Select to change>" : "<Unlisted Mode>");
+			                         MENUHIGHLIGHT|MENUCAPS, (itemOn == mp_server_room) ? "<Select to change>" : "<Unlisted Mode>");
 		else
 			V_DrawRightAlignedString(BASEVIDWIDTH - currentMenu->x, currentMenu->y + MP_ServerMenu[mp_server_room].alphaKey,
-			                         MENUHIGHLIGHT, room_list[menuRoomIndex].name);
+			                         MENUHIGHLIGHT|MENUCAPS, room_list[menuRoomIndex].name);
 	}
 
 	if (cv_nextmap.value)

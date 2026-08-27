@@ -594,7 +594,7 @@ static void D_Display(void)
 #else
 		INT32 y = ((automapactive) ? (32) : (BASEVIDHEIGHT/2));
 		M_DrawTextBox((BASEVIDWIDTH/2) - (60), y - (16), 13, 2);
-		V_DrawCenteredString(BASEVIDWIDTH/2, y - (4), V_YELLOWMAP, "Game Paused");
+		V_DrawCenteredString(BASEVIDWIDTH/2, y - (4), MENUHIGHLIGHT, "Game Paused");
 #endif
 	}
 

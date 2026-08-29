@@ -421,6 +421,10 @@ consvar_t cv_showserverinfo = CVAR_INIT ("showserverinfo", "On", CV_SAVE|CV_CLIE
 static CV_PossibleValue_t cvarinfo_const_t[] = {{0, "Show All"}, {1, "Hide Origin"}, {2, "Hide Flags"}, {3, "Only Show Values"}, {0, NULL}};
 consvar_t cv_cvarinformation = CVAR_INIT ("cvarinfo", "Show All", CV_CLIENT|CV_SAVE, cvarinfo_const_t, NULL);
 
+/* https://gist.github.com/zziuni/3741933 */
+/* I can only trust google to keep their shit up :y */
+consvar_t cv_stunserver = CVAR_INIT ("stunserver", "stun.l.google.com:19302", CV_SAVE|CV_CLIENT, NULL, NULL);
+
 char timedemo_name[256];
 boolean timedemo_csv;
 char timedemo_csv_id[256];

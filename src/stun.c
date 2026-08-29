@@ -30,10 +30,6 @@
 #include "netcode/i_net.h"
 #include "stun.h"
 
-/* https://gist.github.com/zziuni/3741933 */
-/* I can only trust google to keep their shit up :y */
-consvar_t cv_stunserver = CVAR_INIT ("stunserver", "stun.l.google.com:19302", CV_SAVE|CV_CLIENT, NULL, NULL);
-
 static stun_callback_t stun_callback;
 
 /* 18.4 STUN UDP and TCP Port Numbers */

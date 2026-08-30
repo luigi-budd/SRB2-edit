@@ -39,7 +39,7 @@ You can compile the source code normally (see "Compiling") and put the binary in
 
 **If you're downloading a release from the Actions tab, make sure to download the correct Discord RPC libraries from the source code and put them in your SRB2 directory. The game will not start otherwise.**
 
-Please refer to `libs/DLL-README.txt` if you need help locating any libraries.
+Please refer to `libs/DLL-README.txt` if you need help locating any libraries. *(32-bit builds are under the "i686" folder in `libs/dll-binaries`)*
 
 **NOTE: You will need to be logged into a GitHub account if you want to download from the Actions tab.**
 

@@ -37,11 +37,16 @@ If you get compilation errors referring to booleans and/or pointers, try reverti
 
 You can compile the source code normally (see "Compiling") and put the binary in your SRB2 directory. Don't forget to install the Discord RPC libraries as well.
 
-If you're downloading a release from the Actions tab, make sure to download the correct Discord RPC libraries from the source code and put them in your SRB2 directory. The game will not start otherwise.
+**If you're downloading a release from the Actions tab, make sure to download the correct Discord RPC libraries from the source code and put them in your SRB2 directory. The game will not start otherwise.**
 
 Please refer to `libs/DLL-README.txt` if you need help locating any libraries.
 
 **NOTE: You will need to be logged into a GitHub account if you want to download from the Actions tab.**
+
+<p align="center">
+  <img width="2120" height="930" alt="Z68HSlSh4r" src="https://github.com/user-attachments/assets/8fb3b807-13f3-42cf-a357-56816802dae9" />
+</p>
+
 
 # Settings
 

@@ -41,6 +41,8 @@ If you're downloading a release from the Actions tab, make sure to download the 
 
 Please refer to `libs/DLL-README.txt` if you need help locating any libraries.
 
+** You will need a GitHub account if you want to download from the Actions tab. **
+
 # Settings
 
 All settings SRB2-edit adds can be found in game inside the "SRB2-edit Options..." menu.

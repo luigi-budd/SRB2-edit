@@ -146,6 +146,7 @@ static char *char_notes = NULL;
 
 boolean menuactive = false;
 boolean fromlevelselect = false;
+INT32 mapwads[NUMMAPS] = {};
 
 typedef enum
 {
@@ -5119,6 +5120,28 @@ static void M_DrawPauseMenu(void)
 			V_DrawString(40, 28, MENUHIGHLIGHT|MENUCAPS, va("%s %d", mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum));
 		else
 			V_DrawString(40, 28, MENUHIGHLIGHT|MENUCAPS, mapheaderinfo[gamemap-1]->lvlttl);
+
+		// draw which addon this map is from
+		if (cv_showmapaddon.value)
+		{
+			static tic_t namescroll = 0;
+			char namescrollbuf[64]= {0};
+			if (renderisnewtic)
+				namescroll++;
+
+			char *addonname = wadfiles[mapwads[gamemap]]->filename;
+			nameonly(addonname);
+
+			INT32 len = strlen(addonname);
+			const INT32 boxwidth = ((16*8+6) - (40 - 27)) / 3; // i think characters are 5 pixels wide
+
+			if (len > boxwidth)
+				M_ScrollString(addonname, len, namescrollbuf, boxwidth, namescroll);
+			else
+				strncpy(namescrollbuf, addonname, sizeof(namescrollbuf) - 1);
+
+			V_DrawThinString(40, 38, MENUCAPS|V_20TRANS, namescrollbuf);
+		}
 
 		// Set up the detail boxes.
 		{

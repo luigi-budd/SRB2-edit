@@ -184,7 +184,7 @@ void ignorelinesuntilhash(MYFILE *f)
 	Z_Free(s);
 }
 
-static void DEH_LoadDehackedFile(MYFILE *f, boolean mainfile)
+static void DEH_LoadDehackedFile(MYFILE *f, boolean mainfile, UINT16 wad)
 {
 	char *s = Z_Malloc(MAXLINELEN, PU_STATIC, NULL);
 	char textline[MAXLINELEN];
@@ -384,7 +384,7 @@ static void DEH_LoadDehackedFile(MYFILE *f, boolean mainfile)
 						i = M_MapNumber(word2[0], word2[1]);
 
 					if (i > 0 && i <= NUMMAPS)
-						readlevelheader(f, i);
+						readlevelheader(f, i, wad);
 					else
 					{
 						deh_warning("Level number %d out of range (1 - %d)", i, NUMMAPS);
@@ -632,7 +632,7 @@ void DEH_LoadDehackedLumpPwad(UINT16 wad, UINT16 lump, boolean mainfile)
 	W_ReadLumpPwad(wad, lump, f.data);
 	f.curpos = f.data;
 	f.data[f.size] = 0;
-	DEH_LoadDehackedFile(&f, mainfile);
+	DEH_LoadDehackedFile(&f, mainfile, wad);
 	Z_Free(f.data);
 }
 

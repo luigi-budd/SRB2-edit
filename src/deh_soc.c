@@ -1358,7 +1358,7 @@ void readgametype(MYFILE *f, char *gtname)
 	CONS_Printf("Added gametype %s\n", Gametype_Names[newgtidx]);
 }
 
-void readlevelheader(MYFILE *f, INT32 num)
+void readlevelheader(MYFILE *f, INT32 num, INT32 wadnum)
 {
 	char *s = Z_Malloc(MAXLINELEN, PU_STATIC, NULL);
 	char *word;
@@ -1369,6 +1369,11 @@ void readlevelheader(MYFILE *f, INT32 num)
 
 	// Reset all previous map header information
 	P_AllocMapHeader((INT16)(num-1));
+
+	if (!strstr(wadfiles[wadnum]->filename, ".soc"))
+	{
+		mapwads[num-1] = wadnum;
+	}
 
 	do
 	{

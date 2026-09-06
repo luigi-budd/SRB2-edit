@@ -146,6 +146,8 @@ FUNCMATH UINT8 M_CountBits(UINT32 num, UINT8 size);
 // Rounds off floating numbers and checks for 0 - 255 bounds
 int M_RoundUp(double number);
 
+void M_ScrollString(const char name[], size_t len, char result[], size_t maxlen, tic_t timer);
+
 #include "w_wad.h"
 extern char configfile[MAX_WADPATH];
 

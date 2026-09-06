@@ -110,6 +110,7 @@ extern consvar_t cv_showping;
 extern consvar_t cv_pingmeasurement;
 extern consvar_t cv_showcsays;
 extern consvar_t cv_cvarinformation;
+extern consvar_t cv_showmapaddon;
 
 extern consvar_t cv_skipmapcheck;
 

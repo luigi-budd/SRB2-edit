@@ -452,6 +452,8 @@ typedef struct
 	INT32 gamemap;
 } saveinfo_t;
 
+extern INT32 mapwads[NUMMAPS];
+
 extern description_t *description;
 extern INT32 numdescriptions;
 

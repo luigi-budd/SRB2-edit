@@ -70,7 +70,7 @@ void readhuditem(MYFILE *f, INT32 num);
 void readmenu(MYFILE *f, INT32 num);
 void readtextprompt(MYFILE *f, INT32 num);
 void readcutscene(MYFILE *f, INT32 num);
-void readlevelheader(MYFILE *f, INT32 num);
+void readlevelheader(MYFILE *f, INT32 num, INT32 wadnum);
 void readgametype(MYFILE *f, char *gtname);
 void readsprite2(MYFILE *f, INT32 num);
 void readspriteinfo(MYFILE *f, INT32 num, boolean sprite2);

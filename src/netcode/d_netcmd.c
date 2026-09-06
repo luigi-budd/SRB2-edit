@@ -421,6 +421,8 @@ consvar_t cv_showserverinfo = CVAR_INIT ("showserverinfo", "On", CV_SAVE|CV_CLIE
 static CV_PossibleValue_t cvarinfo_const_t[] = {{0, "Show All"}, {1, "Hide Origin"}, {2, "Hide Flags"}, {3, "Only Show Values"}, {0, NULL}};
 consvar_t cv_cvarinformation = CVAR_INIT ("cvarinfo", "Show All", CV_CLIENT|CV_SAVE, cvarinfo_const_t, NULL);
 
+consvar_t cv_showmapaddon = CVAR_INIT ("showmapaddon", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
+
 /* https://gist.github.com/zziuni/3741933 */
 /* I can only trust google to keep their shit up :y */
 consvar_t cv_stunserver = CVAR_INIT ("stunserver", "stun.l.google.com:19302", CV_SAVE|CV_CLIENT, NULL, NULL);
@@ -662,9 +664,13 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_maxping);
 	CV_RegisterVar(&cv_pingtimeout);
 	CV_RegisterVar(&cv_showping);
+	// most of the client cvars dont seem like the belong here,
+	// when would a dedicated server ever need cv_pingmeasurement? Lol.
+	// ill keep them here just in case moving them breaks something
 	CV_RegisterVar(&cv_pingmeasurement);
 	CV_RegisterVar(&cv_showcsays);
 	CV_RegisterVar(&cv_cvarinformation);
+	CV_RegisterVar(&cv_showmapaddon);
 	COM_AddCommand("getlogfile", Command_GetLogFile_f, COM_CLIENT);
 
 	CV_RegisterVar(&cv_allowseenames);
@@ -4806,10 +4812,11 @@ static void Command_Showmap_f(void)
 {
 	if (gamestate == GS_LEVEL)
 	{
+		char *addonname = wadfiles[mapwads[gamemap]]->filename;
 		if (mapheaderinfo[gamemap-1]->actnum)
-			CONS_Printf("%s (%d): %s %d\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum);
+			CONS_Printf("%s (%d): %s %d from %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, mapheaderinfo[gamemap-1]->actnum, addonname);
 		else
-			CONS_Printf("%s (%d): %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl);
+			CONS_Printf("%s (%d): %s from %s\n", G_BuildMapName(gamemap), gamemap, mapheaderinfo[gamemap-1]->lvlttl, addonname);
 	}
 	else
 		CONS_Printf(M_GetText("You must be in a level to use this.\n"));

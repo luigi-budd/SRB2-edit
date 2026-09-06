@@ -23,6 +23,7 @@
 #include "netcode/net_command.h"
 #include "netcode/gamestate.h"
 #include "netcode/tic_command.h"
+#include "netcode/d_netfil.h"
 
 #include "g_game.h"
 #include "g_input.h"
@@ -1846,6 +1847,12 @@ void HU_Drawer(void)
 			strcat(resynch_text, ".");
 
 		V_DrawCenteredString(BASEVIDWIDTH/2, 180, V_YELLOWMAP | V_ALLOWLOWERCASE, resynch_text);
+
+		const fixed_t stringwid = V_StringWidth("Resynching", 0) * FRACUNIT;
+		fixed_t barwidth = FixedMul(stringwid - FRACUNIT, FixedDiv(fileneeded[0].currentsize, fileneeded[0].totalsize));
+
+		V_DrawFixedFill((BASEVIDWIDTH/2)*FRACUNIT - stringwid/2, 190*FRACUNIT, stringwid, 3*FRACUNIT, 26|V_ALLOWLOWERCASE);
+		V_DrawFixedFill((BASEVIDWIDTH/2)*FRACUNIT - stringwid/2, 190*FRACUNIT, barwidth, 2*FRACUNIT, 73|V_ALLOWLOWERCASE);
 	}
 
 	if (modeattacking && pausedelay > 0 && !(pausebreakkey || cv_instantretry.value))

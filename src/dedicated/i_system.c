@@ -1471,29 +1471,6 @@ const char *I_LocateWad(void)
 	const char *waddir;
 
 	I_OutputMsg("Looking for WADs in: ");
-	waddir = locateWad();
-	I_OutputMsg("\n");
-
-	if (waddir)
-	{
-		// change to the directory where we found srb2.pk3
-#if defined (_WIN32)
-		waddir = _fullpath(NULL, waddir, MAX_PATH);
-		SetCurrentDirectoryA(waddir);
-#else
-		waddir = realpath(waddir, NULL);
-		if (chdir(waddir) == -1)
-			I_OutputMsg("Couldn't change working directory\n");
-#endif
-	}
-	return waddir;
-}
-
-const char *I_LocateWad(void)
-{
-	const char *waddir;
-
-	I_OutputMsg("Looking for WADs in: ");
 	// FIXME: should we go for a command parameter instead for dedicated servers?
 	waddir = locateWad();
 	I_OutputMsg("\n");

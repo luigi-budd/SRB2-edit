@@ -1425,6 +1425,70 @@ static const char *locateWad(void)
 	return NULL;
 }
 
+void I_SaveCurrentWadDirectory(void)
+{
+#ifdef _WIN32
+	char   path[MAX_PATH];
+	FILE * file = openAppDataFile("lastwaddir", "w");
+	if (file != NULL)
+	{
+		if (strcmp(srb2path, ".") == 0)
+		{
+			GetCurrentDirectoryA(sizeof path, path);
+			fputs(path, file);
+		}
+		else
+		{
+			fputs(srb2path, file);
+		}
+		fclose(file);
+	}
+#endif
+}
+
+boolean I_UseSavedWadDirectory(void)
+{
+	boolean ok = false;
+#ifdef _WIN32
+	FILE * file = openAppDataFile("lastwaddir", "r");
+	if (file != NULL)
+	{
+		if (fgets(srb2path, sizeof srb2path, file) != NULL)
+		{
+			I_OutputMsg(
+					"Going to the last known directory with srb2.pk3: %s\n",
+					srb2path);
+			ok = SetCurrentDirectoryA(srb2path);
+		}
+		fclose(file);
+	}
+#endif
+	return ok;
+}
+
+const char *I_LocateWad(void)
+{
+	const char *waddir;
+
+	I_OutputMsg("Looking for WADs in: ");
+	waddir = locateWad();
+	I_OutputMsg("\n");
+
+	if (waddir)
+	{
+		// change to the directory where we found srb2.pk3
+#if defined (_WIN32)
+		waddir = _fullpath(NULL, waddir, MAX_PATH);
+		SetCurrentDirectoryA(waddir);
+#else
+		waddir = realpath(waddir, NULL);
+		if (chdir(waddir) == -1)
+			I_OutputMsg("Couldn't change working directory\n");
+#endif
+	}
+	return waddir;
+}
+
 const char *I_LocateWad(void)
 {
 	const char *waddir;

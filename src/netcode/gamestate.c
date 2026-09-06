@@ -228,6 +228,7 @@ void CL_ReloadReceivedSavegame(void)
 		sprintf(player_names[i], "Player %d", i + 1);
 	}
 
+	boolean oldchasecam[2] = {camera.chase, camera2.chase};
 	CL_LoadReceivedSavegame(true);
 
 	neededtic = max(neededtic, gametic);
@@ -243,6 +244,14 @@ void CL_ReloadReceivedSavegame(void)
 
 	camera.subsector = R_PointInSubsector(camera.x, camera.y);
 	camera2.subsector = R_PointInSubsector(camera2.x, camera2.y);
+
+	// just copy-pasted from P_LoadLevel
+	if (!cv_chasecam.changed)
+		CV_SetValue(&cv_chasecam, oldchasecam[0]);
+
+	// same for second player
+	if (!cv_chasecam2.changed)
+		CV_SetValue(&cv_chasecam2, oldchasecam[1]);
 
 	cl_redownloadinggamestate = false;
 

@@ -154,6 +154,13 @@ const CPUInfoFlags *I_CPUInfo(void)
 	return NULL;
 }
 
+void I_SaveCurrentWadDirectory(void){}
+
+boolean I_UseSavedWadDirectory(void)
+{
+	return false
+}
+
 const char *I_LocateWad(void)
 {
 	return NULL;

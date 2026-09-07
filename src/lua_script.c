@@ -717,7 +717,10 @@ static inline MYFILE *LUA_GetFile(UINT16 wad, UINT16 lump, char **name)
 		(*name)[len] = '\0'; // annoying that index takes priority over dereference, but w/e
 	}
 	
-	lua_wadname = malloc(strlen(wadfiles[wad]->filename) + 1);
+	if (lua_wadname == NULL)
+		lua_wadname = malloc(strlen(wadfiles[wad]->filename) + 1);
+	else
+		lua_wadname = realloc(lua_wadname, strlen(wadfiles[wad]->filename) + 1);
 	strcpy(lua_wadname, wadfiles[wad]->filename);
 
 	// we dont want lua_lumpname to spit out anything

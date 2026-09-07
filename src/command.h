@@ -162,15 +162,16 @@ typedef struct consvar_s //NULL, NULL, 0, NULL, NULL |, 0, NULL, NULL, 0, 0, NUL
 	UINT16 netid; // used internaly : netid for send end receive
 	                      // used only with CV_NETVAR
 	char changed;         // has variable been changed by the user? 0 = no, 1 = yes
+	const char *addonname;
 	struct consvar_s *next;
 } consvar_t;
 
 /* name, defaultvalue, flags, PossibleValue, func */
 #define CVAR_INIT( ... ) \
-{ __VA_ARGS__, NULL, 0, NULL, NULL, {0, {NULL}}, 0U, (char)0, NULL }
+{ __VA_ARGS__, NULL, 0, NULL, NULL, {0, {NULL}}, 0U, (char)0, "base", NULL }
 
 #define CVAR_INIT_WITH_CALLBACKS( ... ) \
-{ __VA_ARGS__, 0, NULL, NULL, {0, {NULL}}, 0U, (char)0, NULL }
+{ __VA_ARGS__, 0, NULL, NULL, {0, {NULL}}, 0U, (char)0, "base", NULL }
 
 #ifdef OLD22DEMOCOMPAT
 typedef struct old_demo_var old_demo_var_t;

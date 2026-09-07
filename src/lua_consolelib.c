@@ -17,6 +17,7 @@
 #include "byteptr.h"
 #include "z_zone.h"
 #include "netcode/net_command.h"
+#include "netcode/d_netfil.h"
 
 #include "lua_script.h"
 #include "lua_libs.h"
@@ -551,6 +552,10 @@ static int lib_cvRegisterVar(lua_State *L)
 	{
 		return luaL_error(L, M_GetText("Variable %s has CV_CALL without any callbacks"), cvar->name);
 	}
+
+	char *addonname = lua_wadname;
+	nameonly(addonname);
+	cvar->addonname = addonname;
 
 	cvar->flags |= CV_ALLOWLUA | CV_LUAVAR;
 	// actually time to register it to the console now! Finally!

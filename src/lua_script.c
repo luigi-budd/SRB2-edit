@@ -611,6 +611,10 @@ static void LUA_ClearState(void)
 		lua_setfield(L, -2, "__metatable");
 	lua_pop(L, 1);
 
+	// allocate these here for later
+	lua_lumpname = Z_Malloc(600, PU_LUA, NULL); // 600 should be more than enough
+	lua_wadname = Z_Malloc(600, PU_LUA, NULL);
+
 	// lua state is ready!
 	gL = L;
 }
@@ -692,7 +696,6 @@ static inline MYFILE *LUA_GetFile(UINT16 wad, UINT16 lump, char **name)
 {
 	MYFILE *f = Z_Malloc(sizeof(MYFILE), PU_LUA, NULL);
 	size_t len;
-	boolean islua = false;
 
 	f->wad = wad;
 	f->size = W_LumpLengthPwad(wad, lump);
@@ -706,7 +709,6 @@ static inline MYFILE *LUA_GetFile(UINT16 wad, UINT16 lump, char **name)
 	{
 		*name = malloc(len+1);
 		strcpy(*name, wadfiles[wad]->filename);
-		islua = true;
 	}
 	else // If it's not a .lua file, copy the lump name in too.
 	{
@@ -717,39 +719,6 @@ static inline MYFILE *LUA_GetFile(UINT16 wad, UINT16 lump, char **name)
 		(*name)[len] = '\0'; // annoying that index takes priority over dereference, but w/e
 	}
 	
-	if (lua_wadname == NULL)
-		lua_wadname = malloc(strlen(wadfiles[wad]->filename) + 1);
-	else
-		lua_wadname = realloc(lua_wadname, strlen(wadfiles[wad]->filename) + 1);
-	strcpy(lua_wadname, wadfiles[wad]->filename);
-
-	// we dont want lua_lumpname to spit out anything
-	// before our srb2 directory, like our user folder,
-	// when returning its value to lua
-	char *wadnameshort = malloc(strlen(wadfiles[wad]->filename) + 1);
-	strcpy(wadnameshort, wadfiles[wad]->filename);
-	nameonly(wadnameshort);
-
-	char *lumpname = malloc(len+1);
-	strcpy(lumpname, *name);
-	nameonly(lumpname); // would return something like "main.lua" i think
-
-	if (!islua)
-	{
-		// combine both strings...
-		strcpy(lumpname, va("%s/%s", wadnameshort, lumpname));
-	}
-	// else, its a plain lua script, so just load the lumpname
-
-	if (lua_lumpname == NULL)
-		lua_lumpname = malloc(strlen(lumpname)+1);
-	else
-		lua_lumpname = realloc(lua_lumpname, strlen(lumpname)+1);
-	strcpy(lua_lumpname, lumpname);
-
-	free(wadnameshort);
-	free(lumpname);
-
 	return f;
 }
 
@@ -760,7 +729,31 @@ boolean LUA_LoadLump(UINT16 wad, UINT16 lump)
 	MYFILE *f = LUA_GetFile(wad, lump, &name);
 	boolean success = LUA_LoadFile(f, name); // actually load file!
 
+	strcpy(lua_wadname, wadfiles[wad]->filename);
+
+	// we dont want lua_lumpname to spit out anything
+	// before our srb2 directory, like our user folder,
+	// when returning its value to lua
+	char *wadnameshort = wadfiles[wad]->filename;
+	nameonly(wadnameshort);
+
+	char *lumpname = malloc(strlen(name) + 1);
+	strcpy(lumpname, name);
+	nameonly(lumpname); // would return something like "main.lua" i think
+
+	if (!(wadfiles[wad]->type == RET_LUA))
+	{
+		// combine both strings...
+		sprintf(lua_lumpname, "%s|%s", wadnameshort, lumpname);
+	}
+	// else, its a plain lua script, so just load the lumpname
+	else
+	{
+		strcpy(lua_lumpname, lumpname);
+	}
+	
 	free(name);
+	free(lumpname);
 
 	Z_Free(f->data);
 	Z_Free(f);

@@ -29,6 +29,8 @@ endif
 
 ifndef NODISCORDRPC
 HAVE_DISCORDRPC=1
+else
+HAVE_DISCORDRPC=0
 endif
 
 ifdef MINGW64

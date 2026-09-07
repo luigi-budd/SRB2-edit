@@ -27,9 +27,7 @@
 #include "p_local.h"
 #include "p_slopes.h" // for P_SlopeById and slopelist
 #include "p_polyobj.h" // polyobj_t, PolyObjects
-#ifdef LUA_ALLOW_BYTECODE
-#include "netcode/d_netfil.h" // for LUA_DumpFile
-#endif
+#include "netcode/d_netfil.h"
 
 #include "lua_script.h"
 #include "lua_libs.h"
@@ -633,6 +631,7 @@ void LUA_ClearExtVars(void)
 INT32 lua_lumploading = 0;
 INT32 lua_locallyloading = 0;
 char *lua_lumpname = NULL;
+char *lua_wadname = NULL; // Dont expose this
 
 // Load a script from a MYFILE
 static inline boolean LUA_LoadFile(MYFILE *f, char *name)
@@ -693,6 +692,7 @@ static inline MYFILE *LUA_GetFile(UINT16 wad, UINT16 lump, char **name)
 {
 	MYFILE *f = Z_Malloc(sizeof(MYFILE), PU_LUA, NULL);
 	size_t len;
+	boolean islua = false;
 
 	f->wad = wad;
 	f->size = W_LumpLengthPwad(wad, lump);
@@ -706,6 +706,7 @@ static inline MYFILE *LUA_GetFile(UINT16 wad, UINT16 lump, char **name)
 	{
 		*name = malloc(len+1);
 		strcpy(*name, wadfiles[wad]->filename);
+		islua = true;
 	}
 	else // If it's not a .lua file, copy the lump name in too.
 	{
@@ -715,8 +716,37 @@ static inline MYFILE *LUA_GetFile(UINT16 wad, UINT16 lump, char **name)
 		sprintf(*name, "%s|%s", wadfiles[wad]->filename, lump_p->fullname);
 		(*name)[len] = '\0'; // annoying that index takes priority over dereference, but w/e
 	}
-	lua_lumpname = malloc(len+1);
-	strcpy(lua_lumpname, *name);
+	
+	lua_wadname = malloc(strlen(wadfiles[wad]->filename) + 1);
+	strcpy(lua_wadname, wadfiles[wad]->filename);
+
+	// we dont want lua_lumpname to spit out anything
+	// before our srb2 directory, like our user folder,
+	// when returning its value to lua
+	char *wadnameshort = malloc(strlen(wadfiles[wad]->filename) + 1);
+	strcpy(wadnameshort, wadfiles[wad]->filename);
+	nameonly(wadnameshort);
+
+	char *lumpname = malloc(len+1);
+	strcpy(lumpname, *name);
+	nameonly(lumpname); // would return something like "main.lua" i think
+
+	if (!islua)
+	{
+		// combine both strings...
+		strcpy(lumpname, va("%s/%s", wadnameshort, lumpname));
+	}
+	// else, its a plain lua script, so just load the lumpname
+
+	if (lua_lumpname == NULL)
+		lua_lumpname = malloc(strlen(lumpname)+1);
+	else
+		lua_lumpname = realloc(lua_lumpname, strlen(lumpname)+1);
+	strcpy(lua_lumpname, lumpname);
+
+	free(wadnameshort);
+	free(lumpname);
+
 	return f;
 }
 

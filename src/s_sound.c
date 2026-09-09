@@ -77,6 +77,7 @@ static consvar_t precachesound = CVAR_INIT ("precachesound", "Off", CV_SAVE, CV_
 consvar_t cv_soundvolume = CVAR_INIT ("soundvolume", "16", CV_SAVE, soundvolume_cons_t, NULL);
 consvar_t cv_digmusicvolume = CVAR_INIT ("digmusicvolume", "16", CV_SAVE, soundvolume_cons_t, NULL);
 consvar_t cv_midimusicvolume = CVAR_INIT ("midimusicvolume", "16", CV_SAVE, soundvolume_cons_t, NULL);
+consvar_t cv_soundvolume = CVAR_INIT ("voicevolume", "16", CV_SAVE, soundvolume_cons_t, NULL);
 
 static void Captioning_OnChange(void)
 {
@@ -119,6 +120,16 @@ consvar_t cv_musicpref = CVAR_INIT ("musicpref", "Digital", CV_SAVE|CV_CALL|CV_N
 // Window focus sound sytem toggles
 consvar_t cv_playmusicifunfocused = CVAR_INIT ("playmusicifunfocused", "No", CV_SAVE, CV_YesNo, NULL);
 consvar_t cv_playsoundsifunfocused = CVAR_INIT ("playsoundsifunfocused", "No", CV_SAVE, CV_YesNo, NULL);
+
+consvar_t cv_voice_chat = CVAR_INIT ("voice_chat", "Off", CV_SAVE|CV_CALL|CV_CLIENT, CV_OnOff, VoiceChat_OnChange);
+
+static CV_PossibleValue_t cons_voicemode_t[] = {
+	{0, "Activity"},
+	{1, "PTT"},
+	{0, NULL}
+};
+consvar_t cv_voice_mode = CVAR_INIT ("voice_mode", "Activity", CV_SAVE|CV_CLIENT, cons_voicemode_t, NULL);
+consvar_t cv_voice_mute = CVAR_INIT ("voice_selfmute", "Off", CV_SAVE|CV_CLIENT, CV_OnOff, SendWeaponPref);
 
 #ifdef HAVE_OPENMPT
 openmpt_module *openmpt_mhandle = NULL;
@@ -2803,8 +2814,9 @@ void MusicPref_OnChange(void)
 		S_ChangeMusicInternal("_clear", false);
 }
 
+void SendWeaponPref(void);
+
 void VoiceChat_OnChange(void);
-void weaponPrefChange(INT32 ssplayer);
 void VoiceChat_OnChange(void)
 {
 	if (M_CheckParm("-novoice") || M_CheckParm("-noaudio"))
@@ -2812,7 +2824,7 @@ void VoiceChat_OnChange(void)
 
 	g_voice_disabled = !cv_voice_chat.value;
 
-	weaponPrefChange(0);
+	SendWeaponPref();
 }
 
 

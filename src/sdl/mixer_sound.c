@@ -665,7 +665,7 @@ void I_SetVoiceVolume(int volume)
 
 	if (gain_voice_channel)
 	{
-		gain_voice_channel->gain(std::clamp(vol * vol * vol, 0.f, 1.f));
+		gain_voice_channel->gain(clamp(vol * vol * vol, 0.f, 1.f));
 	}
 }
 
@@ -1626,6 +1626,7 @@ boolean I_FadeInPlaySong(UINT32 ms, boolean looping)
 		return false;
 }
 
+/*
 boolean I_SoundInputIsEnabled(void)
 {
 	return g_input_device_id != 0 && !g_input_device_paused;
@@ -1676,7 +1677,7 @@ UINT32 I_SoundInputDequeueSamples(void *data, UINT32 len)
 		return 0;
 	}
 
-	UINT32 ret = SDL_DequeueAudio(g_input_device_id, data, std::min(len, avail));
+	UINT32 ret = SDL_DequeueAudio(g_input_device_id, data, min(len, avail));
 	return ret;
 }
 
@@ -1715,4 +1716,5 @@ void I_ResetVoiceQueue(INT32 playernum)
 	SdlVoiceStreamPlayer* player = player_voice_channels.at(playernum).get();
 	player->stream().clear();
 }
+*/
 #endif

@@ -78,6 +78,7 @@ extern consvar_t cv_nettimeout;
 extern consvar_t cv_countdowntime;
 extern consvar_t cv_runscripts;
 extern consvar_t cv_mute;
+extern consvar_t cv_voice_servermute;
 extern consvar_t cv_killingdead;
 extern consvar_t cv_pause;
 
@@ -158,6 +159,8 @@ typedef enum
 	XD_LUAVAR,      // 23
 	XD_LUAFILE,     // 24
 	XD_MUTEPLAYER,  // 25
+	XD_SERVERMUTEPLAYER, // 26
+	XD_SERVERDEAFENPLAYER, // 27
 	MAXNETXCMD
 } netxcmd_t;
 

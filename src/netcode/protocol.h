@@ -94,6 +94,9 @@ typedef enum
 	PT_MOREFILESNEEDED, // Server, to client: "you need these (+ more on top of those)"
 
 	PT_PING,          // Packet sent to tell clients the other client's latency to server.
+
+	PT_VOICE,         // Voice packet for either side
+	
 	NUMPACKETTYPE
 } packettype_t;
 
@@ -191,6 +194,7 @@ typedef struct
 
 #define SV_DEDICATED    0x40 // server is dedicated
 #define SV_LOTSOFADDONS 0x20 // flag used to ask for full file list in d_netfil
+#define SV_VOICEENABLED 0x80    // voice_mute is off/voice chat is enabled
 
 enum {
 	REFUSE_JOINS_DISABLED = 1,
@@ -284,6 +288,23 @@ typedef struct
 	UINT8 files[MAXFILENEEDED]; // is filled with writexxx (byteptr.h)
 } ATTRPACK filesneededconfig_pak;
 
+
+// Sent by both sides. Contains Opus-encoded voice packet
+// flags bitset map (left to right, low to high)
+// | PPPPPTRR | -- P = Player num, T = Terminal, R = Reserved (0)
+// Data following voice header is a single Opus frame
+typedef struct
+{
+	UINT64 frame;
+	UINT8 flags;
+} ATTRPACK voice_pak;
+
+#define VOICE_PAK_FLAGS_PLAYERNUM_BITS 0x1F
+#define VOICE_PAK_FLAGS_TERMINAL_BIT 0x20
+#define VOICE_PAK_FLAGS_RESERVED0_BIT 0x40
+#define VOICE_PAK_FLAGS_RESERVED1_BIT 0x80
+#define VOICE_PAK_FLAGS_RESERVED_BITS (VOICE_PAK_FLAGS_RESERVED0_BIT | VOICE_PAK_FLAGS_RESERVED1_BIT)
+
 //
 // Network packet data
 //
@@ -316,6 +337,7 @@ typedef struct
 		INT32 filesneedednum;
 		filesneededconfig_pak filesneededcfg;
 		UINT32 pingtable[MAXPLAYERS+1];
+		voice_pak voice;
 	} u; // This is needed to pack diff packet types data together
 } ATTRPACK doomdata_t;
 

@@ -2728,6 +2728,7 @@ void G_PlayerReborn(INT32 player, boolean betweenmaps)
 	UINT8 acceleration;
 	INT32 charflags;
 	INT32 pflags;
+	INT32 pflags2;
 	UINT32 thokitem;
 	UINT32 spinitem;
 	UINT32 revitem;
@@ -2780,6 +2781,7 @@ void G_PlayerReborn(INT32 player, boolean betweenmaps)
 	removing = players[player].removing;
 	muted = players[player].muted;
 	pflags = (players[player].pflags & (PF_FLIPCAM|PF_ANALOGMODE|PF_DIRECTIONCHAR|PF_AUTOBRAKE|PF_TAGIT|PF_GAMETYPEOVER));
+	pflags2 = (players[player].pflags2 & (PF2_SELFMUTE | PF2_SELFDEAFEN | PF2_SERVERMUTE | PF2_SERVERDEAFEN));
 	playerangleturn = players[player].angleturn;
 	oldrelangleturn = players[player].oldrelangleturn;
 
@@ -2850,6 +2852,7 @@ void G_PlayerReborn(INT32 player, boolean betweenmaps)
 	p->lives = lives;
 	p->continues = continues;
 	p->pflags = pflags;
+	p->pflags2 = pflags2;
 	p->ctfteam = ctfteam;
 	p->jointime = jointime;
 	p->quittime = quittime;

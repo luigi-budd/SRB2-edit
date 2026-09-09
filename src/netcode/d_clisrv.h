@@ -87,6 +87,8 @@ void NetUpdate(void);
 // Maintain connections to nodes without timing them all out.
 void NetKeepAlive(void);
 
+void NetVoiceUpdate(void);
+
 void GetPackets(void);
 void ResetNode(INT32 node);
 INT16 Consistancy(void);
@@ -138,5 +140,7 @@ extern UINT8 (*adminpassmd5)[16];
 extern UINT32 adminpasscount;
 
 extern boolean hu_stopped;
+
+void DoVoicePacket(SINT8 target, UINT64 frame, const UINT8* opusdata, size_t len);
 
 #endif

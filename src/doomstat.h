@@ -111,6 +111,7 @@ extern boolean fromlevelselect;
 extern boolean midi_disabled;
 extern boolean sound_disabled;
 extern boolean digital_disabled;
+extern boolean g_voice_disabled;
 
 // =========================
 // Status flags for refresh.

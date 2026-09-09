@@ -83,6 +83,7 @@ patch_t *tallinfin;
 static player_t *plr;
 boolean chat_on; // entering a chat message?
 boolean chat_on_first_event; // blocker for first chat input event
+boolean g_voicepushtotalk_on; // holding PTT?
 static char w_chat[HU_MAXMSGLEN + 1];
 static size_t c_input = 0; // let's try to make the chat input less shitty.
 static boolean headsupactive = false;
@@ -1045,6 +1046,21 @@ void HU_clearChatChars(void)
 boolean HU_Responder(event_t *ev)
 {
 	INT32 c=0;
+
+	// Handle Push-to-Talk
+	if (ev->key == gamecontrol[GC_VOICEPUSHTOTALK][0] || ev->key == gamecontrol[GC_VOICEPUSHTOTALK][1])
+	{
+		if (ev->type == ev_keydown)
+		{
+			g_voicepushtotalk_on = true;
+			return true;
+		}
+		else if (ev->type == ev_keyup)
+		{
+			g_voicepushtotalk_on = false;
+			return true;
+		}
+	}
 
 	if (ev->type != ev_keydown && ev->type != ev_text)
 		return false;

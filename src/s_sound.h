@@ -32,6 +32,7 @@ extern consvar_t stereoreverse;
 extern consvar_t cv_soundvolume, cv_closedcaptioning, cv_digmusicvolume, cv_midimusicvolume;
 extern consvar_t cv_consoleinterp; //sure!!!!
 extern consvar_t cv_numChannels;
+extern consvar_t cv_voicevolume;
 
 extern consvar_t cv_resetmusic;
 extern consvar_t cv_resetmusicbyheader;
@@ -51,6 +52,22 @@ extern consvar_t cv_musicpref;
 
 extern consvar_t cv_playmusicifunfocused;
 extern consvar_t cv_playsoundsifunfocused;
+
+extern consvar_t cv_voice_chat;
+extern consvar_t cv_voice_mode;
+extern consvar_t cv_voice_selfmute;
+extern consvar_t cv_voice_loopback;
+extern consvar_t cv_voice_inputamp;
+extern consvar_t cv_voice_activationthreshold;
+extern consvar_t cv_voice_proximity;
+extern consvar_t cv_voice_distanceattenuation_distance;
+extern consvar_t cv_voice_distanceattenuation_factor;
+extern consvar_t cv_voice_stereopanning_factor;
+extern consvar_t cv_voice_concurrentattenuation_factor;
+extern consvar_t cv_voice_concurrentattenuation_min;
+extern consvar_t cv_voice_concurrentattenuation_max;
+extern float g_local_voice_last_peak;
+extern boolean g_local_voice_detected;
 
 #ifdef HAVE_OPENMPT
 extern consvar_t cv_modfilter;
@@ -139,6 +156,8 @@ lumpnum_t S_GetSfxLumpNum(sfxinfo_t *sfx);
 //
 
 boolean S_SoundDisabled(void);
+
+boolean S_VoiceDisabled(void);
 
 //
 // Start sound for thing at <origin> using <sound_id> from sounds.h
@@ -307,6 +326,7 @@ boolean S_FadeOutStopMusic(UINT32 ms);
 //
 void S_UpdateSounds(void);
 void S_UpdateClosedCaptions(void);
+void S_UpdateVoicePositionalProperties(void);
 
 FUNCMATH fixed_t S_CalculateSoundDistance(fixed_t px1, fixed_t py1, fixed_t pz1, fixed_t px2, fixed_t py2, fixed_t pz2);
 
@@ -315,6 +335,7 @@ void S_SetMusicVolume(INT32 digvolume, INT32 seqvolume);
 #define S_SetDigMusicVolume(a) S_SetMusicVolume(a,-1)
 #define S_SetMIDIMusicVolume(a) S_SetMusicVolume(-1,a)
 #define S_InitMusicVolume() S_SetMusicVolume(-1,-1)
+void S_SetVoiceVolume(void);
 
 INT32 S_OriginPlaying(void *origin);
 INT32 S_IdPlaying(sfxenum_t id);
@@ -329,5 +350,14 @@ void S_StopSoundByNum(sfxenum_t sfxnum);
 #define S_StartAttackSound S_StartSound
 #define S_StartScreamSound S_StartSound
 #endif
+
+boolean S_SoundInputIsEnabled(void);
+boolean S_SoundInputSetEnabled(boolean enabled);
+UINT32 S_SoundInputDequeueSamples(void *data, UINT32 len);
+
+void S_QueueVoiceFrameFromPlayer(INT32 playernum, void *data, UINT32 len, boolean terminal);
+void S_SetPlayerVoiceActive(INT32 playernum);
+boolean S_IsPlayerVoiceActive(INT32 playernum);
+void S_ResetVoiceQueue(INT32 playernum);
 
 #endif

@@ -364,6 +364,13 @@ boolean S_SoundDisabled(void)
 	);
 }
 
+boolean S_VoiceDisabled(void)
+{
+	return (
+			g_voice_disabled
+	);
+}
+
 // Stop all sounds, load level info, THEN start sounds.
 void S_StopSounds(void)
 {
@@ -828,6 +835,13 @@ void S_StopSound(void *origin)
 static INT32 actualsfxvolume; // check for change through console
 static INT32 actualdigmusicvolume;
 static INT32 actualmidimusicvolume;
+static INT32 actualvoicevolume;
+
+static boolean PointIsLeft(float ax, float ay, float bx, float by)
+{
+	// return (b.x - a.x)*(c.y - a.y) - (b.y - a.y)*(c.x - a.x) > 0;
+	return ax * by - ay * bx > 0;
+}
 
 void S_UpdateSounds(void)
 {
@@ -850,7 +864,9 @@ void S_UpdateSounds(void)
 		S_SetDigMusicVolume (cv_digmusicvolume.value);
 	if (actualmidimusicvolume != cv_midimusicvolume.value)
 		S_SetMIDIMusicVolume (cv_midimusicvolume.value);
-
+	if (actualvoicevolume != cv_voicevolume.value)
+		S_SetVoiceVolume();
+	
 	// We're done now, if we're not in a level.
 	if (gamestate != GS_LEVEL)
 	{
@@ -990,6 +1006,155 @@ notinlevel:
 	I_UpdateSound();
 }
 
+
+void S_UpdateVoicePositionalProperties(void)
+{
+	int i;
+
+	if (gamestate != GS_LEVEL)
+	{
+		for (i = 0; i < MAXPLAYERS; i++)
+		{
+			I_SetPlayerVoiceProperties(i, 1.0f, 0.0f);
+		}
+		return;
+	}
+
+	player_t *consoleplr = &players[consoleplayer];
+	listener_t listener = {0};
+	mobj_t *listenmobj = NULL;
+
+	if (consoleplr)
+	{
+		if (consoleplr->awayviewtics)
+		{
+			listenmobj = consoleplr->awayviewmobj;
+		}
+		else
+		{
+			listenmobj = consoleplr->mo;
+		}
+
+		if (camera.chase && !consoleplr->awayviewtics)
+		{
+			listener.x = camera.x;
+			listener.y = camera.y;
+			listener.z = camera.z;
+			listener.angle = camera.angle;
+		}
+		else if (listenmobj)
+		{
+			listener.x = listenmobj->x;
+			listener.y = listenmobj->y;
+			listener.z = listenmobj->z;
+			listener.angle = listenmobj->angle;
+		}
+	}
+
+	float playerdistances[MAXPLAYERS];
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		player_t *plr = &players[i];
+		mobj_t *mo = plr->mo;
+		if (plr->spectator || !mo)
+		{
+			playerdistances[i] = 0.f;
+			continue;
+		}
+		float px = FixedToFloat(mo->x - listener.x);
+		float py = FixedToFloat(mo->y - listener.y);
+		float pz = FixedToFloat(mo->z - listener.z);
+		playerdistances[i] = sqrtf(px * px + py * py + pz * pz);
+	}
+
+	// Positional voice audio
+	boolean voice_proximity_enabled = cv_voice_proximity.value == 1;
+	float voice_distanceattenuation_distance = FixedToFloat(cv_voice_distanceattenuation_distance.value) * FixedToFloat(mapheaderinfo[gamemap-1]->mobj_scale);
+	float voice_distanceattenuation_factor = FixedToFloat(cv_voice_distanceattenuation_factor.value);
+	float voice_stereopanning_factor = FixedToFloat(cv_voice_stereopanning_factor.value);
+	float voice_concurrentattenuation_min = max(0, min(MAXPLAYERS, cv_voice_concurrentattenuation_min.value));
+	float voice_concurrentattenuation_max = max(0, min(MAXPLAYERS, cv_voice_concurrentattenuation_max.value));
+	voice_concurrentattenuation_min = min(voice_concurrentattenuation_max, voice_concurrentattenuation_min);
+	float voice_concurrentattenuation_factor = FixedToFloat(cv_voice_concurrentattenuation_factor.value);
+
+	// Derive concurrent speaker attenuation
+	float speakingplayers = 0;
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (S_IsPlayerVoiceActive(i))
+		{
+			if (voice_distanceattenuation_distance > 0)
+			{
+				speakingplayers += 1.f - (playerdistances[i] / voice_distanceattenuation_distance);
+			}
+			else
+			{
+				// invalid distance attenuation
+				speakingplayers += 1.f;
+			}
+		}
+	}
+	speakingplayers = min(voice_concurrentattenuation_max, max(0, speakingplayers - voice_concurrentattenuation_min));
+	float speakingplayerattenuation = 1.f - (speakingplayers * (voice_concurrentattenuation_factor / voice_concurrentattenuation_max));
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!playeringame[i] || !voice_proximity_enabled)
+		{
+			I_SetPlayerVoiceProperties(i, speakingplayerattenuation, 0.0f);
+			continue;
+		}
+
+		if (i == consoleplayer)
+		{
+			I_SetPlayerVoiceProperties(i, speakingplayerattenuation, 0.0f);
+			continue;
+		}
+
+		player_t *plr = &players[i];
+		if (plr->spectator)
+		{
+			I_SetPlayerVoiceProperties(i, speakingplayerattenuation, 0.0f);
+			continue;
+		}
+
+		mobj_t *plrmobj = plr->mo;
+
+		if (!plrmobj)
+		{
+			I_SetPlayerVoiceProperties(i, 1.0f, 0.0f);
+			continue;
+		}
+
+		float lx = FixedToFloat(listener.x);
+		float ly = FixedToFloat(listener.y);
+		float lz = FixedToFloat(listener.z);
+		float px = FixedToFloat(plrmobj->x) - lx;
+		float py = FixedToFloat(plrmobj->y) - ly;
+		float pz = FixedToFloat(plrmobj->z) - lz;
+
+		float ldirx = cosf(ANG2RAD(listener.angle));
+		float ldiry = sinf(ANG2RAD(listener.angle));
+		float pdistance = sqrtf(px * px + py * py + pz * pz);
+		float p2ddistance = sqrtf(px * px + py * py);
+		float pdirx = px / p2ddistance;
+		float pdiry = py / p2ddistance;
+		float angle = acosf(pdirx * ldirx + pdiry * ldiry);
+		angle = PointIsLeft(ldirx, ldiry, pdirx, pdiry) ? -angle : angle;
+
+		float plrvolume = 1.0f;
+		if (voice_distanceattenuation_distance > 0 && voice_distanceattenuation_factor >= 0 && voice_distanceattenuation_factor <= 1.0f)
+		{
+			float invfactor = 1.0f - voice_distanceattenuation_factor;
+			float distfactor = max(0.f, min(voice_distanceattenuation_distance, pdistance)) / voice_distanceattenuation_distance;
+			plrvolume = max(0.0f, min(1.0f, 1.0f - (invfactor * distfactor)));
+		}
+
+		float fsep = sinf(angle) * max(0.0f, min(1.0f, voice_stereopanning_factor));
+		I_SetPlayerVoiceProperties(i, plrvolume * speakingplayerattenuation, fsep);
+	}
+}
+
 void S_UpdateClosedCaptions(void)
 {
 	UINT8 i;
@@ -1030,6 +1195,13 @@ void S_SetSfxVolume(INT32 volume)
 	// now hardware volume
 	I_SetSfxVolume(volume&0x1F);
 #endif
+}
+
+void S_SetVoiceVolume(void)
+{
+	actualvoicevolume = cv_voicevolume.value;
+
+	I_SetVoiceVolume(actualvoicevolume);
 }
 
 void S_ClearSfx(void)
@@ -2629,6 +2801,68 @@ void MusicPref_OnChange(void)
 		P_RestoreMusic(&players[consoleplayer]);
 	else if (S_PrefAvailable(cv_musicpref.value, "_clear"))
 		S_ChangeMusicInternal("_clear", false);
+}
+
+void VoiceChat_OnChange(void);
+void weaponPrefChange(INT32 ssplayer);
+void VoiceChat_OnChange(void)
+{
+	if (M_CheckParm("-novoice") || M_CheckParm("-noaudio"))
+		return;
+
+	g_voice_disabled = !cv_voice_chat.value;
+
+	weaponPrefChange(0);
+}
+
+
+boolean S_SoundInputIsEnabled(void)
+{
+	return I_SoundInputIsEnabled();
+}
+
+boolean S_SoundInputSetEnabled(boolean enabled)
+{
+	return I_SoundInputSetEnabled(enabled);
+}
+
+UINT32 S_SoundInputDequeueSamples(void *data, UINT32 len)
+{
+	return I_SoundInputDequeueSamples(data, len);
+}
+
+static INT32 g_playerlastvoiceactive[MAXPLAYERS];
+
+void S_QueueVoiceFrameFromPlayer(INT32 playernum, void *data, UINT32 len, boolean terminal)
+{
+	if (dedicated)
+	{
+		return;
+	}
+	if (cv_voice_chat.value != 0)
+	{
+		I_QueueVoiceFrameFromPlayer(playernum, data, len, terminal);
+	}
+}
+
+void S_SetPlayerVoiceActive(INT32 playernum)
+{
+	g_playerlastvoiceactive[playernum] = I_GetTime();
+}
+
+boolean S_IsPlayerVoiceActive(INT32 playernum)
+{
+	return I_GetTime() - g_playerlastvoiceactive[playernum] < 5;
+}
+
+void S_ResetVoiceQueue(INT32 playernum)
+{
+	if (dedicated)
+	{
+		return;
+	}
+	I_ResetVoiceQueue(playernum);
+	g_playerlastvoiceactive[playernum] = 0;
 }
 
 #ifdef HAVE_OPENMPT

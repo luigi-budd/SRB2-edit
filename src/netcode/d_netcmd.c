@@ -1585,6 +1585,10 @@ void SendWeaponPref(void)
 		buf[0] |= 4;
 	if (cv_autobrake.value)
 		buf[0] |= 8;
+	if (cv_voice_selfmute.value)
+		buf[0] |= 16;
+	if (!cv_voice_chat.value)
+		buf[0] |= 32;
 	SendNetXCmd(XD_WEAPONPREF, buf, 1);
 }
 
@@ -1609,6 +1613,7 @@ static void Got_WeaponPref(UINT8 **cp,INT32 playernum)
 	UINT8 prefs = READUINT8(*cp);
 
 	players[playernum].pflags &= ~(PF_FLIPCAM|PF_ANALOGMODE|PF_DIRECTIONCHAR|PF_AUTOBRAKE);
+	players[playernum].pflags2 &= ~(PF2_SELFMUTE|PF2_SELFDEAFEN);
 	if (prefs & 1)
 		players[playernum].pflags |= PF_FLIPCAM;
 	if (prefs & 2)
@@ -1617,6 +1622,10 @@ static void Got_WeaponPref(UINT8 **cp,INT32 playernum)
 		players[playernum].pflags |= PF_DIRECTIONCHAR;
 	if (prefs & 8)
 		players[playernum].pflags |= PF_AUTOBRAKE;
+	if (prefs & 16)
+		players[playernum].pflags2 |= PF2_SELFMUTE;
+	if (prefs & 32)
+		players[playernum].pflags2 |= PF2_SELFDEAFEN;
 }
 
 void D_SendPlayerConfig(void)
@@ -5315,6 +5324,18 @@ static void Mute_OnChange(void)
 		CONS_Printf(M_GetText("Chat has been muted.\n"));
 	else
 		CONS_Printf(M_GetText("Chat is no longer muted.\n"));
+}
+
+void VoiceMute_OnChange(void);
+void VoiceMute_OnChange(void)
+{
+	if (leveltime <= 1)
+		return; // avoid having this notification put in our console / log when we boot the server.
+
+	if (cv_voice_servermute.value)
+		HU_AddChatText(M_GetText("\x82*Voice chat has been muted."), false);
+	else
+		HU_AddChatText(M_GetText("\x82*Voice chat is no longer muted."), false);
 }
 
 /** Hack to clear all changed flags after game start.

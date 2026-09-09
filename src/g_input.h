@@ -105,6 +105,7 @@ typedef enum
 	// with consistancy and have something bad happen
 	GC_PAUSEGIF,
 	GC_LOCALTOGGLE, // Local addon toggle
+	GC_VOICEPUSHTOTALK,
 	NUM_GAMECONTROLS
 } gamecontrols_e;
 

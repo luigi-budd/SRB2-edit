@@ -605,6 +605,7 @@ static const char *gamecontrolname[NUM_GAMECONTROLS] =
 	"custom3",
 	"pausegif",
 	"localtoggle",
+	"voicepushtotalk",
 };
 
 #define NUMKEYNAMES (sizeof (keynames)/sizeof (keyname_t))

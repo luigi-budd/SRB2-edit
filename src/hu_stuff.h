@@ -79,6 +79,9 @@ void HU_AddChatText(const char *text, boolean playsound);
 // set true when entering a chat message
 extern boolean chat_on;
 
+// set true when push-to-talk is held
+extern boolean g_voicepushtotalk_on;
+
 extern UINT8 spam_tokens[MAXPLAYERS];
 extern tic_t spam_tics[MAXPLAYERS];
 

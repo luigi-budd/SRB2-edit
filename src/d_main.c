@@ -121,6 +121,7 @@ INT32 postimgparam2;
 boolean midi_disabled = false;
 boolean sound_disabled = false;
 boolean digital_disabled = false;
+boolean g_voice_disabled = false;
 
 //
 // DEMO LOOP
@@ -898,6 +899,7 @@ void D_SRB2Loop(void)
 
 		// consoleplayer -> displayplayers (hear sounds from viewpoint)
 		S_UpdateSounds(); // move positional sounds
+		NetVoiceUpdate(); // update voice recording whenever possible
 		if (realtics > 0 || singletics)
 			S_UpdateClosedCaptions();
 
@@ -1591,12 +1593,14 @@ void D_SRB2Main(void)
 	{
 		sound_disabled = true;
 		midi_disabled = digital_disabled = true;
+		g_voice_disabled = true;
 	}
 	if (M_CheckParm("-noaudio")) // combines -nosound and -nomusic
 	{
 		sound_disabled = true;
 		digital_disabled = true;
 		midi_disabled = true;
+		g_voice_disabled = true;
 	}
 	else
 	{
@@ -1614,8 +1618,10 @@ void D_SRB2Main(void)
 			if (M_CheckParm("-nodigmusic"))
 				digital_disabled = true; // WARNING: DOS version initmusic in I_StartupSound
 		}
+		if (M_CheckParm("-novoice"))
+			g_voice_disabled = true;	
 	}
-	if (!( sound_disabled && digital_disabled
+	if (!( sound_disabled && digital_disabled && g_voice_disabled
 #ifndef NO_MIDI
 				&& midi_disabled
 #endif

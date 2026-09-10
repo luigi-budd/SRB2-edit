@@ -15,6 +15,8 @@
 #include <unistd.h> //for unlink
 #endif
 
+#include <opus.h>
+
 #include "../i_time.h"
 #include "i_net.h"
 #include "../i_system.h"

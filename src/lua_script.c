@@ -737,24 +737,17 @@ boolean LUA_LoadLump(UINT16 wad, UINT16 lump)
 	char *wadnameshort = wadfiles[wad]->filename;
 	nameonly(wadnameshort);
 
-	char *lumpname = malloc(strlen(name) + 1);
-	strcpy(lumpname, name);
-	nameonly(lumpname); // would return something like "main.lua" i think
-
-	if (!(wadfiles[wad]->type == RET_LUA))
+	// sometimes the name variable in here still gives us stuff
+	// like our user folder, so we'll need to work around that
+	if (wadfiles[wad]->type != RET_LUA)
 	{
-		// combine both strings...
-		sprintf(lua_lumpname, "%s|%s", wadnameshort, lumpname);
+		lumpinfo_t *lump_p = &wadfiles[wad]->lumpinfo[lump];
+		sprintf(lua_lumpname, "%s|%s", wadnameshort, lump_p->fullname);
 	}
-	// else, its a plain lua script, so just load the lumpname
 	else
-	{
-		strcpy(lua_lumpname, lumpname);
-	}
-	
-	free(name);
-	free(lumpname);
+		strcpy(lua_lumpname, wadnameshort);
 
+	free(name);
 	Z_Free(f->data);
 	Z_Free(f);
 

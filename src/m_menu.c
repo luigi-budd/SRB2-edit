@@ -5129,7 +5129,7 @@ static void M_DrawPauseMenu(void)
 			if (renderisnewtic)
 				namescroll++;
 
-			char *addonname = wadfiles[mapwads[gamemap]]->filename;
+			char *addonname = wadfiles[mapwads[gamemap - 1]]->filename;
 			nameonly(addonname);
 
 			INT32 len = strlen(addonname);

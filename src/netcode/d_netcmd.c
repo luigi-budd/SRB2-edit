@@ -397,7 +397,7 @@ consvar_t cv_runscripts = CVAR_INIT ("runscripts", "Yes", CV_ALLOWLUA, CV_YesNo,
 
 consvar_t cv_pause = CVAR_INIT ("pausepermission", "Server", CV_SAVE|CV_NETVAR|CV_ALLOWLUA, pause_cons_t, NULL);
 consvar_t cv_mute = CVAR_INIT ("mute", "Off", CV_NETVAR|CV_CALL|CV_ALLOWLUA, CV_OnOff, Mute_OnChange);
-
+consvar_t cv_voice_servermute = CVAR_INIT ("voice_servermute", "On", CV_NETVAR|CV_CALL|CV_CLIENT|CV_SAVE, CV_OnOff, VoiceMute_OnChange);
 consvar_t cv_sleep = CVAR_INIT ("cpusleep", "1", CV_SAVE, sleeping_cons_t, NULL);
 
 static CV_PossibleValue_t perfstats_cons_t[] = {

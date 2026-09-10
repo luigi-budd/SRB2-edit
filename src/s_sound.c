@@ -131,6 +131,22 @@ static CV_PossibleValue_t cons_voicemode_t[] = {
 consvar_t cv_voice_mode = CVAR_INIT ("voice_mode", "Activity", CV_SAVE|CV_CLIENT, cons_voicemode_t, NULL);
 consvar_t cv_voice_mute = CVAR_INIT ("voice_selfmute", "Off", CV_SAVE|CV_CLIENT, CV_OnOff, SendWeaponPref);
 
+CV_PossibleValue_t voiceinputamp_cons_t[] = {{-30, "MIN"}, {30, "MAX"}, {0, NULL}};
+consvar_t cv_voice_inputamp = CVAR_INIT ("voice_inputamp", "14", CV_SAVE|CV_CLIENT, voiceinputamp_cons_t, NULL);
+
+CV_PossibleValue_t voiceactivethres_cons_t[] = {{-30, "MIN"}, {0, "MAX"}, {0, NULL}};
+consvar_t cv_voice_activationthreshold = CVAR_INIT ("voice_activationthreshold", "-20", CV_SAVE|CV_CLIENT, voiceactivethres_cons_t, NULL);
+
+consvar_t cv_voice_loopback = CVAR_INIT ("voice_loopback", "Off", CV_CLIENT, CV_OnOff, NULL);
+consvar_t cv_voice_distanceattenuation_distance = CVAR_INIT ("voice_distanceattenuation_distance", "4096", CV_SAVE|CV_FLOAT|CV_NETVAR|CV_CLIENT, CV_Natural, NULL);
+consvar_t cv_voice_distanceattenuation_factor = CVAR_INIT ("voice_distanceattenuation_factor", "0.2", CV_SAVE|CV_FLOAT|CV_CLIENT|CV_NETVAR, CV_Natural, NULL);
+
+consvar_t cv_voice_stereopanning_factor = CVAR_INIT ("voice_stereopanning_factor", "1.0", CV_SAVE|CV_FLOAT|CV_CLIENT|CV_NETVAR, CV_Natural, NULL);
+
+consvar_t cv_voice_concurrentattenuation_factor = CVAR_INIT ("voice_concurrentattenuation_factor", "0.6", CV_SAVE|CV_FLOAT|CV_CLIENT|CV_NETVAR, CV_Natural, NULL);
+consvar_t cv_voice_concurrentattenuation_min = CVAR_INIT ("voice_concurrentattenuation_min", "3", CV_SAVE|CV_CLIENT|CV_NETVAR, CV_Natural, NULL);
+consvar_t cv_voice_concurrentattenuation_max = CVAR_INIT ("voice_concurrentattenuation_max", "8", CV_SAVE|CV_CLIENT|CV_NETVAR, CV_Natural, NULL);
+
 #ifdef HAVE_OPENMPT
 openmpt_module *openmpt_mhandle = NULL;
 static CV_PossibleValue_t interpolationfilter_cons_t[] = {{0, "Default"}, {1, "None"}, {2, "Linear"}, {4, "Cubic"}, {8, "Windowed sinc"}, {0, NULL}};

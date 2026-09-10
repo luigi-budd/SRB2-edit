@@ -2578,3 +2578,44 @@ void M_ScrollString(const char name[], size_t len, char result[], size_t maxlen,
 	// Technically not necessary, since it gets set again after function call, but just in case
 	result[maxlen] = 0;
 }
+
+/** Enable floating point denormal-to-zero section, if necessary */
+floatdenormalstate_t M_EnterFloatDenormalToZero(void)
+{
+#ifdef NEED_INTEL_DENORMAL_BIT
+	floatdenormalstate_t state = 0;
+	state |= _MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_ON ? 1 : 0;
+	state |= _MM_GET_DENORMALS_ZERO_MODE() == _MM_DENORMALS_ZERO_ON ? 2 : 0;
+
+	if ((state & 1) == 0)
+	{
+		_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+	}
+	if ((state & 2) == 0)
+	{
+		_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+	}
+	return state;
+#else
+	return 0;
+#endif
+}
+
+/** Exit floating point denormal-to-zero section, if necessary, restoring previous state */
+void M_ExitFloatDenormalToZero(floatdenormalstate_t previous)
+{
+#ifdef NEED_INTEL_DENORMAL_BIT
+	if ((previous & 1) == 0)
+	{
+		_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_OFF);
+	}
+	if ((previous & 2) == 0)
+	{
+		_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_OFF);
+	}
+	return;
+#else
+	(void)previous;
+	return;
+#endif
+}

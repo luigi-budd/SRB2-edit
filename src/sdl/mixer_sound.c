@@ -658,6 +658,7 @@ void I_SetSfxVolume(UINT8 volume)
 	sfx_volume = volume;
 }
 
+/*
 void I_SetVoiceVolume(int volume)
 {
 	SdlAudioLockHandle _;
@@ -668,6 +669,7 @@ void I_SetVoiceVolume(int volume)
 		gain_voice_channel->gain(clamp(vol * vol * vol, 0.f, 1.f));
 	}
 }
+*/
 
 /// ------------------------
 /// Music Utilities

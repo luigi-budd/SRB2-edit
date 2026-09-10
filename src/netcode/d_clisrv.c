@@ -15,8 +15,6 @@
 #include <unistd.h> //for unlink
 #endif
 
-#include <opus/opus.h>
-
 #include "../i_time.h"
 #include "i_net.h"
 #include "../i_system.h"
@@ -1745,6 +1743,176 @@ void NetUpdate(void)
 	FileSendTicker();
 }
 
+static int32_t BiggestOpusFrameLength(int32_t samples)
+{
+	if (samples >= 1920) return 1920;
+	if (samples >= 960) return 960;
+	if (samples >= 480) return 480;
+	return 0;
+}
+
+void NetVoiceUpdate(void)
+{
+	uint8_t *encoded = NULL;
+	float *subframe_buffer = NULL;
+	float *denoise_buffer = NULL;
+	ps_voiceupdatetime = I_GetPreciseTime();
+
+	if (dedicated)
+	{
+		ps_voiceupdatetime = I_GetPreciseTime() - ps_voiceupdatetime;
+		return;
+	}
+
+	floatdenormalstate_t dnzstate = M_EnterFloatDenormalToZero();
+
+	uint32_t bytes_dequed = 0;
+
+	bytes_dequed = S_SoundInputDequeueSamples((void*)(g_local_voice_buffer + g_local_voice_buffer_len), SRB2_VOICE_MAX_DEQUEUE_BYTES - (g_local_voice_buffer_len * sizeof(float)));
+	g_local_voice_buffer_len += bytes_dequed / 4;
+
+	int32_t buffer_offset = 0;
+	int32_t frame_length = 0;
+	for (
+		;
+		(frame_length = BiggestOpusFrameLength(g_local_voice_buffer_len - buffer_offset)) > 0 && (buffer_offset + frame_length) < g_local_voice_buffer_len;
+		buffer_offset += frame_length
+	)
+	{
+		float *frame_buffer = g_local_voice_buffer + buffer_offset;
+
+		// Amp of +10 dB is appromiately "twice as loud"
+		float ampfactor = powf(10, (float) cv_voice_inputamp.value / 20.f);
+		for (int i = 0; i < frame_length; i++)
+		{
+			frame_buffer[i] *= ampfactor;
+		}
+
+		if (cv_voice_denoise.value)
+		{
+			if (g_local_renamenoise_state == NULL)
+			{
+				InitializeLocalVoiceDenoiser();
+			}
+			int rnnoise_size = renamenoise_get_frame_size(); // this is always 480
+			if (subframe_buffer == NULL)
+			{
+				subframe_buffer = (float*) Z_Malloc(rnnoise_size * sizeof(float), PU_STATIC, NULL);
+			}
+			if (denoise_buffer == NULL)
+			{
+				denoise_buffer = (float*) Z_Malloc(rnnoise_size * sizeof(float), PU_STATIC, NULL);
+			}
+
+			// rnnoise frames are smaller than opus, but we should not expect the opus frame to be an exact multiple of rnnoise
+			for (int denoise_position = 0; denoise_position < frame_length; denoise_position += rnnoise_size)
+			{
+				memset(subframe_buffer, 0, rnnoise_size * sizeof(float));
+				memcpy(subframe_buffer, frame_buffer + denoise_position, min(rnnoise_size * sizeof(float), (frame_length - denoise_position) * sizeof(float)));
+				renamenoise_process_frame(g_local_renamenoise_state, denoise_buffer, subframe_buffer);
+				memcpy(frame_buffer + denoise_position, denoise_buffer, min(rnnoise_size * sizeof(float), (frame_length - denoise_position) * sizeof(float)));
+			}
+		}
+
+		float softmem = 0.f;
+		opus_pcm_soft_clip(frame_buffer, frame_length, 1, &softmem);
+
+		// Voice detection gate open/close
+		float maxamplitude = 0.f;
+		for (int i = 0; i < frame_length; i++)
+		{
+			maxamplitude = max(fabsf(frame_buffer[i]), maxamplitude);
+		}
+		// 20. * log_10(amplitude) -> decibels (up to 0)
+		// lower than -30 dB is usually inaudible
+		g_local_voice_last_peak = maxamplitude;
+		maxamplitude = 20.f * logf(maxamplitude);
+		if (maxamplitude > (float) cv_voice_activationthreshold.value)
+		{
+			g_local_voice_threshold_time = I_GetTime();
+			g_local_voice_detected = true;
+		}
+
+		switch (cv_voice_mode.value)
+		{
+		case 0:
+			if (I_GetTime() - g_local_voice_threshold_time > 15)
+			{
+				g_local_voice_detected = false;
+				continue;
+			}
+			break;
+		case 1:
+			if (!g_voicepushtotalk_on)
+			{
+				g_local_voice_detected = false;
+				continue;
+			}
+			g_local_voice_detected = true;
+			break;
+		default:
+			continue;
+		}
+
+		if (cv_voice_selfdeafen.value == 1 || g_voice_disabled)
+		{
+			continue;
+		}
+
+		if (!encoded)
+		{
+			encoded = Z_Malloc(sizeof(uint8_t) * 1400, PU_STATIC, NULL);
+		}
+
+		if (g_local_opus_encoder == NULL)
+		{
+			InitializeLocalVoiceEncoder();
+		}
+		OpusEncoder *encoder = g_local_opus_encoder;
+
+		int32_t result = opus_encode_float(encoder, frame_buffer, frame_length, encoded, 1400);
+		if (result < 0)
+		{
+			continue;
+		}
+
+		// Only send a voice packet and set local player voice active if:
+		// 1. In a netgame,
+		// 2. Not self-muted by cvar
+		// 3. The consoleplayer is not server or self muted or deafened
+		if (netgame && !cv_voice_selfmute.value && !(players[consoleplayer].pflags2 & (PF2_SERVERMUTE | PF2_SELFMUTE | PF2_SERVERTEMPMUTE | PF2_SELFDEAFEN | PF2_SERVERDEAFEN)))
+		{
+			DoVoicePacket(servernode, g_local_opus_frame, encoded, result);
+			S_SetPlayerVoiceActive(consoleplayer);
+		}
+
+		if (cv_voice_loopback.value)
+		{
+			if (g_player_opus_decoders[consoleplayer] == NULL && !netgame)
+			{
+				RecreatePlayerOpusDecoder(consoleplayer);
+			}
+			result = opus_decode_float(g_player_opus_decoders[consoleplayer], encoded, result, frame_buffer, frame_length, 0);
+			S_QueueVoiceFrameFromPlayer(consoleplayer, frame_buffer, result * sizeof(float), false);
+		}
+		g_local_opus_frame += 1;
+	}
+
+	if (buffer_offset > 0)
+	{
+		memmove(g_local_voice_buffer, g_local_voice_buffer + buffer_offset, (g_local_voice_buffer_len - buffer_offset) * sizeof(float));
+		g_local_voice_buffer_len -= buffer_offset;
+	}
+
+	M_ExitFloatDenormalToZero(dnzstate);
+
+	if (denoise_buffer) Z_Free(denoise_buffer);
+	if (subframe_buffer) Z_Free(subframe_buffer);
+	if (encoded) Z_Free(encoded);
+	ps_voiceupdatetime = I_GetPreciseTime() - ps_voiceupdatetime;
+	return;
+}
+
 // called one time at init
 void D_ClientServerInit(void)
 {
@@ -2004,4 +2172,15 @@ void D_MD5PasswordPass(const UINT8 *buffer, size_t len, const char *salt, void *
 	// Yes, we intentionally md5 the ENTIRE buffer regardless of size...
 	md5_buffer(tmpbuf, 256, dest);
 #endif
+}
+
+void DoVoicePacket(int8_t target, uint64_t frame, const uint8_t* opusdata, size_t len)
+{
+	voice_pak *pl = &netbuffer->u.voice;
+	netbuffer->packettype = PT_VOICE;
+	pl->frame = (uint64_t)SWAP_LONGLONG(frame);
+	pl->flags = 0;
+	I_Assert(MAXPACKETLENGTH - sizeof(voice_pak) - BASEPACKETSIZE >= len);
+	memcpy((uint8_t*)netbuffer + BASEPACKETSIZE + sizeof(voice_pak), opusdata, len);
+	HSendPacket(target, false, 0, sizeof(voice_pak) + len);
 }

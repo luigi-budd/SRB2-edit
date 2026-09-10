@@ -148,6 +148,13 @@ int M_RoundUp(double number);
 
 void M_ScrollString(const char name[], size_t len, char result[], size_t maxlen, tic_t timer);
 
+typedef int32_t floatdenormalstate_t;
+
+/** Enable floating point denormal-to-zero section, if necessary */
+floatdenormalstate_t M_EnterFloatDenormalToZero(void);
+/** Exit floating point denormal-to-zero section, if necessary, restoring previous state */
+void M_ExitFloatDenormalToZero(floatdenormalstate_t previous);
+
 #include "w_wad.h"
 extern char configfile[MAX_WADPATH];
 

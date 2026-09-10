@@ -30,6 +30,7 @@
 #include "m_misc.h" // for tunes command
 #include "m_cond.h" // for conditionsets
 #include "lua_hook.h" // MusicChange hook
+#include "i_time.h"
 
 #ifdef HW3SOUND
 // 3D Sound Interface
@@ -77,7 +78,7 @@ static consvar_t precachesound = CVAR_INIT ("precachesound", "Off", CV_SAVE, CV_
 consvar_t cv_soundvolume = CVAR_INIT ("soundvolume", "16", CV_SAVE, soundvolume_cons_t, NULL);
 consvar_t cv_digmusicvolume = CVAR_INIT ("digmusicvolume", "16", CV_SAVE, soundvolume_cons_t, NULL);
 consvar_t cv_midimusicvolume = CVAR_INIT ("midimusicvolume", "16", CV_SAVE, soundvolume_cons_t, NULL);
-consvar_t cv_soundvolume = CVAR_INIT ("voicevolume", "16", CV_SAVE, soundvolume_cons_t, NULL);
+consvar_t cv_voicevolume = CVAR_INIT ("voicevolume", "16", CV_SAVE, soundvolume_cons_t, NULL);
 
 static void Captioning_OnChange(void)
 {
@@ -121,8 +122,10 @@ consvar_t cv_musicpref = CVAR_INIT ("musicpref", "Digital", CV_SAVE|CV_CALL|CV_N
 consvar_t cv_playmusicifunfocused = CVAR_INIT ("playmusicifunfocused", "No", CV_SAVE, CV_YesNo, NULL);
 consvar_t cv_playsoundsifunfocused = CVAR_INIT ("playsoundsifunfocused", "No", CV_SAVE, CV_YesNo, NULL);
 
+void VoiceChat_OnChange(void);
 consvar_t cv_voice_chat = CVAR_INIT ("voice_chat", "Off", CV_SAVE|CV_CALL|CV_CLIENT, CV_OnOff, VoiceChat_OnChange);
 
+void SendWeaponPref(void);
 static CV_PossibleValue_t cons_voicemode_t[] = {
 	{0, "Activity"},
 	{1, "PTT"},
@@ -1096,7 +1099,7 @@ void S_UpdateVoicePositionalProperties(void)
 
 	// Positional voice audio
 	boolean voice_proximity_enabled = cv_voice_proximity.value == 1;
-	float voice_distanceattenuation_distance = FixedToFloat(cv_voice_distanceattenuation_distance.value) * FixedToFloat(mapheaderinfo[gamemap-1]->mobj_scale);
+	float voice_distanceattenuation_distance = FixedToFloat(cv_voice_distanceattenuation_distance.value);
 	float voice_distanceattenuation_factor = FixedToFloat(cv_voice_distanceattenuation_factor.value);
 	float voice_stereopanning_factor = FixedToFloat(cv_voice_stereopanning_factor.value);
 	float voice_concurrentattenuation_min = max(0, min(MAXPLAYERS, cv_voice_concurrentattenuation_min.value));
@@ -2830,9 +2833,6 @@ void MusicPref_OnChange(void)
 		S_ChangeMusicInternal("_clear", false);
 }
 
-void SendWeaponPref(void);
-
-void VoiceChat_OnChange(void);
 void VoiceChat_OnChange(void)
 {
 	if (M_CheckParm("-novoice") || M_CheckParm("-noaudio"))

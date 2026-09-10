@@ -162,7 +162,7 @@ typedef struct consvar_s //NULL, NULL, 0, NULL, NULL |, 0, NULL, NULL, 0, 0, NUL
 	UINT16 netid; // used internaly : netid for send end receive
 	                      // used only with CV_NETVAR
 	char changed;         // has variable been changed by the user? 0 = no, 1 = yes
-	const char *addonname;
+	char addonname[255];
 	struct consvar_s *next;
 } consvar_t;
 

@@ -257,7 +257,7 @@ static boolean g_input_device_paused;
 static SDL_AudioStream* g_output_stream;
 static SDL_AudioStream* g_input_stream;
 static SDL_mutex* microphone_mutex = NULL;
-static SDL_thread* microphone_thread = NULL;
+static SDL_Thread* microphone_thread = NULL;
 
 
 /// ------------------------

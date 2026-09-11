@@ -169,6 +169,7 @@ typedef enum
 	PF2_SELFDEAFEN = 1<<2,
 	PF2_SERVERMUTE = 1<<3,
 	PF2_SERVERDEAFEN = 1<<4,
+	PF2_SERVERTEMPMUTE = 1<<5,
 } pflags2_t;
 
 typedef enum

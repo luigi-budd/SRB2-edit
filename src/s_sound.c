@@ -123,7 +123,7 @@ consvar_t cv_playmusicifunfocused = CVAR_INIT ("playmusicifunfocused", "No", CV_
 consvar_t cv_playsoundsifunfocused = CVAR_INIT ("playsoundsifunfocused", "No", CV_SAVE, CV_YesNo, NULL);
 
 void VoiceChat_OnChange(void);
-consvar_t cv_voice_chat = CVAR_INIT ("voice_chat", "Off", CV_SAVE|CV_CALL|CV_CLIENT, CV_OnOff, VoiceChat_OnChange);
+consvar_t cv_voice_selfdeafen = CVAR_INIT ("voice_selfdeafen", "On", CV_SAVE|CV_CALL|CV_CLIENT, CV_OnOff, VoiceChat_OnChange);
 
 void SendWeaponPref(void);
 static CV_PossibleValue_t cons_voicemode_t[] = {
@@ -141,6 +141,9 @@ CV_PossibleValue_t voiceactivethres_cons_t[] = {{-30, "MIN"}, {0, "MAX"}, {0, NU
 consvar_t cv_voice_activationthreshold = CVAR_INIT ("voice_activationthreshold", "-20", CV_SAVE|CV_CLIENT, voiceactivethres_cons_t, NULL);
 
 consvar_t cv_voice_loopback = CVAR_INIT ("voice_loopback", "Off", CV_CLIENT, CV_OnOff, NULL);
+consvar_t cv_voice_denoise = CVAR_INIT ("voice_denoise", "On", CV_CLIENT|CV_SAVE, CV_OnOff, NULL);
+consvar_t cv_voice_proximity = CVAR_INIT ("voice_proximity", "On", CV_CLIENT|CV_SAVE, CV_OnOff, NULL);
+
 consvar_t cv_voice_distanceattenuation_distance = CVAR_INIT ("voice_distanceattenuation_distance", "4096", CV_SAVE|CV_FLOAT|CV_NETVAR|CV_CLIENT, CV_Natural, NULL);
 consvar_t cv_voice_distanceattenuation_factor = CVAR_INIT ("voice_distanceattenuation_factor", "0.2", CV_SAVE|CV_FLOAT|CV_CLIENT|CV_NETVAR, CV_Natural, NULL);
 
@@ -2838,7 +2841,7 @@ void VoiceChat_OnChange(void)
 	if (M_CheckParm("-novoice") || M_CheckParm("-noaudio"))
 		return;
 
-	g_voice_disabled = !cv_voice_chat.value;
+	g_voice_disabled = cv_voice_selfdeafen.value;
 
 	SendWeaponPref();
 }
@@ -2867,7 +2870,7 @@ void S_QueueVoiceFrameFromPlayer(INT32 playernum, void *data, UINT32 len, boolea
 	{
 		return;
 	}
-	if (cv_voice_chat.value != 0)
+	if (cv_voice_selfdeafen.value != 1 && !g_voice_disabled)
 	{
 		I_QueueVoiceFrameFromPlayer(playernum, data, len, terminal);
 	}

@@ -78,7 +78,7 @@ extern consvar_t cv_nettimeout;
 extern consvar_t cv_countdowntime;
 extern consvar_t cv_runscripts;
 extern consvar_t cv_mute;
-extern consvar_t cv_voice_servermute;
+extern consvar_t cv_voice_allowservervoice;
 extern consvar_t cv_killingdead;
 extern consvar_t cv_pause;
 

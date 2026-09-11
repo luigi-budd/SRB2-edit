@@ -25,6 +25,7 @@
 #define _FILE_OFFSET_BITS 0
 #endif
 
+#include <SDL.h>
 #include <zlib.h>
 #endif // HAVE_ZLIB
 #endif // HAVE_GME
@@ -253,7 +254,10 @@ static const char* get_zlib_error(int zErr)
 static SDL_AudioDeviceID g_device_id;
 static SDL_AudioDeviceID g_input_device_id;
 static boolean g_input_device_paused;
-
+static SDL_AudioStream* g_output_stream;
+static SDL_AudioStream* g_input_stream;
+static SDL_mutex* microphone_mutex = NULL;
+static SDL_thread* microphone_thread = NULL;
 
 
 /// ------------------------
@@ -1690,7 +1694,7 @@ void I_QueueVoiceFrameFromPlayer(INT32 playernum, void *data, UINT32 len, boolea
 		return;
 	}
 
-	SdlAudioLockHandle _;
+	SDL_LockAudioStream(g_output_stream);
 	SdlVoiceStreamPlayer* player = player_voice_channels.at(playernum).get();
 	player->stream().put(tcb::span((std::byte*)data, len));
 }

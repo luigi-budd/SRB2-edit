@@ -15,7 +15,8 @@
 #include <unistd.h> //for unlink
 #endif
 
-#include <opus.h>
+#include "../../libs/libopus-src/include/opus.h"
+#include "../../thirdparty/renamenoise/include/renamenoise.h"
 
 #include "../i_time.h"
 #include "i_net.h"
@@ -133,6 +134,23 @@ consvar_t cv_httpsource = CVAR_INIT ("http_source", "", CV_SAVE, NULL, NULL);
 static CV_PossibleValue_t mindelay_cons_t[] = {{0, "MIN"}, {30, "MAX"}, {0, NULL}};
 consvar_t cv_mindelay = CVAR_INIT ("mindelay", "0", CV_SAVE|CV_CLIENT, mindelay_cons_t, NULL);
 consvar_t cv_gentlemens = CVAR_INIT ("gentlemensdelay", "Off", CV_SAVE|CV_CLIENT, CV_OnOff, NULL); // this should be a netvar Zzz...
+
+static OpusDecoder *g_player_opus_decoders[MAXPLAYERS];
+static uint64_t g_player_opus_lastframe[MAXPLAYERS];
+static uint32_t g_player_voice_frames_this_tic[MAXPLAYERS];
+#define MAX_PLAYER_VOICE_FRAMES_PER_TIC 3
+static OpusEncoder *g_local_opus_encoder;
+static ReNameNoiseDenoiseState *g_local_renamenoise_state;
+static uint64_t g_local_opus_frame = 0;
+#define SRB2_VOICE_OPUS_FRAME_SIZE (20 * 48)
+#define SRB2_VOICE_MAX_FRAMES 8
+#define SRB2_VOICE_MAX_DEQUEUE_SAMPLES (SRB2_VOICE_MAX_FRAMES * SRB2_VOICE_OPUS_FRAME_SIZE)
+#define SRB2_VOICE_MAX_DEQUEUE_BYTES (SRB2_VOICE_MAX_DEQUEUE_SAMPLES * sizeof(float))
+static float g_local_voice_buffer[SRB2_VOICE_MAX_DEQUEUE_SAMPLES];
+static int32_t g_local_voice_buffer_len = 0;
+static int32_t g_local_voice_threshold_time = 0;
+float g_local_voice_last_peak = 0;
+boolean g_local_voice_detected = false;
 
 void ResetNode(INT32 node)
 {
@@ -1151,6 +1169,8 @@ static void SV_SendServerKeepAlive(void)
 	}
 }
 
+static void PT_HandleVoice(SINT8 node);
+
 /** Handles a packet received from a node that isn't in game
   *
   * \param node The packet sender
@@ -1183,6 +1203,7 @@ static void HandlePacketFromAwayNode(SINT8 node)
 		case PT_SERVERSHUTDOWN : PT_ServerShutdown (node    ); break;
 		case PT_CLIENTCMD      :                               break; // This is not an "unknown packet"
 		case PT_PLAYERINFO     : PT_PlayerInfo     (node    ); break;
+		case PT_VOICE          : PT_HandleVoice    (node    ); break;
 
 		default:
 			DEBFILE(va("unknown packet received (%d) from unknown host\n",netbuffer->packettype));
@@ -1245,6 +1266,7 @@ static void HandlePacketFromPlayer(SINT8 node)
 		case PT_SERVERSHUTDOWN     : PT_ServerShutdown     (node            ); break;
 		case PT_SERVERCFG          :                                           break;
 		case PT_CLIENTJOIN         :                                           break;
+		case PT_VOICE              : PT_HandleVoice        (node            ); break;
 
 		default:
 			DEBFILE(va("UNKNOWN PACKET TYPE RECEIVED %d from host %d\n",
@@ -1745,6 +1767,218 @@ void NetUpdate(void)
 	FileSendTicker();
 }
 
+static void PT_HandleVoiceClient(int8_t node, boolean isserver)
+{
+	if (!isserver && node != servernode)
+	{
+		// We should never receive voice packets from anything other than the server
+		return;
+	}
+
+	if (dedicated)
+	{
+		// don't bother decoding on dedicated
+		return;
+	}
+
+	doomdata_t *pak = (doomdata_t*)(doomcom->data);
+	voice_pak *pl = &pak->u.voice;
+
+	uint64_t framenum = (uint64_t)SWAP_LONGLONG(pl->frame);
+	int32_t playernum = pl->flags & VOICE_PAK_FLAGS_PLAYERNUM_BITS;
+	if (playernum >= MAXPLAYERS || playernum < 0)
+	{
+		// ignore
+		return;
+	}
+
+	if (players[playernum].spectator)
+	{
+		// ignore spectators in levels
+		return;
+	}
+
+	boolean terminal = (pl->flags & VOICE_PAK_FLAGS_TERMINAL_BIT) > 0;
+	uint32_t framesize = doomcom->datalength - BASEPACKETSIZE - sizeof(voice_pak);
+	uint8_t *frame = (uint8_t*)(pl) + sizeof(voice_pak);
+
+	OpusDecoder *decoder = g_player_opus_decoders[playernum];
+	if (decoder == NULL)
+	{
+		return;
+	}
+	float *decoded_out = Z_Malloc(sizeof(float) * 1920, PU_STATIC, NULL);
+
+	int32_t decoded_samples = 0;
+	uint64_t missedframes = 0;
+	if (framenum > g_player_opus_lastframe[playernum])
+	{
+		missedframes = min((framenum - g_player_opus_lastframe[playernum]) - 1, 16);
+	}
+
+	for (uint64_t i = 0; i < missedframes; i++)
+	{
+		decoded_samples = opus_decode_float(decoder, NULL, 0, decoded_out, 1920, 0);
+		if (decoded_samples < 0)
+		{
+			continue;
+		}
+		if (cv_voice_selfdeafen.value != 1 && playernum != consoleplayer && !g_voice_disabled)
+		{
+			S_QueueVoiceFrameFromPlayer(playernum, (void*)decoded_out, decoded_samples * sizeof(float), false);
+		}
+	}
+	g_player_opus_lastframe[playernum] = framenum;
+
+	decoded_samples = opus_decode_float(decoder, frame, framesize, decoded_out, 1920, 0);
+	if (decoded_samples < 0)
+	{
+		Z_Free(decoded_out);
+		return;
+	}
+
+	if (cv_voice_selfdeafen.value != 1 && playernum != consoleplayer && !g_voice_disabled)
+	{
+		S_QueueVoiceFrameFromPlayer(playernum, (void*)decoded_out, decoded_samples * sizeof(float), terminal);
+	}
+	S_SetPlayerVoiceActive(playernum);
+
+	Z_Free(decoded_out);
+}
+
+static void PT_HandleVoiceServer(int8_t node)
+{
+	// Relay to client nodes except the sender
+	doomdata_t *pak = (doomdata_t*)(doomcom->data);
+	voice_pak *pl = &pak->u.voice;
+	int playernum = -1;
+	player_t *player;
+
+	if (!cv_voice_allowservervoice.value)
+	{
+		// Don't even relay voice packets if voice_allowservervoice is off
+		return;
+	}
+
+	if ((pl->flags & VOICE_PAK_FLAGS_PLAYERNUM_BITS) > 0 || (pl->flags & VOICE_PAK_FLAGS_RESERVED_BITS) > 0)
+	{
+		// All bits except the terminal bit must be unset when sending to client
+		// Anything else is an illegal message
+		return;
+	}
+
+	playernum = netnodes[node].player;
+	if (!(playernum >= 0 && playernum < MAXPLAYERS))
+	{
+		return;
+	}
+	player = &players[playernum];
+
+	if (player->pflags2 & (PF2_SELFMUTE | PF2_SELFDEAFEN | PF2_SERVERMUTE | PF2_SERVERDEAFEN | PF2_SERVERTEMPMUTE))
+	{
+		// ignore, they should not be able to broadcast voice
+		return;
+	}
+	g_player_voice_frames_this_tic[playernum] += 1;
+	if (g_player_voice_frames_this_tic[playernum] > MAX_PLAYER_VOICE_FRAMES_PER_TIC)
+	{
+		// ignore; they sent too many voice frames this tic
+		return;
+	}
+
+	// Preserve terminal bit, blank all other bits
+	pl->flags &= VOICE_PAK_FLAGS_TERMINAL_BIT;
+	// Add playernum to lower bits
+	pl->flags |= (playernum & VOICE_PAK_FLAGS_PLAYERNUM_BITS);
+
+	for (int i = 0; i < MAXPLAYERS; i++)
+	{
+		uint8_t pnode = playernode[i];
+		if (pnode == UINT8_MAX)
+		{
+			continue;
+		}
+
+		if (player->spectator)
+		{
+			// ignore spectators in levels
+			continue;
+		}
+
+		// Is this node P1 on that node?
+		boolean isp1onnode = netnodes[pnode].player >= 0 && netnodes[pnode].player < MAXPLAYERS;
+
+		if (pnode != node && pnode != servernode && isp1onnode && !(players[i].pflags2 & (PF2_SELFDEAFEN | PF2_SERVERDEAFEN)))
+		{
+			HSendPacket(pnode, false, 0, doomcom->datalength - BASEPACKETSIZE);
+		}
+	}
+
+	PT_HandleVoiceClient(node, true);
+}
+
+static void PT_HandleVoice(int8_t node)
+{
+	if (server)
+	{
+		PT_HandleVoiceServer(node);
+	}
+	else
+	{
+		PT_HandleVoiceClient(node, false);
+	}
+}
+
+static void InitializeLocalVoiceDenoiser(void)
+{
+	if (g_local_renamenoise_state != NULL)
+	{
+		renamenoise_destroy(g_local_renamenoise_state);
+		g_local_renamenoise_state = NULL;
+	}
+
+	g_local_renamenoise_state = renamenoise_create(NULL);
+}
+
+static void InitializeLocalVoiceEncoder(void)
+{
+	// Reset voice opus encoder for local "player 1"
+	OpusEncoder *encoder = g_local_opus_encoder;
+	if (encoder != NULL)
+	{
+		opus_encoder_destroy(encoder);
+		encoder = NULL;
+	}
+	int error;
+	encoder = opus_encoder_create(48000, 1, OPUS_APPLICATION_VOIP, &error);
+	if (error != OPUS_OK)
+	{
+		CONS_Alert(CONS_WARNING, "Failed to create Opus voice encoder: opus error %d\n", error);
+		encoder = NULL;
+	}
+	g_local_opus_encoder = encoder;
+	g_local_opus_frame = 0;
+}
+
+static void RecreatePlayerOpusDecoder(int32_t playernum)
+{
+	// Destroy and recreate the opus decoder for this playernum
+	OpusDecoder *opusdecoder = g_player_opus_decoders[playernum];
+	if (opusdecoder)
+	{
+		opus_decoder_destroy(opusdecoder);
+		opusdecoder = NULL;
+	}
+	int error;
+	opusdecoder = opus_decoder_create(48000, 1, &error);
+	if (error != OPUS_OK)
+	{
+		CONS_Alert(CONS_WARNING, "Failed to create Opus decoder for player %d: opus error %d\n", playernum, error);
+		opusdecoder = NULL;
+	}
+	g_player_opus_decoders[playernum] = opusdecoder;
+}
+
 static int32_t BiggestOpusFrameLength(int32_t samples)
 {
 	if (samples >= 1920) return 1920;
@@ -1758,11 +1992,11 @@ void NetVoiceUpdate(void)
 	uint8_t *encoded = NULL;
 	float *subframe_buffer = NULL;
 	float *denoise_buffer = NULL;
-	ps_voiceupdatetime = I_GetPreciseTime();
+	PS_START_TIMING(ps_voiceupdatetime);
 
 	if (dedicated)
 	{
-		ps_voiceupdatetime = I_GetPreciseTime() - ps_voiceupdatetime;
+		PS_STOP_TIMING(ps_voiceupdatetime);
 		return;
 	}
 
@@ -1911,7 +2145,7 @@ void NetVoiceUpdate(void)
 	if (denoise_buffer) Z_Free(denoise_buffer);
 	if (subframe_buffer) Z_Free(subframe_buffer);
 	if (encoded) Z_Free(encoded);
-	ps_voiceupdatetime = I_GetPreciseTime() - ps_voiceupdatetime;
+	PS_STOP_TIMING(ps_voiceupdatetime);
 	return;
 }
 

@@ -73,6 +73,8 @@ ps_metric_t ps_lua_mobjhooks = {0};
 
 ps_metric_t ps_otherlogictime = {0};
 
+ps_metric_t ps_voiceupdatetime = {0};
+
 // Columns for perfstats pages.
 
 // Position on screen is determined separately in the drawing functions.

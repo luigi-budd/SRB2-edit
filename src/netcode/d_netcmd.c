@@ -397,7 +397,8 @@ consvar_t cv_runscripts = CVAR_INIT ("runscripts", "Yes", CV_ALLOWLUA, CV_YesNo,
 
 consvar_t cv_pause = CVAR_INIT ("pausepermission", "Server", CV_SAVE|CV_NETVAR|CV_ALLOWLUA, pause_cons_t, NULL);
 consvar_t cv_mute = CVAR_INIT ("mute", "Off", CV_NETVAR|CV_CALL|CV_ALLOWLUA, CV_OnOff, Mute_OnChange);
-consvar_t cv_voice_servermute = CVAR_INIT ("voice_servermute", "On", CV_NETVAR|CV_CALL|CV_CLIENT|CV_SAVE, CV_OnOff, VoiceMute_OnChange);
+void VoiceMute_OnChange(void);
+consvar_t cv_voice_allowservervoice = CVAR_INIT ("voice_allowservervoice", "Off", CV_NETVAR|CV_CALL|CV_CLIENT|CV_SAVE, CV_OnOff, VoiceMute_OnChange);
 consvar_t cv_sleep = CVAR_INIT ("cpusleep", "1", CV_SAVE, sleeping_cons_t, NULL);
 
 static CV_PossibleValue_t perfstats_cons_t[] = {
@@ -1587,7 +1588,7 @@ void SendWeaponPref(void)
 		buf[0] |= 8;
 	if (cv_voice_selfmute.value)
 		buf[0] |= 16;
-	if (!cv_voice_chat.value)
+	if (cv_voice_selfdeafen.value)
 		buf[0] |= 32;
 	SendNetXCmd(XD_WEAPONPREF, buf, 1);
 }
@@ -5326,13 +5327,12 @@ static void Mute_OnChange(void)
 		CONS_Printf(M_GetText("Chat is no longer muted.\n"));
 }
 
-void VoiceMute_OnChange(void);
 void VoiceMute_OnChange(void)
 {
 	if (leveltime <= 1)
 		return; // avoid having this notification put in our console / log when we boot the server.
 
-	if (cv_voice_servermute.value)
+	if (!cv_voice_allowservervoice.value)
 		HU_AddChatText(M_GetText("\x82*Voice chat has been muted."), false);
 	else
 		HU_AddChatText(M_GetText("\x82*Voice chat is no longer muted."), false);

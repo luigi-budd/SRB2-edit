@@ -251,7 +251,7 @@ UINT32 I_SoundInputDequeueSamples(void *data, UINT32 len);
 /// If there is too much data being queued, old samples will be truncated
 void I_QueueVoiceFrameFromPlayer(INT32 playernum, void *data, UINT32 len, boolean terminal);
 
-void I_SetPlayerVoiceProperties(INT32 playernum, float volume, float sep);
+void I_SetPlayerVoiceProperties(INT32 playernum, float volume, float panning);
 
 /// Reset the voice queue for the given player. Use when server connection ends
 void I_ResetVoiceQueue(INT32 playernum);

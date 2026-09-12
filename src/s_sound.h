@@ -359,6 +359,7 @@ UINT32 S_SoundInputDequeueSamples(void *data, UINT32 len);
 void S_QueueVoiceFrameFromPlayer(INT32 playernum, void *data, UINT32 len, boolean terminal);
 void S_SetPlayerVoiceActive(INT32 playernum);
 boolean S_IsPlayerVoiceActive(INT32 playernum);
+tic_t S_PlayerVoiceActivity(INT32 playernum);
 void S_ResetVoiceQueue(INT32 playernum);
 
 #endif

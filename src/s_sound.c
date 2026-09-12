@@ -2901,6 +2901,11 @@ boolean S_IsPlayerVoiceActive(INT32 playernum)
 	return I_GetTime() - g_playerlastvoiceactive[playernum] < 5;
 }
 
+tic_t S_PlayerVoiceActivity(INT32 playernum)
+{
+	return (S_IsPlayerVoiceActive(playernum)) ? (5 - (I_GetTime() - g_playerlastvoiceactive[playernum])) : 0;
+}
+
 void S_ResetVoiceQueue(INT32 playernum)
 {
 	if (dedicated)

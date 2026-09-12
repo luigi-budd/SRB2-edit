@@ -256,6 +256,9 @@ static SDL_AudioDeviceID g_device_id;
 static SDL_AudioDeviceID g_input_device_id;
 static boolean g_input_device_paused;
 static SDL_AudioStream* player_voice_channels[MAXPLAYERS] = {};
+static float player_voice_volumes[MAXPLAYERS] = {}; // Sorry
+static float player_voice_panning[MAXPLAYERS] = {};
+static float voice_gain = 1.0;
 
 static SDL_AudioStream* I_MakeSDLStream(const Uint16 format, const Uint8 channels, const int src_rate, const Uint16 dst_format, const Uint8 dst_channels, const int dst_rate)
 {
@@ -343,6 +346,8 @@ void I_StartupSound(void)
 	{
 		SDL_AudioStream *stream = I_MakeSDLStream(AUDIO_F32SYS, 1, 48000, AUDIO_F32SYS, 2, 44100);
 		player_voice_channels[i] = stream;
+		player_voice_volumes[i] = 1.0;
+		player_voice_panning[i] = 0.5;
 	}
 
 	sound_started = true;
@@ -686,19 +691,6 @@ void I_SetSfxVolume(UINT8 volume)
 	sfx_volume = volume;
 }
 
-void I_SetVoiceVolume(int volume)
-{
-	/*
-	SdlAudioLockHandle _;
-	float vol = static_cast<float>(volume) / 100.f;
-
-	if (gain_voice_channel)
-	{
-		gain_voice_channel->gain(clamp(vol * vol * vol, 0.f, 1.f));
-	}
-	*/
-}
-
 /// ------------------------
 /// Music Utilities
 /// ------------------------
@@ -853,6 +845,23 @@ static void mix_openmpt(void *udata, Uint8 *stream, int len)
 }
 #endif
 
+// 0.0 = left, 0.5 = center, 1.0 = right for panning
+static void AdjustVolumeAndPanning(float *buffer, int samples, float vol, float pan)
+{
+	float sep_pan = ((pan + 1.f) / 2.f) * (3.14159 / 2.f);
+
+	float leftvol = vol * cosf(sep_pan);
+	float rightvol = vol * sinf(sep_pan);
+
+	for (int i = 0; i < samples; i +=2)
+	{
+		// these are swapped on purpose cause i dont
+		// wanna actually fix it
+		buffer[i] *= rightvol;
+		buffer[i+1] *= leftvol;
+	}
+}
+
 static void mix_voice(void *udata, Uint8 *stream, int len)
 {
 	(void)udata;
@@ -870,10 +879,13 @@ static void mix_voice(void *udata, Uint8 *stream, int len)
 		if (avail <= 0) continue;
 
 		int sizetoread = min(avail, len);
+		int samples = (sizetoread / sizeof(float));
+
 		SDL_memset(workbuffer, 0, len);
 		SDL_AudioStreamGet(playerstream, &workbuffer[i], sizetoread);
-		
-		for (int j = 0; j < (sizetoread / sizeof(float)); ++j)
+		AdjustVolumeAndPanning(&workbuffer[i], samples, player_voice_volumes[i] * voice_gain, player_voice_panning[i]);
+
+		for (int j = 0; j < samples; ++j)
 		{
 			output[j] += workbuffer[j];
 		}
@@ -1683,6 +1695,18 @@ boolean I_FadeInPlaySong(UINT32 ms, boolean looping)
 		return false;
 }
 
+void I_SetVoiceVolume(int volume)
+{
+	SDL_LockAudioDevice(g_input_device_id);
+	float vol = (float)(volume) / 31.0f;
+
+	voice_gain = vol;
+	if (voice_gain > 1.0f) voice_gain = 1.0f;
+	if (voice_gain < 0.0f) voice_gain = 0.0f;
+
+	SDL_UnlockAudioDevice(g_input_device_id);
+}
+
 boolean I_SoundInputIsEnabled(void)
 {
 	return g_input_device_id != 0 && !g_input_device_paused;
@@ -1759,9 +1783,8 @@ void I_QueueVoiceFrameFromPlayer(INT32 playernum, void *data, UINT32 len, boolea
 	SDL_UnlockAudioDevice(g_input_device_id);
 }
 
-void I_SetPlayerVoiceProperties(INT32 playernum, float volume, float sep)
+void I_SetPlayerVoiceProperties(INT32 playernum, float volume, float panning)
 {
-	/*
 	if (!sound_started)
 	{
 		return;
@@ -1771,12 +1794,11 @@ void I_SetPlayerVoiceProperties(INT32 playernum, float volume, float sep)
 
 	SDL_AudioStream* stream = player_voice_channels[playernum];
 	if (stream == NULL) return;
-
 	
-	player->set_properties(volume * volume * volume, sep);
+	player_voice_volumes[playernum] = volume;
+	player_voice_panning[playernum] = panning;
 
 	SDL_UnlockAudioDevice(g_input_device_id);
-	*/
 }
 
 void I_ResetVoiceQueue(INT32 playernum)

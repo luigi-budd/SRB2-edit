@@ -34,6 +34,7 @@
 #include "s_sound.h" // ditto
 #include "g_game.h" // ditto
 #include "p_local.h" // P_AutoPause()
+#include "m_menu.h"
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -666,6 +667,45 @@ void SCR_ClosedCaptions(void)
 
 		V_DrawRightAlignedThinStringAtFixed((BASEVIDWIDTH-20) * FRACUNIT, y, flags,
 			va("%c [%s]", dot, (closedcaptions[i].s->caption[0] ? closedcaptions[i].s->caption : closedcaptions[i].s->name)));
+	}
+}
+
+void SCR_VoiceChat(void)
+{
+	UINT8 i;
+	INT32 basex = BASEVIDWIDTH - 20;
+	INT32 basey = (BASEVIDHEIGHT - 20) + 1;
+	INT32 flags = V_SNAPTORIGHT|V_SNAPTOBOTTOM;
+	const INT32 tagwidth = 60;
+
+	if (gamestate != wipegamestate)
+		return;
+
+	if (gamestate == GS_LEVEL)
+	{
+		if (promptactive)
+			basey -= 42;
+		else if (splitscreen)
+			basey -= 8;
+		else if (LUA_HudEnabled(hud_powerups)
+		&& ((cv_powerupdisplay.value == 2) // "Always"
+		 || (cv_powerupdisplay.value == 1 && !camera.chase))) // "First-person only"
+			basey -= 16;
+	}
+	else if (menuactive || gamestate == GS_WAITINGPLAYERS) // GS_WAITINGPLAYERS is the server view apparently
+		basey += 4;
+
+	for (i = 0; i < MAXPLAYERS; i++)
+	{
+		if (!S_IsPlayerVoiceActive(i)) continue;
+
+		V_DrawFill(basex - tagwidth, basey, tagwidth, 10, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE)|flags);
+		fixed_t activity = min(FixedDiv(S_PlayerVoiceActivity(i)*FRACUNIT + rendertimefrac, 5*FRACUNIT), FRACUNIT);
+		V_DrawFixedFill((basex - tagwidth)*FRACUNIT + (tagwidth*(FRACUNIT - activity)), (basey)*FRACUNIT, tagwidth*activity, 10*FRACUNIT, M_GetMenuBGColor(MENUBACKCOLOR, MC_HIGHLIGHT)|flags|V_40TRANS);
+
+		V_DrawRightAlignedThinString(basex - 1, basey + 1, flags|V_ALLOWLOWERCASE|(i == consoleplayer ? MENUHIGHLIGHT : 0), player_names[i]);
+		
+		basey -= 11;
 	}
 }
 

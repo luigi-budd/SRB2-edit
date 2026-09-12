@@ -971,6 +971,7 @@ void D_RegisterClientCommands(void)
 	CV_RegisterVar(&cv_midimusicvolume);
 	CV_RegisterVar(&cv_numChannels);
 	CV_RegisterVar(&cv_consoleinterp);
+	CV_RegisterVar(&cv_voicevolume);
 
 	// screen.c
 	CV_RegisterVar(&cv_fullscreen);

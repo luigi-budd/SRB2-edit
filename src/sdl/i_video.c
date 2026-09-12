@@ -1268,8 +1268,21 @@ void I_FinishUpdate(void)
 		SCR_DisplayMarathonInfo();
 
 	// draw captions if enabled
-	if (cv_closedcaptioning.value)
+	boolean anyvoiceactive = false;
+	for (size_t i = 0; i < MAXPLAYERS; i++)
+	{
+		if (S_IsPlayerVoiceActive(i))
+		{
+			anyvoiceactive = true;
+			break;
+		}
+	}
+
+	if (cv_closedcaptioning.value && !anyvoiceactive)
 		SCR_ClosedCaptions();
+	
+	if (anyvoiceactive && gamestate != GS_NULL)
+		SCR_VoiceChat();
 
 	if (cv_showping.value && (
 		(netgame && consoleplayer != serverplayer)

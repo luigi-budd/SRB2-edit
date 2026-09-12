@@ -15,7 +15,7 @@
 #include <unistd.h> //for unlink
 #endif
 
-#include "../../libs/libopus-src/include/opus.h"
+#include "opus.h"
 #include "../../thirdparty/renamenoise/include/renamenoise.h"
 
 #include "../i_time.h"

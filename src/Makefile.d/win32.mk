@@ -115,3 +115,8 @@ lib:=../libs/discord-rpc/win$(32)-dynamic
 DISCORDRPC_opts+=-I$(lib)/include
 DISCORDRPC_libs+=-L$(lib)/lib -ldiscord-rpc
 $(eval $(call _set,DISCORDRPC))
+
+lib:=../libs/libopus-src
+OPUS_opts:=-I$(lib)/include
+OPUS_libs:=-L$(lib)/lib -lopus
+$(eval $(call _set,OPUS))

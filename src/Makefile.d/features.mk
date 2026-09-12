@@ -55,6 +55,9 @@ opts+=-DUSE_STUN
 sources+=discord.c stun.c
 endif
 
+$(eval $(call Propogate_flags,OPUS))
+libs+=-lopus
+
 # (Valgrind is a memory debugger.)
 ifdef VALGRIND
 VALGRIND_PKGCONFIG?=valgrind

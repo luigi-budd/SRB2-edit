@@ -251,13 +251,17 @@ static const char* get_zlib_error(int zErr)
 }
 #endif
 
+
 static SDL_AudioDeviceID g_device_id;
 static SDL_AudioDeviceID g_input_device_id;
 static boolean g_input_device_paused;
-static SDL_AudioStream* g_output_stream;
-static SDL_AudioStream* g_input_stream;
-static SDL_mutex* microphone_mutex = NULL;
-static SDL_Thread* microphone_thread = NULL;
+static SDL_AudioStream* player_voice_channels[MAXPLAYERS] = {};
+
+static SDL_AudioStream* I_MakeSDLStream(const Uint16 format, const Uint8 channels, const int src_rate, const Uint16 dst_format, const Uint8 dst_channels, const int dst_rate)
+{
+	SDL_AudioStream* stream_ = SDL_NewAudioStream(format, channels, src_rate, dst_format, dst_channels, dst_rate);
+	return stream_;
+}
 
 
 /// ------------------------
@@ -321,6 +325,24 @@ void I_StartupSound(void)
 	CONS_Printf("libopenmpt build date: %s\n", openmpt_get_string("build"));
 #endif
 
+	SDL_AudioSpec desired = {};
+	desired.format = AUDIO_F32SYS;
+	desired.channels = 2;
+	desired.freq = 44100;
+	if ((g_device_id = SDL_OpenAudioDevice(NULL, SDL_FALSE, &desired, NULL, 0)) == 0)
+	{
+		CONS_Alert(CONS_ERROR, "Failed to open SDL Audio device: %s\n", SDL_GetError());
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
+		return;	
+	}
+	SDL_PauseAudioDevice(g_device_id, SDL_FALSE);
+
+	for (size_t i = 0; i < MAXPLAYERS; i++)
+	{
+		SDL_AudioStream *stream = I_MakeSDLStream(AUDIO_F32SYS, 1, 48000, AUDIO_F32SYS, 2, 44100);
+		player_voice_channels[i] = stream;
+	}
+
 	sound_started = true;
 	songpaused = false;
 	Mix_AllocateChannels(256);
@@ -331,6 +353,17 @@ void I_ShutdownSound(void)
 	if (!sound_started)
 		return; // not an error condition
 	sound_started = false;
+
+	if (g_device_id)
+	{
+		SDL_CloseAudioDevice(g_device_id);
+		g_device_id = 0;
+	}
+	if (g_input_device_id)
+	{
+		SDL_CloseAudioDevice(g_input_device_id);
+		g_input_device_id = 0;
+	}
 
 	Mix_CloseAudio();
 #if SDL_MIXER_VERSION_ATLEAST(1,2,11)
@@ -1632,7 +1665,6 @@ boolean I_FadeInPlaySong(UINT32 ms, boolean looping)
 		return false;
 }
 
-/*
 boolean I_SoundInputIsEnabled(void)
 {
 	return g_input_device_id != 0 && !g_input_device_paused;
@@ -1642,13 +1674,13 @@ boolean I_SoundInputSetEnabled(boolean enabled)
 {
 	if (g_input_device_id == 0 && enabled)
 	{
-		SDL_AudioSpec input_desired {};
+		SDL_AudioSpec input_desired = {};
 		input_desired.format = AUDIO_F32SYS;
 		input_desired.channels = 1;
 		input_desired.samples = 2048;
 		input_desired.freq = 48000;
-		SDL_AudioSpec input_obtained {};
-		g_input_device_id = SDL_OpenAudioDevice(nullptr, SDL_TRUE, &input_desired, &input_obtained, 0);
+		SDL_AudioSpec input_obtained = {};
+		g_input_device_id = SDL_OpenAudioDevice(NULL, SDL_TRUE, &input_desired, &input_obtained, 0);
 		if (!g_input_device_id)
 		{
 			CONS_Alert(CONS_WARNING, "Failed to open input audio device: %s\n", SDL_GetError());
@@ -1694,9 +1726,21 @@ void I_QueueVoiceFrameFromPlayer(INT32 playernum, void *data, UINT32 len, boolea
 		return;
 	}
 
-	SDL_LockAudioStream(g_output_stream);
-	SdlVoiceStreamPlayer* player = player_voice_channels.at(playernum).get();
-	player->stream().put(tcb::span((std::byte*)data, len));
+	SDL_LockAudioDevice(g_input_device_id);
+	
+	SDL_AudioStream* stream = I_MakeSDLStream(AUDIO_F32SYS, 1, 48000, AUDIO_F32SYS, 2, 44100);
+
+
+	if (!SDL_AudioStreamPut(stream, buf.data(), buf.size_bytes()))
+	{
+		char errbuf[512];
+		snprintf(errbuf, sizeof(errbuf), "%s", SDL_GetError());
+		throw std::runtime_error(errbuf);
+	}
+
+
+	//SdlVoiceStreamPlayer* player = player_voice_channels.at(playernum).get();
+	//player->stream().put(tcb::span((std::byte*)data, len));
 }
 
 void I_SetPlayerVoiceProperties(INT32 playernum, float volume, float sep)
@@ -1706,11 +1750,12 @@ void I_SetPlayerVoiceProperties(INT32 playernum, float volume, float sep)
 		return;
 	}
 
-	SdlAudioLockHandle _;
+	SDL_LockAudioDevice(g_input_device_id);
 	SdlVoiceStreamPlayer* player = player_voice_channels.at(playernum).get();
 	player->set_properties(volume * volume * volume, sep);
 }
 
+/*
 void I_ResetVoiceQueue(INT32 playernum)
 {
 	if (!sound_started)

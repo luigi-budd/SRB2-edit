@@ -58,6 +58,9 @@ endif
 $(eval $(call Propogate_flags,OPUS))
 libs+=-lopus
 
+$(eval $(call Propogate_flags,RENAMENOISE))
+libs+=-lrenamenoise
+
 # (Valgrind is a memory debugger.)
 ifdef VALGRIND
 VALGRIND_PKGCONFIG?=valgrind

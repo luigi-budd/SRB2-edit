@@ -132,7 +132,7 @@ static CV_PossibleValue_t cons_voicemode_t[] = {
 	{0, NULL}
 };
 consvar_t cv_voice_mode = CVAR_INIT ("voice_mode", "Activity", CV_SAVE|CV_CLIENT, cons_voicemode_t, NULL);
-consvar_t cv_voice_mute = CVAR_INIT ("voice_selfmute", "Off", CV_SAVE|CV_CLIENT, CV_OnOff, SendWeaponPref);
+consvar_t cv_voice_selfmute = CVAR_INIT ("voice_selfmute", "Off", CV_SAVE|CV_CLIENT, CV_OnOff, SendWeaponPref);
 
 CV_PossibleValue_t voiceinputamp_cons_t[] = {{-30, "MIN"}, {30, "MAX"}, {0, NULL}};
 consvar_t cv_voice_inputamp = CVAR_INIT ("voice_inputamp", "14", CV_SAVE|CV_CLIENT, voiceinputamp_cons_t, NULL);

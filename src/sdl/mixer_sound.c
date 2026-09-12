@@ -695,9 +695,9 @@ void I_SetSfxVolume(UINT8 volume)
 	sfx_volume = volume;
 }
 
-/*
 void I_SetVoiceVolume(int volume)
 {
+	/*
 	SdlAudioLockHandle _;
 	float vol = static_cast<float>(volume) / 100.f;
 
@@ -705,8 +705,8 @@ void I_SetVoiceVolume(int volume)
 	{
 		gain_voice_channel->gain(clamp(vol * vol * vol, 0.f, 1.f));
 	}
+	*/
 }
-*/
 
 /// ------------------------
 /// Music Utilities
@@ -1728,34 +1728,35 @@ void I_QueueVoiceFrameFromPlayer(INT32 playernum, void *data, UINT32 len, boolea
 
 	SDL_LockAudioDevice(g_input_device_id);
 	
-	SDL_AudioStream* stream = I_MakeSDLStream(AUDIO_F32SYS, 1, 48000, AUDIO_F32SYS, 2, 44100);
+	SDL_AudioStream* stream = player_voice_channels[playernum];
+	if (stream == NULL) return;
 
-
-	if (!SDL_AudioStreamPut(stream, buf.data(), buf.size_bytes()))
+	if (SDL_AudioStreamPut(stream, data, len) < 0)
 	{
 		char errbuf[512];
 		snprintf(errbuf, sizeof(errbuf), "%s", SDL_GetError());
-		throw std::runtime_error(errbuf);
+		CONS_Alert(CONS_ERROR, errbuf);
 	}
-
-
-	//SdlVoiceStreamPlayer* player = player_voice_channels.at(playernum).get();
-	//player->stream().put(tcb::span((std::byte*)data, len));
 }
 
 void I_SetPlayerVoiceProperties(INT32 playernum, float volume, float sep)
 {
+	/*
 	if (!sound_started)
 	{
 		return;
 	}
 
 	SDL_LockAudioDevice(g_input_device_id);
-	SdlVoiceStreamPlayer* player = player_voice_channels.at(playernum).get();
+
+	SDL_AudioStream* stream = player_voice_channels[playernum];
+	if (stream == NULL) return;
+
+	
 	player->set_properties(volume * volume * volume, sep);
+	*/
 }
 
-/*
 void I_ResetVoiceQueue(INT32 playernum)
 {
 	if (!sound_started)
@@ -1763,9 +1764,9 @@ void I_ResetVoiceQueue(INT32 playernum)
 		return;
 	}
 
-	SdlAudioLockHandle _;
-	SdlVoiceStreamPlayer* player = player_voice_channels.at(playernum).get();
-	player->stream().clear();
+	SDL_AudioStream* stream = player_voice_channels[playernum];
+	if (stream == NULL) return;
+	
+	SDL_AudioStreamClear(stream);
 }
-*/
 #endif

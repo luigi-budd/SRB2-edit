@@ -631,6 +631,7 @@ void D_RegisterServerCommands(void)
 	CV_RegisterVar(&cv_overtime);
 	CV_RegisterVar(&cv_pause);
 	CV_RegisterVar(&cv_mute);
+	CV_RegisterVar(&cv_voice_allowservervoice);
 
 	RegisterNetXCmd(XD_RANDOMSEED, Got_RandomSeed);
 

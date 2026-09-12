@@ -695,17 +695,52 @@ void SCR_VoiceChat(void)
 	else if (menuactive || gamestate == GS_WAITINGPLAYERS) // GS_WAITINGPLAYERS is the server view apparently
 		basey += 4;
 
+	char player_name[MAXPLAYERNAME+1];
+	skin_t *charskin = NULL;
+	spritedef_t *sprdef;
+	spriteframe_t *sprframe;
+	patch_t *patch;
+	UINT8 *colormap = NULL;
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		if (!S_IsPlayerVoiceActive(i)) continue;
-
-		V_DrawFill(basex - tagwidth, basey, tagwidth, 10, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE)|flags);
-		fixed_t activity = min(FixedDiv(S_PlayerVoiceActivity(i)*FRACUNIT + rendertimefrac, 5*FRACUNIT), FRACUNIT);
-		V_DrawFixedFill((basex - tagwidth)*FRACUNIT + (tagwidth*(FRACUNIT - activity)), (basey)*FRACUNIT, tagwidth*activity, 10*FRACUNIT, M_GetMenuBGColor(MENUBACKCOLOR, MC_HIGHLIGHT)|flags|V_40TRANS);
-
-		V_DrawRightAlignedThinString(basex - 1, basey + 1, flags|V_ALLOWLOWERCASE|(i == consoleplayer ? MENUHIGHLIGHT : 0), player_names[i]);
 		
-		basey -= 11;
+		fixed_t playervol = FloatToFixed(I_VoicePlayerVolume(i));
+		if (playervol <= 0) continue; // wouldnt hear this so skip
+
+		INT32 mywidth = tagwidth;
+
+		charskin = skins[players[i].skin];
+		sprdef = &charskin->sprites[SPR2_LIFE];
+		if (sprdef->numframes)
+		{
+			sprframe = &sprdef->spriteframes[0];
+			patch = W_CachePatchNum(sprframe->lumppat[0], PU_PATCH);
+			colormap = R_GetTranslationColormap(skins[players[i].skin]->skinnum, players[i].skincolor, GTC_CACHE);
+			mywidth += 10;
+		}
+
+		strncpy(player_name, player_names[i], MAXPLAYERNAME - 10);
+		player_name[MAXPLAYERNAME - 10] = '\0';
+
+		V_DrawFill(basex - mywidth, basey, mywidth, 9, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE)|flags);
+		// this jitter a lot but it looks cool because it looks lke a psuedo volume meter thing
+		fixed_t activity = min(FixedDiv(S_PlayerVoiceActivity(i)*FRACUNIT + rendertimefrac, 5*FRACUNIT), FRACUNIT);
+		activity = FixedMul(activity, playervol);
+		V_DrawFixedFill((basex - mywidth)*FRACUNIT + (mywidth*(FRACUNIT - activity)), (basey)*FRACUNIT, mywidth*activity, 9*FRACUNIT, M_GetMenuBGColor(MENUBACKCOLOR, MC_HIGHLIGHT)|flags|V_40TRANS);
+
+		if (sprdef->numframes)
+		{
+			V_DrawFixedPatch(
+				(basex - 5)<<FRACBITS,
+				(basey + 6)<<FRACBITS,
+				charskin->highresscale/2,
+				flags, patch, colormap);
+		}
+		
+		V_DrawRightAlignedThinString(basex - 1 - ((sprdef->numframes) ? 10 : 0), basey + 1, flags|V_ALLOWLOWERCASE|(i == consoleplayer ? MENUHIGHLIGHT : 0), player_name);
+		
+		basey -= 10;
 	}
 }
 

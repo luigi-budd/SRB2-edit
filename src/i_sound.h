@@ -256,4 +256,6 @@ void I_SetPlayerVoiceProperties(INT32 playernum, float volume, float panning);
 /// Reset the voice queue for the given player. Use when server connection ends
 void I_ResetVoiceQueue(INT32 playernum);
 
+float I_VoicePlayerVolume(INT32 playernum);
+
 #endif

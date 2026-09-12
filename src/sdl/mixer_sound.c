@@ -1814,4 +1814,13 @@ void I_ResetVoiceQueue(INT32 playernum)
 	SDL_AudioStreamClear(stream);
 }
 
+float I_VoicePlayerVolume(INT32 playernum)
+{
+	if (!sound_started)
+	{
+		return 0.0f;
+	}
+	return player_voice_volumes[playernum];
+}
+
 #endif

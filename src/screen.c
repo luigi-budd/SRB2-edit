@@ -35,6 +35,7 @@
 #include "g_game.h" // ditto
 #include "p_local.h" // P_AutoPause()
 #include "m_menu.h"
+#include "m_random.h"
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -599,7 +600,7 @@ void SCR_DisplayLocalPing(void)
 	}
 }
 
-void SCR_ClosedCaptions(void)
+void SCR_ClosedCaptions(boolean notext)
 {
 	UINT8 i;
 	boolean gamestopped = (paused || P_AutoPause());
@@ -654,6 +655,11 @@ void SCR_ClosedCaptions(void)
 				// Unlike everything else, captions are (intentionally) interpolated from T to T+1 instead of T-1 to T
 			}
 		}
+
+		// update the captions, so that they can still fade out,
+		// just dont draw the text so it wont get in the way 
+		// of voice chat
+		if (notext) continue;
 
 		if (closedcaptions[i].t < CAPTIONFADETICS)
 			flags |= (((CAPTIONFADETICS-closedcaptions[i].t)/2)*V_10TRANS);
@@ -724,8 +730,19 @@ void SCR_VoiceChat(void)
 		player_name[MAXPLAYERNAME - 10] = '\0';
 
 		V_DrawFill(basex - mywidth, basey, mywidth, 9, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE)|flags);
-		// this jitter a lot but it looks cool because it looks lke a psuedo volume meter thing
-		fixed_t activity = min(FixedDiv(S_PlayerVoiceActivity(i)*FRACUNIT + rendertimefrac, 5*FRACUNIT), FRACUNIT);
+		
+		fixed_t activity = 0;
+		if (i == consoleplayer)
+		{
+			// we can actually use our audio output for this lol
+			activity = FloatToFixed(g_local_voice_last_peak);
+		}
+		else
+		{
+			// this jitters a lot but it looks cool because it looks lke a psuedo volume meter thing
+			activity = min(FixedDiv(S_PlayerVoiceActivity(i)*FRACUNIT + rendertimefrac + M_RandomFixed(), 5*FRACUNIT), FRACUNIT);
+		}
+
 		activity = FixedMul(activity, playervol);
 		V_DrawFixedFill((basex - mywidth)*FRACUNIT + (mywidth*(FRACUNIT - activity)), (basey)*FRACUNIT, mywidth*activity, 9*FRACUNIT, M_GetMenuBGColor(MENUBACKCOLOR, MC_HIGHLIGHT)|flags|V_40TRANS);
 

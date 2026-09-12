@@ -359,6 +359,7 @@ menu_t OP_OpenGLLightingDef;
 #endif // HWRENDER
 menu_t OP_SoundOptionsDef;
 menu_t OP_SoundAdvancedDef;
+menu_t OP_SoundVoiceDef;
 
 //Misc
 menu_t OP_DataOptionsDef, OP_ScreenshotOptionsDef, OP_EraseDataDef;
@@ -419,6 +420,8 @@ static void M_DrawRoomMenu(void);
 static void M_DrawJoystick(void);
 static void M_DrawSetupMultiPlayerMenu(void);
 static void M_DrawColorRamp(INT32 x, INT32 y, INT32 w, INT32 h, skincolor_t color);
+static void M_DrawVoiceOptions(void);
+static boolean M_VoiceOptionsQuit(void); // lol
 
 // Handling functions
 static boolean M_ExitPandorasBox(void);
@@ -1235,6 +1238,7 @@ static menuitem_t OP_ChangeControlsMenu[] =
 	{IT_CALL | IT_STRING2, NULL, "Prev Viewpoint",        M_ChangeControl, GC_VIEWPOINTPREV },
 	{IT_CALL | IT_STRING2, NULL, "Console",               M_ChangeControl, GC_CONSOLE       },
 	{IT_CALL | IT_STRING2, NULL, "Local-addon Toggle",    M_ChangeControl, GC_LOCALTOGGLE   },
+	{IT_CALL | IT_STRING2, NULL, "Voice Push-to-Talk",    M_ChangeControl, GC_VOICEPUSHTOTALK},
 	{IT_HEADER, NULL, "Multiplayer", NULL, 0},
 	{IT_SPACE, NULL, NULL, NULL, 0}, // padding
 	{IT_CALL | IT_STRING2, NULL, "Talk",             M_ChangeControl, GC_TALKKEY     },
@@ -1590,13 +1594,14 @@ static menuitem_t OP_SoundOptionsMenu[] =
 	{IT_STRING | IT_CVAR | IT_CV_SLIDER, NULL, "MIDI Music Volume", &cv_midimusicvolume, 41},
 
 	{IT_STRING | IT_CVAR,  NULL,  "Music Preference", &cv_musicpref, 51},
+	{IT_STRING | IT_SUBMENU, NULL, "Voice Options...", &OP_SoundVoiceDef, 56},
 
-	{IT_HEADER, NULL, "Miscellaneous", NULL, 61},
-	{IT_STRING | IT_CVAR, NULL, "Closed Captioning", &cv_closedcaptioning, 67},
-	{IT_STRING | IT_CVAR, NULL, "Reset Music Upon Dying", &cv_resetmusic, 72},
-	{IT_STRING | IT_CVAR, NULL, "Default 1-Up sound", &cv_1upsound, 77},
+	{IT_HEADER, NULL, "Miscellaneous", NULL, 66},
+	{IT_STRING | IT_CVAR, NULL, "Closed Captioning", &cv_closedcaptioning, 72},
+	{IT_STRING | IT_CVAR, NULL, "Reset Music Upon Dying", &cv_resetmusic, 77},
+	{IT_STRING | IT_CVAR, NULL, "Default 1-Up sound", &cv_1upsound, 82},
 
-	{IT_STRING | IT_SUBMENU, NULL, "Advanced Settings...", &OP_SoundAdvancedDef, 87},
+	{IT_STRING | IT_SUBMENU, NULL, "Advanced Settings...", &OP_SoundAdvancedDef, 92},
 };
 
 #ifdef HAVE_OPENMPT
@@ -1629,6 +1634,23 @@ static menuitem_t OP_SoundAdvancedMenu[] =
 	{IT_STRING | IT_CVAR, NULL, "Play Sound Effects if Unfocused", &cv_playsoundsifunfocused, OPENMPT_MENUOFFSET+MIXERX_MENUOFFSET+12},
 	{IT_STRING | IT_CVAR, NULL, "Play Music if Unfocused", &cv_playmusicifunfocused, OPENMPT_MENUOFFSET+MIXERX_MENUOFFSET+22},
 	{IT_STRING | IT_CVAR, NULL, "Let Levels Force Reset Music", &cv_resetmusicbyheader, OPENMPT_MENUOFFSET+MIXERX_MENUOFFSET+32},
+};
+
+static menuitem_t OP_SoundVoiceMenu[] = {
+	{IT_HEADER,			NULL, "Voice Settings",					NULL,	0},
+	{IT_STRING|IT_CVAR,	NULL, "Self-Deafen",	&cv_voice_selfdeafen,	6},
+	{IT_STRING|IT_CVAR,	NULL, "Self-Mute",		&cv_voice_selfmute,		6 + 5},
+
+	{IT_STRING|IT_CVAR, NULL, "Input Mode",		&cv_voice_mode,			6 + 15 + 1},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER, NULL, "Input Amplitude",&cv_voice_inputamp,			6 + 20 + 1},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER, NULL, "Input Sensitivity",&cv_voice_activationthreshold,			6 + 25 + 1},
+	{IT_STRING|IT_CVAR, NULL, "Noise Reduction",&cv_voice_denoise,		6 + 30 + 1},
+	{IT_STRING|IT_CVAR, NULL, "Voice Loopback",	&cv_voice_loopback,		6 + 35 + 1},
+	{IT_STRING|IT_CVAR|IT_CV_SLIDER, NULL, "Voice Volume",	&cv_voicevolume,		6 + 40 + 1},
+
+	{IT_HEADER,			NULL, "Server Voice Settings",			NULL,	57},
+	{IT_STRING|IT_CVAR,	NULL, "Allow Voice Chat",	&cv_voice_allowservervoice,	63},
+	{IT_STRING|IT_CVAR,	NULL, "Proximity Effects",	&cv_voice_proximity,		63 + 5},
 };
 
 #undef OPENMPT_MENUOFFSET
@@ -2354,6 +2376,17 @@ menu_t OP_SoundOptionsDef = DEFAULTSCROLLMENUSTYLE(
 menu_t OP_SoundAdvancedDef = DEFAULTMENUSTYLE(
 	MTREE2(MN_OP_MAIN, MN_OP_SOUND),
 	"M_SOUND", OP_SoundAdvancedMenu, &OP_SoundOptionsDef, 30, 30);
+menu_t OP_SoundVoiceDef = {
+	MTREE2(MN_OP_MAIN, MN_OP_SOUND),
+	"M_SOUND",
+	sizeof (OP_SoundVoiceMenu)/sizeof (menuitem_t),
+	&OP_SoundOptionsDef,
+	OP_SoundVoiceMenu,
+	M_DrawVoiceOptions,
+	30, 30,
+	0,
+	M_VoiceOptionsQuit,
+};
 
 menu_t OP_ServerOptionsDef = DEFAULTSCROLLMENUSTYLE(
 	MTREE2(MN_OP_MAIN, MN_OP_SERVER),
@@ -4192,6 +4225,12 @@ void M_SetupNextMenu(menu_t *menudef)
 		}
 	}
 	M_UpdateItemOn();
+
+	// voice
+	if (currentMenu == &OP_SoundVoiceDef && !netgame)
+	{
+		S_SoundInputSetEnabled(true);
+	}
 
 	hidetitlemap = false;
 }
@@ -11882,6 +11921,40 @@ static void M_DrawConnectMenu(void)
 	}
 }
 
+static void M_DrawVoiceOptions(void)
+{
+	M_DrawGenericScrollMenu();
+
+	int x = currentMenu->x;
+	int y = currentMenu->y + (6 + 10)*2;
+	int range = (BASEVIDWIDTH-currentMenu->x) - x + 4;
+	x -= 3;
+
+	float last_peak = g_local_voice_last_peak * range;
+	boolean detected = g_local_voice_detected;
+	INT32 color = M_GetMenuBGColor(MENUBACKCOLOR, detected ? MC_BRIGHTLIGHT : MC_BASE);
+
+	float minimumthres = powf(10.0f, (float)cv_voice_activationthreshold.value / 10.0f);
+
+	V_DrawFill(x, y, range + 2, 9, M_GetMenuBGColor(MENUBACKCOLOR, MC_DARKCHECKER2)|V_TRANSLUCENT);
+	V_DrawFixedFill((x + 1)*FRACUNIT, (y + 1)*FRACUNIT, FloatToFixed(last_peak), 7*FRACUNIT, color);
+	V_DrawFixedFill((x + 1)*FRACUNIT + FloatToFixed(range*minimumthres), (y + 1)*FRACUNIT, FRACUNIT, 7*FRACUNIT, M_GetMenuColor(MENUHIGHLIGHT, 3)|V_30TRANS);
+	if (!detected)
+		V_DrawThinString(x+1, y+1, V_60TRANS|MENUCAPS, "Not transmitting...");
+	else
+		V_DrawThinString(x+1, y+1, V_20TRANS|MENUHIGHLIGHT|MENUCAPS, "Transmitting");
+
+}
+
+boolean M_VoiceOptionsQuit(void)
+{
+	if (!netgame)
+	{
+		S_SoundInputSetEnabled(false);
+	}
+	return true;
+}
+
 static boolean M_CancelConnect(void)
 {
 	D_CloseConnection();
@@ -13976,11 +14049,11 @@ static void M_Setup1PControlsMenu(INT32 choice)
 	OP_ChangeControlsMenu[19+8].status = IT_CALL|IT_STRING2; // next viewpoint
 	OP_ChangeControlsMenu[19+9].status = IT_CALL|IT_STRING2; // prev viewpoint
 	// ...
-	OP_ChangeControlsMenu[30+0].status = IT_HEADER;
-	OP_ChangeControlsMenu[30+1].status = IT_SPACE;
+	OP_ChangeControlsMenu[30+1].status = IT_HEADER;
+	OP_ChangeControlsMenu[30+2].status = IT_SPACE;
 	// ...
-	OP_ChangeControlsMenu[30+2].status = IT_CALL|IT_STRING2;
 	OP_ChangeControlsMenu[30+3].status = IT_CALL|IT_STRING2;
+	OP_ChangeControlsMenu[30+4].status = IT_CALL|IT_STRING2;
 
 	OP_ChangeControlsDef.prevMenu = &OP_P1ControlsDef;
 	OP_ChangeControlsDef.menuid &= ~(((1 << MENUBITS) - 1) << MENUBITS); // remove second level
@@ -14011,11 +14084,11 @@ static void M_Setup2PControlsMenu(INT32 choice)
 	//OP_ChangeControlsMenu[18+8].status = IT_GRAYEDOUT2;
 	OP_ChangeControlsMenu[19+9].status = IT_GRAYEDOUT2;
 	// ...
-	OP_ChangeControlsMenu[30+0].status = IT_GRAYEDOUT2;
 	OP_ChangeControlsMenu[30+1].status = IT_GRAYEDOUT2;
-	// ...
 	OP_ChangeControlsMenu[30+2].status = IT_GRAYEDOUT2;
+	// ...
 	OP_ChangeControlsMenu[30+3].status = IT_GRAYEDOUT2;
+	OP_ChangeControlsMenu[30+4].status = IT_GRAYEDOUT2;
 
 	OP_ChangeControlsDef.prevMenu = &OP_P2ControlsDef;
 	OP_ChangeControlsDef.menuid &= ~(((1 << MENUBITS) - 1) << MENUBITS); // remove second level

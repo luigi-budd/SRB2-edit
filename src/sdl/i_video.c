@@ -1278,8 +1278,8 @@ void I_FinishUpdate(void)
 		}
 	}
 
-	if (cv_closedcaptioning.value && !anyvoiceactive)
-		SCR_ClosedCaptions();
+	if (cv_closedcaptioning.value)
+		SCR_ClosedCaptions(anyvoiceactive);
 	
 	if (anyvoiceactive && gamestate != GS_NULL)
 		SCR_VoiceChat();

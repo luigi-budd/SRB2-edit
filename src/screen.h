@@ -187,7 +187,7 @@ FUNCMATH boolean SCR_IsAspectCorrect(INT32 width, INT32 height);
 
 // move out to main code for consistency
 void SCR_DisplayTicRate(void);
-void SCR_ClosedCaptions(void);
+void SCR_ClosedCaptions(boolean notext);
 void SCR_VoiceChat(void);
 void SCR_DisplayLocalPing(void);
 void SCR_DisplayMarathonInfo(void);

@@ -2145,12 +2145,8 @@ void NetVoiceUpdate(void)
 			{
 				RecreatePlayerOpusDecoder(consoleplayer);
 			}
-
-			if (g_player_opus_decoders[consoleplayer] != NULL)
-			{
-				result = opus_decode_float(g_player_opus_decoders[consoleplayer], encoded, result, frame_buffer, frame_length, 0);
-				S_QueueVoiceFrameFromPlayer(consoleplayer, frame_buffer, result * sizeof(float), false);
-			}
+			result = opus_decode_float(g_player_opus_decoders[consoleplayer], encoded, result, frame_buffer, frame_length, 0);
+			S_QueueVoiceFrameFromPlayer(consoleplayer, frame_buffer, result * sizeof(float), false);
 		}
 		g_local_opus_frame += 1;
 	}

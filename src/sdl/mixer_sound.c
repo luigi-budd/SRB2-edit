@@ -857,19 +857,25 @@ static void mix_voice(void *udata, Uint8 *stream, int len)
 {
 	(void)udata;
 
+	SDL_memset(stream, 0, len);
+	float *output = (float*)stream;
+	float workbuffer[len / sizeof(float)];
+
 	for (size_t i = 0; i < MAXPLAYERS; i++)
 	{
 		SDL_AudioStream *playerstream = player_voice_channels[i];
 		if (playerstream == NULL) continue;
 
 		int avail = SDL_AudioStreamAvailable(playerstream);
-		if (avail >= len)
+		if (avail <= 0) continue;
+
+		int sizetoread = min(avail, len);
+		SDL_memset(workbuffer, 0, len);
+		SDL_AudioStreamGet(playerstream, &workbuffer[i], sizetoread);
+		
+		for (int j = 0; j < (sizetoread / sizeof(float)); ++j)
 		{
-			SDL_AudioStreamGet(playerstream, stream, len);
-		}
-		else if (avail > 0)
-		{
-			SDL_AudioStreamGet(playerstream, stream, avail);
+			output[j] += workbuffer[j];
 		}
 	}
 }

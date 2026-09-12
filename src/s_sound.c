@@ -2887,7 +2887,6 @@ void S_QueueVoiceFrameFromPlayer(INT32 playernum, void *data, UINT32 len, boolea
 	}
 	if (cv_voice_selfdeafen.value != 1 && !g_voice_disabled)
 	{
-		CONS_Printf("S_QueueVoiceFrameFromPlayer(%d) data: %p...\n", playernum, data);
 		I_QueueVoiceFrameFromPlayer(playernum, data, len, terminal);
 	}
 }

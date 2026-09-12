@@ -204,7 +204,6 @@ void CL_Reset(void)
 
 static void RecreatePlayerOpusDecoder(int32_t playernum)
 {
-	CONS_Printf(va("Creating Opus decoder for node %d... ", playernum));
 	// Destroy and recreate the opus decoder for this playernum
 	OpusDecoder *opusdecoder = g_player_opus_decoders[playernum];
 	if (opusdecoder)
@@ -220,7 +219,6 @@ static void RecreatePlayerOpusDecoder(int32_t playernum)
 		opusdecoder = NULL;
 	}
 	g_player_opus_decoders[playernum] = opusdecoder;
-	CONS_Printf(va("(%p)\n", opusdecoder));
 }
 
 static void InitializeLocalVoiceDenoiser(void)
@@ -1834,11 +1832,9 @@ void NetUpdate(void)
 
 static void PT_HandleVoiceClient(INT32 node, boolean isserver)
 {
-	CONS_Printf("PT_HandleVoiceClient()...\n");
 	if (!isserver && node != servernode)
 	{
 		// We should never receive voice packets from anything other than the server
-		CONS_Printf("CGUARD 1\n");
 		return;
 	}
 
@@ -1856,14 +1852,12 @@ static void PT_HandleVoiceClient(INT32 node, boolean isserver)
 	if (playernum >= MAXPLAYERS || playernum < 0)
 	{
 		// ignore
-		CONS_Printf("CGUARD 2\n");
 		return;
 	}
 
 	if (players[playernum].spectator)
 	{
 		// ignore spectators in levels
-		CONS_Printf("CGUARD 3\n");
 		return;
 	}
 
@@ -1874,7 +1868,6 @@ static void PT_HandleVoiceClient(INT32 node, boolean isserver)
 	OpusDecoder *decoder = g_player_opus_decoders[playernum];
 	if (decoder == NULL)
 	{
-		CONS_Printf("CGUARD 4\n");
 		return;
 	}
 	float *decoded_out = Z_Malloc(sizeof(float) * 1920, PU_STATIC, NULL);
@@ -1904,7 +1897,6 @@ static void PT_HandleVoiceClient(INT32 node, boolean isserver)
 	if (decoded_samples < 0)
 	{
 		Z_Free(decoded_out);
-		CONS_Printf("CGUARD 5\n");
 		return;
 	}
 
@@ -1931,20 +1923,16 @@ static void PT_HandleVoiceServer(INT32 node)
 		return;
 	}
 
-	CONS_Printf("PT_HandleVoiceServer()...\n");
-
 	if ((pl->flags & VOICE_PAK_FLAGS_PLAYERNUM_BITS) > 0 || (pl->flags & VOICE_PAK_FLAGS_RESERVED_BITS) > 0)
 	{
 		// All bits except the terminal bit must be unset when sending to client
 		// Anything else is an illegal message
-		CONS_Printf("GUARD 1\n");
 		return;
 	}
 
 	playernum = netnodes[node].player;
 	if (!(playernum >= 0 && playernum < MAXPLAYERS))
 	{
-		CONS_Printf("GUARD 2\n");
 		return;
 	}
 	player = &players[playernum];
@@ -1952,14 +1940,12 @@ static void PT_HandleVoiceServer(INT32 node)
 	if (player->pflags2 & (PF2_SELFMUTE | PF2_SELFDEAFEN | PF2_SERVERMUTE | PF2_SERVERDEAFEN | PF2_SERVERTEMPMUTE))
 	{
 		// ignore, they should not be able to broadcast voice
-		CONS_Printf("GUARD 3\n");
 		return;
 	}
 	g_player_voice_frames_this_tic[playernum] += 1;
 	if (g_player_voice_frames_this_tic[playernum] > MAX_PLAYER_VOICE_FRAMES_PER_TIC)
 	{
 		// ignore; they sent too many voice frames this tic
-		CONS_Printf("GUARD 4\n");
 		return;
 	}
 
@@ -1983,12 +1969,9 @@ static void PT_HandleVoiceServer(INT32 node)
 		}
 
 		// Is this node P1 on that node?
-		CONS_Printf(va("PT_HandleVoiceServer(): Checking packet for node %d (%d)\n", pnode, (players[i].pflags2 & (PF2_SELFDEAFEN | PF2_SERVERDEAFEN))));
-
 		if (pnode != node && pnode != servernode && !(players[i].pflags2 & (PF2_SELFDEAFEN | PF2_SERVERDEAFEN)))
 		{
 			HSendPacket(pnode, false, 0, doomcom->datalength - BASEPACKETSIZE);
-			CONS_Printf(va("PT_HandleVoiceServer(): Sending packet to node %d\n", pnode));
 		}
 	}
 

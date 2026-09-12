@@ -856,7 +856,6 @@ static void mix_openmpt(void *udata, Uint8 *stream, int len)
 static void mix_voice(void *udata, Uint8 *stream, int len)
 {
 	(void)udata;
-	CONS_Printf("mix_voice\n");
 
 	for (size_t i = 0; i < MAXPLAYERS; i++)
 	{
@@ -864,15 +863,12 @@ static void mix_voice(void *udata, Uint8 *stream, int len)
 		if (playerstream == NULL) continue;
 
 		int avail = SDL_AudioStreamAvailable(playerstream);
-		CONS_Printf("bytes avail for stream %d: %d\n", i, avail);
 		if (avail >= len)
 		{
-			CONS_Printf("too much\n", i, avail);
 			SDL_AudioStreamGet(playerstream, stream, len);
 		}
 		else if (avail > 0)
 		{
-			CONS_Printf("trying\n", i, avail);
 			SDL_AudioStreamGet(playerstream, stream, avail);
 		}
 	}
@@ -1747,7 +1743,6 @@ void I_QueueVoiceFrameFromPlayer(INT32 playernum, void *data, UINT32 len, boolea
 	SDL_AudioStream* stream = player_voice_channels[playernum];
 	if (stream == NULL) return;
 	
-	CONS_Printf("SDL_AudioStreamPut(%d)...\n", playernum);
 	if (SDL_AudioStreamPut(stream, data, len) < 0)
 	{
 		char errbuf[512];

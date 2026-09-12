@@ -265,6 +265,7 @@ void CL_ClearPlayer(INT32 playernum)
 	memset(&players[playernum], 0, sizeof (player_t));
 	memset(playeraddress[playernum], 0, sizeof(*playeraddress));
 
+	S_ResetVoiceQueue(playernum);
 	RecreatePlayerOpusDecoder(playernum);
 }
 
@@ -1828,6 +1829,11 @@ void NetUpdate(void)
 	}
 
 	FileSendTicker();
+
+	// Update voice whenever possible.
+	{
+		NetVoiceUpdate();
+	}
 }
 
 static void PT_HandleVoiceClient(INT32 node, boolean isserver)

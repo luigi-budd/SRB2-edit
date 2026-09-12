@@ -323,6 +323,21 @@ void S_RegisterSoundStuff(void)
 	CV_RegisterVar(&cv_miditimiditypath);
 #endif
 
+	CV_RegisterVar(&cv_voice_selfdeafen);
+	CV_RegisterVar(&cv_voice_mode);
+	CV_RegisterVar(&cv_voice_selfmute);
+	CV_RegisterVar(&cv_voice_loopback);
+	CV_RegisterVar(&cv_voice_inputamp);
+	CV_RegisterVar(&cv_voice_activationthreshold);
+	CV_RegisterVar(&cv_voice_denoise);
+	CV_RegisterVar(&cv_voice_proximity);
+	CV_RegisterVar(&cv_voice_distanceattenuation_distance);
+	CV_RegisterVar(&cv_voice_distanceattenuation_factor);
+	CV_RegisterVar(&cv_voice_stereopanning_factor);
+	CV_RegisterVar(&cv_voice_concurrentattenuation_factor);
+	CV_RegisterVar(&cv_voice_concurrentattenuation_min);
+	CV_RegisterVar(&cv_voice_concurrentattenuation_max);
+
 	COM_AddCommand("tunes", Command_Tunes_f, COM_LUA);
 	COM_AddCommand("restartaudio", Command_RestartAudio_f, COM_LUA);
 }

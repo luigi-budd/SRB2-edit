@@ -915,6 +915,9 @@ void D_SRB2Loop(void)
 			Discord_RunCallbacks();
 		}
 #endif
+		
+		S_UpdateVoicePositionalProperties();
+
 		// Fully completed frame made.
 		finishprecise = I_GetPreciseTime();
 		if (!singletics)

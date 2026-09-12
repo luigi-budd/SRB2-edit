@@ -1847,6 +1847,12 @@ void CL_ConnectToServer(void)
 	}
 
 	joinedIP[0] = '\0';	// And empty this for good measure regardless of whether or not we actually used it.
+
+	// Enable sound input/microphone in netgames, activating the microphone device.
+	if (netgame)
+	{
+		S_SoundInputSetEnabled(true);
+	}
 }
 
 /** Called when a PT_SERVERINFO packet is received

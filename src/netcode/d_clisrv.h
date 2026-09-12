@@ -141,6 +141,6 @@ extern UINT32 adminpasscount;
 
 extern boolean hu_stopped;
 
-void DoVoicePacket(SINT8 target, UINT64 frame, const UINT8* opusdata, size_t len);
+void DoVoicePacket(INT32 target, UINT64 frame, const UINT8* opusdata, size_t len);
 
 #endif

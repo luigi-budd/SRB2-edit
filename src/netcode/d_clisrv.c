@@ -202,6 +202,59 @@ void CL_Reset(void)
 	// D_StartTitle should get done now, but the calling function will handle it
 }
 
+static void RecreatePlayerOpusDecoder(int32_t playernum)
+{
+	CONS_Printf(va("Creating Opus decoder for node %d... ", playernum));
+	// Destroy and recreate the opus decoder for this playernum
+	OpusDecoder *opusdecoder = g_player_opus_decoders[playernum];
+	if (opusdecoder)
+	{
+		opus_decoder_destroy(opusdecoder);
+		opusdecoder = NULL;
+	}
+	int error;
+	opusdecoder = opus_decoder_create(48000, 1, &error);
+	if (error != OPUS_OK)
+	{
+		CONS_Alert(CONS_WARNING, "Failed to create Opus decoder for player %d: opus error %d\n", playernum, error);
+		opusdecoder = NULL;
+	}
+	g_player_opus_decoders[playernum] = opusdecoder;
+	CONS_Printf(va("(%p)\n", opusdecoder));
+}
+
+static void InitializeLocalVoiceDenoiser(void)
+{
+	if (g_local_renamenoise_state != NULL)
+	{
+		renamenoise_destroy(g_local_renamenoise_state);
+		g_local_renamenoise_state = NULL;
+	}
+
+	g_local_renamenoise_state = renamenoise_create(NULL);
+}
+
+static void InitializeLocalVoiceEncoder(void)
+{
+	// Reset voice opus encoder for local "player 1"
+	OpusEncoder *encoder = g_local_opus_encoder;
+	if (encoder != NULL)
+	{
+		opus_encoder_destroy(encoder);
+		encoder = NULL;
+	}
+	int error;
+	encoder = opus_encoder_create(48000, 1, OPUS_APPLICATION_VOIP, &error);
+	if (error != OPUS_OK)
+	{
+		CONS_Alert(CONS_WARNING, "Failed to create Opus voice encoder: opus error %d\n", error);
+		encoder = NULL;
+	}
+	g_local_opus_encoder = encoder;
+	g_local_opus_frame = 0;
+}
+
+
 //
 // CL_ClearPlayer
 //
@@ -213,6 +266,8 @@ void CL_ClearPlayer(INT32 playernum)
 		P_RemoveMobj(players[playernum].mo);
 	memset(&players[playernum], 0, sizeof (player_t));
 	memset(playeraddress[playernum], 0, sizeof(*playeraddress));
+
+	RecreatePlayerOpusDecoder(playernum);
 }
 
 // Xcmd XD_ADDPLAYER
@@ -282,6 +337,9 @@ static void Got_AddPlayer(UINT8 **p, INT32 playernum)
 			secondarydisplayplayer = newplayernum;
 			DEBFILE("spawning me\n");
 			ticcmd_oldangleturn[0] = newplayer->oldrelangleturn;
+
+			InitializeLocalVoiceDenoiser();
+			InitializeLocalVoiceEncoder();
 		}
 		else
 		{
@@ -715,6 +773,7 @@ void D_QuitNetGame(void)
 
 	D_CloseConnection();
 	ClearAdminPlayers();
+	S_SoundInputSetEnabled(false);
 
 	DEBFILE("===========================================================================\n"
 	        "                         Log finish\n"
@@ -1374,6 +1433,12 @@ boolean TryRunTics(tic_t realtics)
 				// Leave a certain amount of tics present in the net buffer as long as we've ran at least one tic this frame.
 				if (client && gamestate == GS_LEVEL && leveltime > 3 && neededtic <= gametic + cv_netticbuffer.value)
 					break;
+
+				// Reset received voice frames per tic for all players
+				for (int i = 0; i < MAXPLAYERS; i++)
+				{
+					g_player_voice_frames_this_tic[i] = 0;
+				}
 			}
 
 		return true;
@@ -1767,11 +1832,13 @@ void NetUpdate(void)
 	FileSendTicker();
 }
 
-static void PT_HandleVoiceClient(int8_t node, boolean isserver)
+static void PT_HandleVoiceClient(INT32 node, boolean isserver)
 {
+	CONS_Printf("PT_HandleVoiceClient()...\n");
 	if (!isserver && node != servernode)
 	{
 		// We should never receive voice packets from anything other than the server
+		CONS_Printf("CGUARD 1\n");
 		return;
 	}
 
@@ -1789,12 +1856,14 @@ static void PT_HandleVoiceClient(int8_t node, boolean isserver)
 	if (playernum >= MAXPLAYERS || playernum < 0)
 	{
 		// ignore
+		CONS_Printf("CGUARD 2\n");
 		return;
 	}
 
 	if (players[playernum].spectator)
 	{
 		// ignore spectators in levels
+		CONS_Printf("CGUARD 3\n");
 		return;
 	}
 
@@ -1805,6 +1874,7 @@ static void PT_HandleVoiceClient(int8_t node, boolean isserver)
 	OpusDecoder *decoder = g_player_opus_decoders[playernum];
 	if (decoder == NULL)
 	{
+		CONS_Printf("CGUARD 4\n");
 		return;
 	}
 	float *decoded_out = Z_Malloc(sizeof(float) * 1920, PU_STATIC, NULL);
@@ -1834,6 +1904,7 @@ static void PT_HandleVoiceClient(int8_t node, boolean isserver)
 	if (decoded_samples < 0)
 	{
 		Z_Free(decoded_out);
+		CONS_Printf("CGUARD 5\n");
 		return;
 	}
 
@@ -1846,7 +1917,7 @@ static void PT_HandleVoiceClient(int8_t node, boolean isserver)
 	Z_Free(decoded_out);
 }
 
-static void PT_HandleVoiceServer(int8_t node)
+static void PT_HandleVoiceServer(INT32 node)
 {
 	// Relay to client nodes except the sender
 	doomdata_t *pak = (doomdata_t*)(doomcom->data);
@@ -1860,16 +1931,20 @@ static void PT_HandleVoiceServer(int8_t node)
 		return;
 	}
 
+	CONS_Printf("PT_HandleVoiceServer()...\n");
+
 	if ((pl->flags & VOICE_PAK_FLAGS_PLAYERNUM_BITS) > 0 || (pl->flags & VOICE_PAK_FLAGS_RESERVED_BITS) > 0)
 	{
 		// All bits except the terminal bit must be unset when sending to client
 		// Anything else is an illegal message
+		CONS_Printf("GUARD 1\n");
 		return;
 	}
 
 	playernum = netnodes[node].player;
 	if (!(playernum >= 0 && playernum < MAXPLAYERS))
 	{
+		CONS_Printf("GUARD 2\n");
 		return;
 	}
 	player = &players[playernum];
@@ -1877,12 +1952,14 @@ static void PT_HandleVoiceServer(int8_t node)
 	if (player->pflags2 & (PF2_SELFMUTE | PF2_SELFDEAFEN | PF2_SERVERMUTE | PF2_SERVERDEAFEN | PF2_SERVERTEMPMUTE))
 	{
 		// ignore, they should not be able to broadcast voice
+		CONS_Printf("GUARD 3\n");
 		return;
 	}
 	g_player_voice_frames_this_tic[playernum] += 1;
 	if (g_player_voice_frames_this_tic[playernum] > MAX_PLAYER_VOICE_FRAMES_PER_TIC)
 	{
 		// ignore; they sent too many voice frames this tic
+		CONS_Printf("GUARD 4\n");
 		return;
 	}
 
@@ -1906,11 +1983,12 @@ static void PT_HandleVoiceServer(int8_t node)
 		}
 
 		// Is this node P1 on that node?
-		boolean isp1onnode = netnodes[pnode].player >= 0 && netnodes[pnode].player < MAXPLAYERS;
+		CONS_Printf(va("PT_HandleVoiceServer(): Checking packet for node %d (%d)\n", pnode, (players[i].pflags2 & (PF2_SELFDEAFEN | PF2_SERVERDEAFEN))));
 
-		if (pnode != node && pnode != servernode && isp1onnode && !(players[i].pflags2 & (PF2_SELFDEAFEN | PF2_SERVERDEAFEN)))
+		if (pnode != node && pnode != servernode && !(players[i].pflags2 & (PF2_SELFDEAFEN | PF2_SERVERDEAFEN)))
 		{
 			HSendPacket(pnode, false, 0, doomcom->datalength - BASEPACKETSIZE);
+			CONS_Printf(va("PT_HandleVoiceServer(): Sending packet to node %d\n", pnode));
 		}
 	}
 
@@ -1927,56 +2005,6 @@ static void PT_HandleVoice(int8_t node)
 	{
 		PT_HandleVoiceClient(node, false);
 	}
-}
-
-static void InitializeLocalVoiceDenoiser(void)
-{
-	if (g_local_renamenoise_state != NULL)
-	{
-		renamenoise_destroy(g_local_renamenoise_state);
-		g_local_renamenoise_state = NULL;
-	}
-
-	g_local_renamenoise_state = renamenoise_create(NULL);
-}
-
-static void InitializeLocalVoiceEncoder(void)
-{
-	// Reset voice opus encoder for local "player 1"
-	OpusEncoder *encoder = g_local_opus_encoder;
-	if (encoder != NULL)
-	{
-		opus_encoder_destroy(encoder);
-		encoder = NULL;
-	}
-	int error;
-	encoder = opus_encoder_create(48000, 1, OPUS_APPLICATION_VOIP, &error);
-	if (error != OPUS_OK)
-	{
-		CONS_Alert(CONS_WARNING, "Failed to create Opus voice encoder: opus error %d\n", error);
-		encoder = NULL;
-	}
-	g_local_opus_encoder = encoder;
-	g_local_opus_frame = 0;
-}
-
-static void RecreatePlayerOpusDecoder(int32_t playernum)
-{
-	// Destroy and recreate the opus decoder for this playernum
-	OpusDecoder *opusdecoder = g_player_opus_decoders[playernum];
-	if (opusdecoder)
-	{
-		opus_decoder_destroy(opusdecoder);
-		opusdecoder = NULL;
-	}
-	int error;
-	opusdecoder = opus_decoder_create(48000, 1, &error);
-	if (error != OPUS_OK)
-	{
-		CONS_Alert(CONS_WARNING, "Failed to create Opus decoder for player %d: opus error %d\n", playernum, error);
-		opusdecoder = NULL;
-	}
-	g_player_opus_decoders[playernum] = opusdecoder;
 }
 
 static int32_t BiggestOpusFrameLength(int32_t samples)
@@ -2128,8 +2156,12 @@ void NetVoiceUpdate(void)
 			{
 				RecreatePlayerOpusDecoder(consoleplayer);
 			}
-			result = opus_decode_float(g_player_opus_decoders[consoleplayer], encoded, result, frame_buffer, frame_length, 0);
-			S_QueueVoiceFrameFromPlayer(consoleplayer, frame_buffer, result * sizeof(float), false);
+
+			if (g_player_opus_decoders[consoleplayer] != NULL)
+			{
+				result = opus_decode_float(g_player_opus_decoders[consoleplayer], encoded, result, frame_buffer, frame_length, 0);
+				S_QueueVoiceFrameFromPlayer(consoleplayer, frame_buffer, result * sizeof(float), false);
+			}
 		}
 		g_local_opus_frame += 1;
 	}
@@ -2410,7 +2442,7 @@ void D_MD5PasswordPass(const UINT8 *buffer, size_t len, const char *salt, void *
 #endif
 }
 
-void DoVoicePacket(int8_t target, uint64_t frame, const uint8_t* opusdata, size_t len)
+void DoVoicePacket(INT32 target, uint64_t frame, const uint8_t* opusdata, size_t len)
 {
 	voice_pak *pl = &netbuffer->u.voice;
 	netbuffer->packettype = PT_VOICE;

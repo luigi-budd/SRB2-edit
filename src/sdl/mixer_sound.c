@@ -370,17 +370,6 @@ void I_ShutdownSound(void)
 	Mix_Quit();
 #endif
 
-	if (g_device_id)
-	{
-		SDL_CloseAudioDevice(g_device_id);
-		g_device_id = 0;
-	}
-	if (g_input_device_id)
-	{
-		SDL_CloseAudioDevice(g_input_device_id);
-		g_input_device_id = 0;
-	}
-
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
 #ifdef HAVE_GME
@@ -1737,6 +1726,8 @@ void I_QueueVoiceFrameFromPlayer(INT32 playernum, void *data, UINT32 len, boolea
 		snprintf(errbuf, sizeof(errbuf), "%s", SDL_GetError());
 		CONS_Alert(CONS_ERROR, errbuf);
 	}
+
+	SDL_UnlockAudioDevice(g_input_device_id);
 }
 
 void I_SetPlayerVoiceProperties(INT32 playernum, float volume, float sep)
@@ -1754,6 +1745,8 @@ void I_SetPlayerVoiceProperties(INT32 playernum, float volume, float sep)
 
 	
 	player->set_properties(volume * volume * volume, sep);
+
+	SDL_UnlockAudioDevice(g_input_device_id);
 	*/
 }
 

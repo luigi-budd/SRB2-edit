@@ -27,6 +27,7 @@
 #include "../doomdef.h"
 #include "../r_local.h"
 #include "../m_misc.h"
+#include "../s_sound.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -473,6 +474,8 @@ void Command_connect(void)
 			{
 				CONS_Alert(CONS_ERROR, M_GetText("There is no server identification with this network driver\n"));
 				D_CloseConnection();
+
+				S_SoundInputSetEnabled(false);
 				return;
 			}
 		}

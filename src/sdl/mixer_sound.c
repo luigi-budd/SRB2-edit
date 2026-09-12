@@ -262,7 +262,7 @@ static SDL_AudioStream* I_MakeSDLStream(const Uint16 format, const Uint8 channel
 	SDL_AudioStream* stream_ = SDL_NewAudioStream(format, channels, src_rate, dst_format, dst_channels, dst_rate);
 	return stream_;
 }
-
+static void mix_voice(void *udata, Uint8 *stream, int len); // prototype
 
 /// ------------------------
 /// Audio System
@@ -329,7 +329,9 @@ void I_StartupSound(void)
 	desired.format = AUDIO_F32SYS;
 	desired.channels = 2;
 	desired.freq = 44100;
-	if ((g_device_id = SDL_OpenAudioDevice(NULL, SDL_FALSE, &desired, NULL, 0)) == 0)
+	desired.callback = mix_voice;
+	SDL_AudioSpec got = {};
+	if ((g_device_id = SDL_OpenAudioDevice(NULL, SDL_FALSE, &desired, &got, 0)) == 0)
 	{
 		CONS_Alert(CONS_ERROR, "Failed to open SDL Audio device: %s\n", SDL_GetError());
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);
@@ -850,6 +852,31 @@ static void mix_openmpt(void *udata, Uint8 *stream, int len)
 		*p = ((INT32)*p) * music_volume * internal_volume / 100 / 20;
 }
 #endif
+
+static void mix_voice(void *udata, Uint8 *stream, int len)
+{
+	(void)udata;
+	CONS_Printf("mix_voice\n");
+
+	for (size_t i = 0; i < MAXPLAYERS; i++)
+	{
+		SDL_AudioStream *playerstream = player_voice_channels[i];
+		if (playerstream == NULL) continue;
+
+		int avail = SDL_AudioStreamAvailable(playerstream);
+		CONS_Printf("bytes avail for stream %d: %d\n", i, avail);
+		if (avail >= len)
+		{
+			CONS_Printf("too much\n", i, avail);
+			SDL_AudioStreamGet(playerstream, stream, len);
+		}
+		else if (avail > 0)
+		{
+			CONS_Printf("trying\n", i, avail);
+			SDL_AudioStreamGet(playerstream, stream, avail);
+		}
+	}
+}
 
 /// ------------------------
 /// Music System
@@ -1719,7 +1746,8 @@ void I_QueueVoiceFrameFromPlayer(INT32 playernum, void *data, UINT32 len, boolea
 	
 	SDL_AudioStream* stream = player_voice_channels[playernum];
 	if (stream == NULL) return;
-
+	
+	CONS_Printf("SDL_AudioStreamPut(%d)...\n", playernum);
 	if (SDL_AudioStreamPut(stream, data, len) < 0)
 	{
 		char errbuf[512];
@@ -1762,4 +1790,5 @@ void I_ResetVoiceQueue(INT32 playernum)
 	
 	SDL_AudioStreamClear(stream);
 }
+
 #endif

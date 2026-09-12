@@ -122,6 +122,6 @@ OPUS_libs:=-L$(lib)/lib -lopus
 $(eval $(call _set,OPUS))
 
 lib:=../libs/renamenoise
-OPUS_opts:=-I$(lib)/include
-OPUS_libs:=-L$(lib)/lib -lrenamenoise
+RENAMENOISE_opts:=-I$(lib)/include
+RENAMENOISE_libs:=-L$(lib)/lib -lrenamenoise
 $(eval $(call _set,RENAMENOISE))

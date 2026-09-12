@@ -16,7 +16,7 @@
 #endif
 
 #include "opus.h"
-#include "../../thirdparty/renamenoise/include/renamenoise.h"
+#include "renamenoise.h"
 
 #include "../i_time.h"
 #include "i_net.h"

@@ -855,10 +855,8 @@ static void AdjustVolumeAndPanning(float *buffer, int samples, float vol, float 
 
 	for (int i = 0; i < samples; i +=2)
 	{
-		// these are swapped on purpose cause i dont
-		// wanna actually fix it
-		buffer[i] *= rightvol;
-		buffer[i+1] *= leftvol;
+		buffer[i] *= leftvol;
+		buffer[i+1] *= rightvol;
 	}
 }
 

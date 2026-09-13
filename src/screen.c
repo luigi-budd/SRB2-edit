@@ -684,6 +684,9 @@ void SCR_VoiceChat(void)
 	INT32 flags = V_SNAPTORIGHT|V_SNAPTOBOTTOM;
 	const INT32 tagwidth = 60;
 
+	if (!cv_voice_allowservervoice.value)
+		return;
+	
 	if (gamestate != wipegamestate)
 		return;
 

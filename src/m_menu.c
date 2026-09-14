@@ -4658,7 +4658,7 @@ static void M_DrawMenuTitle(void)
 
 // checkeri is here so DRAWCHECKEREDBACKGROUND doesn't draw more than once in case of a fallthru.
 #define CHECKEREDINIT \
-	static boolean checkeri = -1;\
+	static INT32 checkeri = -1;\
 	static boolean seenheader = false;\
 	static menu_t *prevmenu;\
 	if (currentMenu != prevmenu)\

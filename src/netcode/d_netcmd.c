@@ -3800,8 +3800,6 @@ static void Command_Addfolderlocal(void)
 	{
 		const char *fn, *p;
 		char *fullpath;
-		char buf[256];
-		char *buf_p = buf;
 		INT32 i, stat;
 		boolean folderadded = false;
 

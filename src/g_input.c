@@ -820,11 +820,11 @@ void G_CopyControls(INT32 (*setupcontrols)[2], INT32 (*fromcontrols)[2], const I
 	}
 }
 
-void G_SaveKeySetting(FILE *f, INT32 (*fromcontrols)[2], INT32 (*fromcontrolsbis)[2])
+void G_SaveKeySetting(FILE *f, INT32 (*fromcontrols)[2], INT32 (*fromcontrolsbis)[2], boolean foredit)
 {
 	INT32 i;
 
-	for (i = 1; i < NUM_GAMECONTROLS; i++)
+	for (i = (!foredit ? 1 : NUMVANILLACONTROLS); i < (!foredit ? NUMVANILLACONTROLS : NUM_GAMECONTROLS); i++)
 	{
 		fprintf(f, "setcontrol \"%s\" \"%s\"", gamecontrolname[i],
 			G_KeyNumToName(fromcontrols[i][0]));
@@ -835,7 +835,7 @@ void G_SaveKeySetting(FILE *f, INT32 (*fromcontrols)[2], INT32 (*fromcontrolsbis
 			fprintf(f, "\n");
 	}
 
-	for (i = 1; i < NUM_GAMECONTROLS; i++)
+	for (i = (!foredit ? 1 : NUMVANILLACONTROLS); i < (!foredit ? NUMVANILLACONTROLS : NUM_GAMECONTROLS); i++)
 	{
 		fprintf(f, "setcontrol2 \"%s\" \"%s\"", gamecontrolname[i],
 			G_KeyNumToName(fromcontrolsbis[i][0]));

@@ -364,7 +364,7 @@ static void I_ReportSignal(int num, int coredumped)
 	const char *sigmsg, *signame;
 	char ttl[128];
 	char sigttl[512] = "Process killed by signal: ";
-	const char *reportmsg = "\n\nTo help us figure out the cause, you can visit our official Discord server\nwhere you will find more instructions on how to submit a crash report.\n\nSorry for the inconvenience!";
+	const char *reportmsg = "\n\nYou can submit an issue on SRB2-edit's Github\nto help improve Edit in the future.\n\nSorry for the inconvenience!";
 
 	// will this work??? is this safe?? Who knows
 	if (moviemode)
@@ -428,7 +428,7 @@ static void I_ReportSignal(int num, int coredumped)
 
 	const SDL_MessageBoxButtonData buttons[] = {
 		{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0,		"OK" },
-		{ 										0, 1,  "Discord" },
+		{ 										0, 1,   "GitHub" },
 	};
 
 	const SDL_MessageBoxData messageboxdata = {
@@ -447,7 +447,7 @@ static void I_ReportSignal(int num, int coredumped)
 
 #if SDL_VERSION_ATLEAST(2,0,14)
 	if (buttonid == 1)
-		SDL_OpenURL("https://discord.gg/aaY8p8nrBk");
+		SDL_OpenURL("https://github.com/luigi-budd/SRB2-edit/issues/new");
 #endif
 }
 
@@ -2505,7 +2505,8 @@ void I_Quit(void)
 	if (quiting) goto death;
 	SDLforceUngrabMouse();
 	quiting = SDL_FALSE;
-	M_SaveConfig(NULL); //save game config, cvars..
+	M_SaveConfig(NULL, false); //save game config, cvars..
+	M_SaveConfig(NULL, true);  //and save edits stuff...
 	M_SaveJoinedIPs(); // Not in dedicated because you shouldnt be able to connect there
 	D_SaveBan(); // save the ban list
 	G_SaveGameData(clientGamedata); // Tails 12-08-2002
@@ -2594,7 +2595,8 @@ void I_Error(const char *error, ...)
 			SDL_Quit();
 		if (errorcount == 8)
 		{
-			M_SaveConfig(NULL);
+			M_SaveConfig(NULL, false);
+			M_SaveConfig(NULL, true);
 			G_SaveGameData(clientGamedata);
 		}
 		if (errorcount > 20)
@@ -2607,7 +2609,7 @@ void I_Error(const char *error, ...)
 			// on the target system
 			if (!M_CheckParm("-dedicated"))
 				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-					"SRB2 "VERSIONSTRING" Recursive Error",
+					"SRB2-edit "VERSIONSTRING" Recursive Error",
 					buffer, NULL);
 
 			W_Shutdown();
@@ -2624,7 +2626,8 @@ void I_Error(const char *error, ...)
 	I_OutputMsg("\nI_Error(): %s\n", buffer);
 	// ---
 
-	M_SaveConfig(NULL); // save game config, cvars..
+	M_SaveConfig(NULL, false); // save game config, cvars..
+	M_SaveConfig(NULL, true); // hello edit
 	D_SaveBan(); // save the ban list
 	G_SaveGameData(clientGamedata); // Tails 12-08-2002
 

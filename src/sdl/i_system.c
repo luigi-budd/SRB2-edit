@@ -364,7 +364,7 @@ static void I_ReportSignal(int num, int coredumped)
 	const char *sigmsg, *signame;
 	char ttl[128];
 	char sigttl[512] = "Process killed by signal: ";
-	const char *reportmsg = "\n\nYou can submit an issue on SRB2-edit's Github\nto help improve Edit in the future.\n\nSorry for the inconvenience!";
+	const char *reportmsg = "\n\nYou can submit an issue on SRB2-edit's Github to help improve Edit in the future.\n\nSorry for the inconvenience!";
 
 	// will this work??? is this safe?? Who knows
 	if (moviemode)

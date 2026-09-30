@@ -472,6 +472,7 @@ void DRPC_UpdatePresence(void)
 	if (!drpc_init) DRPC_Init();
 
 	char detailstr[48+1];
+	char statestring[100+1];
 
 	boolean joinSecretSet = false;
 
@@ -534,7 +535,16 @@ void DRPC_UpdatePresence(void)
 
 		// Offline info
 		if (Playing())
-			discordPresence.state = "Singleplayer";
+		{
+			if (playeringame[consoleplayer] && !players[consoleplayer].spectator)
+				if (botingame && !players[secondarydisplayplayer].spectator)
+					snprintf(statestring, 100, "Playing as %s & %s", skins[players[consoleplayer].skin]->realname, skins[players[secondarydisplayplayer].skin]->realname);
+				else
+					snprintf(statestring, 100, "Playing as %s", skins[players[consoleplayer].skin]->realname);
+			else
+				snprintf(statestring, 100, "Playing locally");
+			discordPresence.state = statestring;
+		}
 		else if (demoplayback && !titledemo)
 			discordPresence.state = "Watching Replay";
 		else
@@ -546,6 +556,11 @@ void DRPC_UpdatePresence(void)
 	{
 		if (modeattacking)
 			discordPresence.details = "Time Attack";
+		else if (!netgame && !multiplayer)
+		{
+			snprintf(detailstr, 48, "Singleplayer");
+			discordPresence.details = detailstr;
+		}
 		else
 		{
 			snprintf(detailstr, 48, "%s | %s",

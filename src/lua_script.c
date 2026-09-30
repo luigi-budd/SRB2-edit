@@ -612,8 +612,8 @@ static void LUA_ClearState(void)
 	lua_pop(L, 1);
 
 	// allocate these here for later
-	lua_lumpname = Z_Malloc(600, PU_LUA, NULL); // 600 should be more than enough
-	lua_wadname = Z_Malloc(600, PU_LUA, NULL);
+	lua_lumpname = Z_Malloc(LUA_SCRIPTNAMELEN, PU_LUA, NULL); // 600 should be more than enough
+	lua_wadname = Z_Malloc(LUA_SCRIPTNAMELEN, PU_LUA, NULL);
 
 	// lua state is ready!
 	gL = L;
@@ -726,6 +726,7 @@ static inline MYFILE *LUA_GetFile(UINT16 wad, UINT16 lump, char **name)
 boolean LUA_LoadLump(UINT16 wad, UINT16 lump)
 {
 	char *name = NULL;
+	char *wadnameshort = NULL;
 	MYFILE *f = LUA_GetFile(wad, lump, &name);
 	boolean success = LUA_LoadFile(f, name); // actually load file!
 
@@ -734,7 +735,8 @@ boolean LUA_LoadLump(UINT16 wad, UINT16 lump)
 	// we dont want lua_lumpname to spit out anything
 	// before our srb2 directory, like our user folder,
 	// when returning its value to lua
-	char *wadnameshort = wadfiles[wad]->filename;
+	wadnameshort = malloc(strlen(wadfiles[wad]->filename) + 1);
+	strcpy(wadnameshort, wadfiles[wad]->filename);
 	nameonly(wadnameshort);
 
 	// sometimes the name variable in here still gives us stuff
@@ -746,7 +748,8 @@ boolean LUA_LoadLump(UINT16 wad, UINT16 lump)
 	}
 	else
 		strcpy(lua_lumpname, wadnameshort);
-
+	
+	free(wadnameshort);
 	free(name);
 	Z_Free(f->data);
 	Z_Free(f);

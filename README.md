@@ -27,6 +27,10 @@ Sonic Team Junior is in no way affiliated with SEGA or Sonic Team. We do not cla
 
 SRB2-edit is a source mod of Sonic Robo Blast 2 aimed at adding more development/modding tools, and general gameplay and QOL improvements, without getting in the way of netplay and performance.
 
+## What Edit **DOES NOT** do
+
+Edit **cannot** give users any server administrative powers, and any source-mod attempting to force this would cause a synchronization fail for the client. Edit also **cannot** give users a server's admin login, as the server never sends clients any info about passwords, nor brute force a login attempt. Please keep in mind that, as a peer-to-peer game, every SRB2 client will always receive every net event every other client sends, including team and direct chats!
+
 ## Compiling
 
 See [SRB2 Wiki/Source code compiling](http://wiki.srb2.org/wiki/Source_code_compiling)

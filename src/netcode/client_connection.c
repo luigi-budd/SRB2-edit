@@ -394,6 +394,7 @@ static void CL_DrawConnectionStatus(void)
 	{
 		if (cl_mode == CL_LOADFILES)
 		{
+			CL_DrawServerTitle();
 			INT32 totalfileslength;
 			INT32 loadcompletednum = 0;
 
@@ -630,18 +631,18 @@ static void CL_DrawConnectionStatus(void)
 
 				V_DrawFill(8, ypos, BASEVIDWIDTH - 16, 54, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));
 
-				V_DrawCenteredThinString(160, ypos+2, V_ALLOWLOWERCASE, "This server is full!");
-				V_DrawCenteredThinString(160, ypos+12, V_ALLOWLOWERCASE, "You may download server addons, and wait for a slot.");
+				V_DrawCenteredThinString(160, ypos+12, V_ALLOWLOWERCASE, "This server is full!");
+				V_DrawCenteredThinString(160, ypos+22, V_ALLOWLOWERCASE, "You may download server addons, and wait for a slot.");
 
-				V_DrawThinString(12, ypos+42, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.servername));
+				V_DrawThinString(12, ypos+2, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.servername));
 				UINT32 ping = (UINT32)serverlist[joinnode].info.time;
 				if (cv_pingmeasurement.value)
-					V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+42, V_ALLOWLOWERCASE, va("%s%.1f delay",
+					V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+2, V_ALLOWLOWERCASE, va("%s%.1f delay",
 						(ping < 128 ? "\x83" : (ping < 256 ? "\x82" : "\x85")),
 						HU_pingMSToDelay(ping)
 					));
 				else
-					V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+42, V_ALLOWLOWERCASE, va("%s%ums",
+					V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+2, V_ALLOWLOWERCASE, va("%s%ums",
 						(ping < 128 ? "\x83" : (ping < 256 ? "\x82" : "\x85")),
 						ping
 					));

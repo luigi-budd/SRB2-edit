@@ -54,6 +54,7 @@
 #include "../m_menu.h"
 #include "../md5.h"
 #include "../filesrch.h"
+#include "client_connection.h"
 
 #include <errno.h>
 
@@ -264,6 +265,7 @@ void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr, UINT16 fi
 		fileneeded[i].type = FILENEEDED_WAD;
 		fileneeded[i].status = FS_NOTCHECKED; // We haven't even started looking for the file yet
 		fileneeded[i].justdownloaded = false;
+		fileneeded[i].isdownloadable = false; // Set this when checking files
 		filestatus = READUINT8(p); // The first byte is the file status
 		fileneeded[i].folder = READUINT8(p); // The second byte is the folder flag
 		fileneeded[i].willsend = (UINT8)(filestatus >> 4);
@@ -286,6 +288,7 @@ void CL_PrepareDownloadSaveGame(const char *tmpsave)
 	fileneeded[0].type = FILENEEDED_SAVEGAME;
 	fileneeded[0].status = FS_REQUESTED;
 	fileneeded[0].justdownloaded = false;
+	fileneeded[0].isdownloadable = true;
 	fileneeded[0].totalsize = UINT32_MAX;
 	fileneeded[0].file = NULL;
 	memset(fileneeded[0].md5sum, 0, 16);
@@ -1891,6 +1894,13 @@ filestatus_t findfile(char *filename, const UINT8 *wantedmd5sum, boolean complet
 {
 	filestatus_t homecheck; // store result of last file search
 	boolean badmd5 = false; // store whether md5 was bad from either of the first two searches (if nothing was found in the third)
+	const boolean forcedownload = false; // maybe turn into a cvar for debugging?
+
+	if (forcedownload && cl_mode != CL_SEARCHING)
+	{
+		// psuedo-random
+		return (*wantedmd5sum) & 1 ? FS_MD5SUMBAD : FS_NOTFOUND;
+	}
 
 	// first, check SRB2's "home" directory
 	homecheck = filesearch(filename, srb2home, wantedmd5sum, completepath, 10);

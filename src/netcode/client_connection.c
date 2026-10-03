@@ -34,6 +34,7 @@
 #include "../doomtype.h"
 #include "../doomstat.h"
 #include "../hu_stuff.h"
+#include "../r_main.h"
 #if defined (__GNUC__) || defined (__unix__)
 #include <unistd.h>
 #endif
@@ -41,12 +42,14 @@
 cl_mode_t cl_mode = CL_SEARCHING;
 
 //CLient_ViewServer_*
+// sorry about the variables LOL if this was lua
+// id absolutely put these all in a table
 static boolean cl_vs_showaddons = false;
-static boolean cl_vs_sa_tapped = false; // impeccable variable names
 static INT32 cl_vs_sa_scroll = 0;
-static INT32 cl_vs_sa_scrolltime = 0;
 static INT16 cl_vs_sa_animcount = 8;
-static INT32 cl_vs_ticanim = 0; // OMG DO I HAVE TO KEEP MAKING VARIABLES
+static INT32 cl_vs_ticanim = 0;
+// show if the server is full when we're downloading addons
+static boolean cl_vs_serverfull = false;
 #define MAXBIGADDONS (11)
 //Shortcut for `fileneedednum - cap`
 #define ADDONSCROLLCAP (MAXBIGADDONS)
@@ -57,6 +60,20 @@ boolean serverisfull = false; // lets us be aware if the server was full after w
 tic_t firstconnectattempttime = 0;
 UINT8 mynode;
 static void *snake = NULL;
+
+static const char *GetPrintableFileSize(UINT64 filesize)
+{
+	static char downloadsize[32];
+
+	if (filesize >= 1024*1024)
+		snprintf(downloadsize, sizeof(downloadsize), "%.2f mb", (double)filesize / (1024*1024));
+	else if (filesize < 1024)
+		snprintf(downloadsize, sizeof(downloadsize), "%s b", sizeu1(filesize));
+	else
+		snprintf(downloadsize, sizeof(downloadsize), "%.2f kb", (double)filesize / 1024);
+
+	return downloadsize;
+}
 
 static const char* servmus_1 = "SRVMS1";
 static const char* servmus_2 = "SRVMS2";
@@ -192,6 +209,111 @@ static void GamepadGlyphs(INT32 x, INT32 y, INT32 offset)
 	}
 }
 
+// draws the servername, level pic, etc for the server
+static void CL_DrawServerTitle(void)
+{
+	const INT32 ypos = 6;
+	cl_vs_ticanim++;
+
+	V_DrawFill(8, ypos, BASEVIDWIDTH - 16, 54, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));
+	
+	V_DrawThinString(12 + 80, ypos+2, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.servername));
+	
+	const char *map = va("%sP", serverlist[joinnode].info.mapname);
+	patch_t *current_map = W_LumpExists(map) ? W_CachePatchName(map, PU_CACHE) : W_CachePatchName("BLANKLVL", PU_CACHE);
+	V_DrawSmallScaledPatch(10, ypos+2, 0, current_map);
+	if (!W_LumpExists(map))
+	{
+		M_DrawStaticBox(10, ypos+2, V_80TRANS, 80, 50);
+	}
+	
+	UINT32 ping = (UINT32)serverlist[joinnode].info.time;
+	if (cv_pingmeasurement.value)
+		V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+2, V_ALLOWLOWERCASE, va("%s%.1f delay",
+			(ping < 128 ? "\x83" : (ping < 256 ? "\x82" : "\x85")),
+			HU_pingMSToDelay(ping)
+		));
+	else
+		V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+2, V_ALLOWLOWERCASE, va("%s%ums",
+			(ping < 128 ? "\x83" : (ping < 256 ? "\x82" : "\x85")),
+			ping
+		));
+	
+	V_DrawThinString(12 + 80, ypos+22, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.maptitle));
+	V_DrawThinString(12 + 80, ypos+32, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.gametypename));
+
+	// modified server
+	if (fileneedednum > 0)
+		V_DrawThinString(12 + 80, ypos+42, V_ALLOWLOWERCASE|V_ORANGEMAP, va("%i Addons", fileneedednum));
+	else
+		V_DrawThinString(12 + 80, ypos+42, V_ALLOWLOWERCASE|V_YELLOWMAP, "Vanilla");
+	
+	// server type
+	if (serverlist[joinnode].info.flags & SV_DEDICATED)
+		V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+42, V_ALLOWLOWERCASE|V_ORANGEMAP, "Dedicated");
+	else
+		V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+42, V_ALLOWLOWERCASE|V_GREENMAP, "Listen Server");
+	
+	// cheated game
+	if (serverlist[joinnode].info.cheatsenabled)
+		V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+32, V_ALLOWLOWERCASE|V_GREENMAP, "Cheats");		
+}
+
+static void CL_DrawServerTooltips(const char *accepttext, boolean canchangetabs)
+{
+	// Buttons
+	const INT32 ypos = 6;
+	V_DrawFill(8, BASEVIDHEIGHT - (ypos+18), BASEVIDWIDTH - 16, 13, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));
+	boolean canchange = (canchangetabs && fileneedednum > 0);
+
+	if ((cl_vs_ticanim / (3*TICRATE/2)) & 1)
+	{
+		V_DrawThinString(
+			16, BASEVIDHEIGHT - (ypos+15),
+			V_ALLOWLOWERCASE, va("[%sESC\x80] = Back", V_GetStringColorCode(MENUHIGHLIGHT))
+		);
+		if (canchange)
+		{
+			V_DrawCenteredThinString(
+				BASEVIDWIDTH/2, BASEVIDHEIGHT - (ypos+15),
+				V_ALLOWLOWERCASE,
+				va("[%sSPACE\x80] = %s", V_GetStringColorCode(MENUHIGHLIGHT), (cl_vs_showaddons ? "Players" : "Addons"))
+			);
+		}
+		V_DrawRightAlignedThinString(
+			BASEVIDWIDTH - 12, BASEVIDHEIGHT - (ypos+15),
+			V_ALLOWLOWERCASE, va("[%sENTER\x80] = %s", V_GetStringColorCode(MENUHIGHLIGHT), accepttext)
+		);
+	}
+	else // Alternate to gamepad face buttons
+	{
+		V_DrawThinString(
+			16 + V_ThinStringWidth("[ESC] ", 0), BASEVIDHEIGHT - (ypos+15),
+			V_ALLOWLOWERCASE, "= Back"
+		);
+		GamepadGlyphs(16 + V_ThinStringWidth("[ESC] ", 0) - 7, BASEVIDHEIGHT - (ypos+15 - 2), 1);
+
+		if (canchange)
+		{	
+			// this ones gonna be a mess
+			INT32 fullwid = V_ThinStringWidth(va("[""\x82""SPACE""\x80""] = %s", (cl_vs_showaddons ? "Players" : "Addons")), 0);
+			INT32 partx = (-fullwid/2) + V_ThinStringWidth("[SPACE]", 0) - (cl_vs_showaddons ? 1 : 0);
+
+			V_DrawThinString(
+				BASEVIDWIDTH/2 + partx, BASEVIDHEIGHT - (ypos+15),
+				V_ALLOWLOWERCASE,
+				va(" = %s", (cl_vs_showaddons ? "Players" : "Addons"))
+			);
+			GamepadGlyphs(BASEVIDWIDTH/2 + partx - 6, BASEVIDHEIGHT - (ypos+15 - 2), 2);
+		}
+
+		V_DrawRightAlignedThinString(
+			BASEVIDWIDTH - 12, BASEVIDHEIGHT - (ypos+15),
+			V_ALLOWLOWERCASE, va("= %s", accepttext)
+		);
+		GamepadGlyphs(BASEVIDWIDTH - 12 - V_ThinStringWidth("[ENTER] ",0) - 1, BASEVIDHEIGHT - (ypos+15 - 2), 0);
+	}
+}
 //
 // CL_DrawConnectionStatus
 //
@@ -210,6 +332,7 @@ static void CL_DrawConnectionStatus(void)
 		&& cl_mode != CL_VIEWSERVER
 		&& cl_mode != CL_ASKFULLFILELIST
 		&& cl_mode != CL_CHECKFILES
+		&& cl_mode != CL_CONFIRMCONNECT
 	)
 	{
 		INT32 animtime = ((ccstime / 4) & 15) + 16;
@@ -295,55 +418,8 @@ static void CL_DrawConnectionStatus(void)
 		}
 		else if (cl_mode == CL_VIEWSERVER)
 		{
-			cl_vs_ticanim++;
-
 			const INT32 ypos = 6;
-			V_DrawFill(8, ypos, BASEVIDWIDTH - 16, 54, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));
-			
-			V_DrawThinString(12 + 80, ypos+2, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.servername));
-			
-			const char *map = va("%sP", serverlist[joinnode].info.mapname);
-			patch_t *current_map = W_LumpExists(map) ? W_CachePatchName(map, PU_CACHE) : W_CachePatchName("BLANKLVL", PU_CACHE);
-			V_DrawSmallScaledPatch(10, ypos+2, 0, current_map);
-			if (!W_LumpExists(map))
-			{
-				M_DrawStaticBox(10, ypos+2, V_80TRANS, 80, 50);
-			}
-			
-			UINT32 ping = (UINT32)serverlist[joinnode].info.time;
-			if (cv_pingmeasurement.value)
-				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+2, V_ALLOWLOWERCASE, va("%s%.1f delay",
-					(ping < 128 ? "\x83" : (ping < 256 ? "\x82" : "\x85")),
-					HU_pingMSToDelay(ping)
-				));
-			else
-				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+2, V_ALLOWLOWERCASE, va("%s%ums",
-					(ping < 128 ? "\x83" : (ping < 256 ? "\x82" : "\x85")),
-					ping
-				));
-			
-			V_DrawThinString(12 + 80, ypos+22, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.maptitle));
-			V_DrawThinString(12 + 80, ypos+32, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.gametypename));
-			
-			if (fileneedednum > 0)
-			{
-				V_DrawThinString(12 + 80, ypos+42, V_ALLOWLOWERCASE|V_ORANGEMAP, va("%i Addons", fileneedednum));
-			}
-			else
-			{
-				V_DrawThinString(12 + 80, ypos+42, V_ALLOWLOWERCASE|V_YELLOWMAP, "Vanilla");
-			}
-			
-			if (serverlist[joinnode].info.flags & SV_DEDICATED)
-				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+42, V_ALLOWLOWERCASE|V_ORANGEMAP, "Dedicated");
-			else
-				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+42, V_ALLOWLOWERCASE|V_GREENMAP, "Listen Server");
-			
-			if (serverlist[joinnode].info.cheatsenabled)
-			{
-				V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+32, V_ALLOWLOWERCASE|V_GREENMAP, "Cheats");
-			}
-			
+			CL_DrawServerTitle();
 			V_DrawFill(8, ypos+56, BASEVIDWIDTH - (ypos + 10), 112, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));
 			
 			if (!cl_vs_showaddons) // Players
@@ -433,12 +509,16 @@ static void CL_DrawConnectionStatus(void)
 				V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|MENUHIGHLIGHT, "Addons");
 
 #define charsonside (21)
-#define maxcharlen ((charsonside*2) + 3) // 3 for the 3 dots
+#define maxcharlen ((charsonside*2))
 				INT32 i;
 				INT32 count = 0;
 				INT32 x = 14;
 				INT32 y = ypos + 68;
 				char file_name[MAX_WADPATH+1];
+				static tic_t namescroll = 0;
+				char namescrollbuf[maxcharlen + 1]= {0};
+				namescroll++;
+
 				for (i = cl_vs_sa_scroll; i < fileneedednum; i++)
 				{
 					if (i & 1)
@@ -448,40 +528,25 @@ static void CL_DrawConnectionStatus(void)
 						);
 					
 					fileneeded_t addon_file = fileneeded[i];
+
 					strncpy(file_name, addon_file.filename, MAX_WADPATH);
-					if ((UINT8)(strlen(file_name)+1) > maxcharlen)
-						V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE,
-							va("%s[%.2d]\x80 %.*s...%s", V_GetStringColorCode(MENUHIGHLIGHT), i+1, charsonside, file_name, file_name+strlen(file_name)-((charsonside+1)))
-						);
+					INT32 len = strlen(file_name);
+
+					if (len > maxcharlen)
+						M_ScrollString(file_name, len, namescrollbuf, maxcharlen, namescroll);
 					else
-						V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE,
-							va("%s[%.2d]\x80 %s", V_GetStringColorCode(MENUHIGHLIGHT), i+1, file_name)
-						);
+						strncpy(namescrollbuf, file_name, sizeof(namescrollbuf) - 1);
 
-					{
-						float file_size = ((float)addon_file.totalsize);
-						UINT8 size_mode = 0; // regular bytes
-						//in megabytes
-						if (file_size >= (1024.0f * 1024.0f))
-						{
-							size_mode = 1;
-							file_size /= (1024.0f * 1024.0f);
-						}
-						// KB
-						else if (file_size >= 1024.0f)
-						{
-							size_mode = 2;
-							file_size /= 1024.0f;
-						}
+					V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE,
+						va("%s[%.2d]\x80 %s", V_GetStringColorCode(MENUHIGHLIGHT), i+1, namescrollbuf)
+					);
 
-						V_DrawRightAlignedThinString(x + 288,
-							y, MENUHIGHLIGHT|V_ALLOWLOWERCASE,
-							// "~" since its approx this size, we mightve lost some
-							// accuracy from only having 4 bytes carry the size
-							// though, maybe its best we remove it since it does look a little off
-							va("%.1f %s", file_size, size_mode == 0 ? "b" : (size_mode == 2 ? "kb" : "mb"))
-						);
-					}
+					// File size
+					const char *mysizestr = GetPrintableFileSize((UINT64)addon_file.totalsize);
+					V_DrawRightAlignedThinString(x + 288,
+						y, MENUHIGHLIGHT|V_ALLOWLOWERCASE,
+						mysizestr
+					);
 
 					y += 9;
 					count++;
@@ -495,28 +560,14 @@ static void CL_DrawConnectionStatus(void)
 				}
 
 				// reiterate again!!! Yes!!! Yay!!!
-				UINT32 totalsize = 0;
+				UINT64 totalsize = 0;
 				for (INT32 j = 0; j < fileneedednum; j++)
-					totalsize += fileneeded[j].totalsize;
-				totalsize = (float)totalsize;
-
-				UINT8 size_mode = 0; // regular bytes
-				//in megabytes
-				if (totalsize >= (1024.0f * 1024.0f))
-				{
-					size_mode = 1;
-					totalsize /= (1024.0f * 1024.0f);
-				}
-				// KB
-				else if (totalsize >= 1024.0f)
-				{
-					size_mode = 2;
-					totalsize /= 1024.0f;
-				}
+					totalsize += (UINT64)fileneeded[j].totalsize;
 				
+				const char *sizestr = GetPrintableFileSize(totalsize);
 				V_DrawRightAlignedThinString(BASEVIDWIDTH - 18, ypos + 59,
 					V_ALLOWLOWERCASE|MENUHIGHLIGHT,
-					va("%.1f%s total", (float)totalsize, size_mode == 0 ? "b" : (size_mode == 2 ? "kb" : "mb"))
+					va("%s total", sizestr)
 				);
 
 				// draw the little arrows
@@ -537,66 +588,17 @@ static void CL_DrawConnectionStatus(void)
 						);
 				}
 			}
+			CL_DrawServerTooltips("Join", true);
+		}
 #undef maxcharlen
 #undef charsonside
-
-			// Buttons
-			V_DrawFill(8, BASEVIDHEIGHT - (ypos+18), BASEVIDWIDTH - 16, 13, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));
-
-			if ((cl_vs_ticanim / (3*TICRATE/2)) & 1)
-			{
-				V_DrawThinString(
-					16, BASEVIDHEIGHT - (ypos+15),
-					V_ALLOWLOWERCASE, va("[%sESC\x80] = Back", V_GetStringColorCode(MENUHIGHLIGHT))
-				);
-				if (fileneedednum > 0)
-				{
-					V_DrawCenteredThinString(
-						BASEVIDWIDTH/2, BASEVIDHEIGHT - (ypos+15),
-						V_ALLOWLOWERCASE,
-						va("[%sSPACE\x80] = %s", V_GetStringColorCode(MENUHIGHLIGHT), (cl_vs_showaddons ? "Players" : "Addons"))
-					);
-				}
-				V_DrawRightAlignedThinString(
-					BASEVIDWIDTH - 12, BASEVIDHEIGHT - (ypos+15),
-					V_ALLOWLOWERCASE, va("[%sENTER\x80] = Join", V_GetStringColorCode(MENUHIGHLIGHT))
-				);
-			}
-			else // Alternate to gamepad face buttons
-			{
-				V_DrawThinString(
-					16 + V_ThinStringWidth("[ESC] ", 0), BASEVIDHEIGHT - (ypos+15),
-					V_ALLOWLOWERCASE, "= Back"
-				);
-				GamepadGlyphs(16 + V_ThinStringWidth("[ESC] ", 0) - 7, BASEVIDHEIGHT - (ypos+15 - 2), 1);
-
-				if (fileneedednum > 0)
-				{	
-					// this ones gonna be a mess
-					INT32 fullwid = V_ThinStringWidth(va("[""\x82""SPACE""\x80""] = %s", (cl_vs_showaddons ? "Players" : "Addons")), 0);
-					INT32 partx = (-fullwid/2) + V_ThinStringWidth("[SPACE]", 0) - (cl_vs_showaddons ? 1 : 0);
-
-					V_DrawThinString(
-						BASEVIDWIDTH/2 + partx, BASEVIDHEIGHT - (ypos+15),
-						V_ALLOWLOWERCASE,
-						va(" = %s", (cl_vs_showaddons ? "Players" : "Addons"))
-					);
-					GamepadGlyphs(BASEVIDWIDTH/2 + partx - 6, BASEVIDHEIGHT - (ypos+15 - 2), 2);
-				}
-
-				V_DrawRightAlignedThinString(
-					BASEVIDWIDTH - 12, BASEVIDHEIGHT - (ypos+15),
-					V_ALLOWLOWERCASE, "= Join"
-				);
-				GamepadGlyphs(BASEVIDWIDTH - 12 - V_ThinStringWidth("[ENTER] ",0) - 1, BASEVIDHEIGHT - (ypos+15 - 2), 0);
-			}
-		}
 		else if ((cl_mode == CL_CHECKFILES) || (cl_mode == CL_ASKFULLFILELIST))
 		{
 			fixed_t totalfileslength;
 			INT32 checkcompletednum = 0;
 			INT32 i;
 
+			CL_DrawServerTitle();
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-16, MENUHIGHLIGHT|V_ALLOWLOWERCASE, "Press ESC to abort");
 
 			//ima just count files here
@@ -618,6 +620,122 @@ static void CL_DrawConnectionStatus(void)
 			V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16, V_20TRANS|V_MONOSPACE|V_ALLOWLOWERCASE,
 				va(" %2u/%2u files",checkcompletednum,fileneedednum));
         }
+		else if (cl_mode == CL_CONFIRMCONNECT)
+		{
+#define maxcharlen (30)
+			const INT32 ypos = 6;
+			if (cl_vs_serverfull)
+			{
+				cl_vs_ticanim++;
+
+				V_DrawFill(8, ypos, BASEVIDWIDTH - 16, 54, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));
+
+				V_DrawCenteredThinString(160, ypos+2, V_ALLOWLOWERCASE, "This server is full!");
+				V_DrawCenteredThinString(160, ypos+12, V_ALLOWLOWERCASE, "You may download server addons, and wait for a slot.");
+
+				V_DrawThinString(12, ypos+42, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.servername));
+				UINT32 ping = (UINT32)serverlist[joinnode].info.time;
+				if (cv_pingmeasurement.value)
+					V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+42, V_ALLOWLOWERCASE, va("%s%.1f delay",
+						(ping < 128 ? "\x83" : (ping < 256 ? "\x82" : "\x85")),
+						HU_pingMSToDelay(ping)
+					));
+				else
+					V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+42, V_ALLOWLOWERCASE, va("%s%ums",
+						(ping < 128 ? "\x83" : (ping < 256 ? "\x82" : "\x85")),
+						ping
+					));
+			}
+			else
+				CL_DrawServerTitle();
+			
+			CL_DrawServerTooltips("Yes", false);
+			V_DrawFill(8, ypos+56, BASEVIDWIDTH - (ypos + 10), 112, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));
+			
+			V_DrawString(12, ypos+58, V_ALLOWLOWERCASE|MENUHIGHLIGHT, "Download missing addons?");
+			const char *sizestr = GetPrintableFileSize(filedownload.totalsize);
+			V_DrawRightAlignedThinString(BASEVIDWIDTH - 18, ypos + 59,
+				V_ALLOWLOWERCASE|MENUHIGHLIGHT,
+				va("%s total", sizestr)
+			);
+
+			INT32 i;
+			INT32 count = 0;
+			INT32 checkered = cl_vs_sa_scroll;
+			INT32 totalcounted = fileneedednum;
+
+			INT32 x = 14;
+			INT32 y = ypos + 68;
+
+			char file_name[MAX_WADPATH+1];
+			static tic_t namescroll = 0;
+			char namescrollbuf[maxcharlen + 1]= {0};
+			namescroll++;
+
+			for (i = cl_vs_sa_scroll; i < fileneedednum; i++)
+			{
+				fileneeded_t addon_file = fileneeded[i];
+				if (!addon_file.isdownloadable)
+				{
+					totalcounted--;
+					continue;
+				}
+
+				if (checkered & 1)
+					V_DrawFill(x,y-1,
+						288, 9,
+						M_GetMenuBGColor(MENUBACKCOLOR, MC_CHECKER)
+					);
+				checkered++;
+
+				strncpy(file_name, addon_file.filename, MAX_WADPATH);
+				INT32 len = strlen(file_name);
+
+				if (len > maxcharlen)
+					M_ScrollString(file_name, len, namescrollbuf, maxcharlen, namescroll);
+				else
+					strncpy(namescrollbuf, file_name, sizeof(namescrollbuf) - 1);
+
+				V_DrawThinString(x, y, V_ALLOWLOWERCASE|V_6WIDTHSPACE,
+					va("%s[%.2d]\x80 %s", V_GetStringColorCode(MENUHIGHLIGHT), i+1, namescrollbuf)
+				);
+
+				// File size
+				const char *statusstr = addon_file.status == FS_NOTFOUND ? "Missing" : "Version mismatch";
+				V_DrawRightAlignedThinString(x + 288 - 1,
+					y, MENUHIGHLIGHT|V_ALLOWLOWERCASE,
+					statusstr
+				);
+
+				y += 9;
+				count++;
+				if (count == MAXBIGADDONS)
+				{
+					break;
+				}
+				// Cannot draw any more
+				if (count == MAXBIGADDONS*2)
+					break;
+			}
+
+			// draw the little arrows
+			if (totalcounted >= (MAXBIGADDONS))
+			{
+				// up arrow
+				if (cl_vs_sa_scroll)
+					V_DrawRightAlignedThinString(BASEVIDWIDTH - 10,
+						(ypos+58) - (cl_vs_sa_animcount/5), MENUHIGHLIGHT,
+						"\x1A"
+					);
+				
+				if (cl_vs_sa_scroll != totalcounted - ADDONSCROLLCAP)
+					V_DrawRightAlignedThinString(BASEVIDWIDTH - 10,
+						y-9 + (cl_vs_sa_animcount/5), MENUHIGHLIGHT,
+						"\x1B"
+					);
+			}
+#undef maxcharlen
+		}
 		else if (filedownload.current != -1)
 		{
 			char tempname[28];
@@ -1059,37 +1177,6 @@ static void BeginDownload(boolean direct)
 	}
 }
 
-static void M_ConfirmConnect(event_t *ev)
-{
-	if (ev->type == ev_keydown)
-	{
-		if (ev->key == ' ' || ev->key == 'y' || ev->key == KEY_ENTER || ev->key == KEY_JOY1)
-		{
-			BeginDownload(UseDirectDownloader());
-			M_ClearMenus(true);
-		}
-		else if (ev->key == 'n' || ev->key == KEY_ESCAPE || ev->key == KEY_JOY1 + 3)
-		{
-			cl_mode = CL_ABORTED;
-			M_ClearMenus(true);
-		}
-	}
-}
-
-static const char *GetPrintableFileSize(UINT64 filesize)
-{
-	static char downloadsize[32];
-
-	if (filesize >= 1024*1024)
-		snprintf(downloadsize, sizeof(downloadsize), "%.2fMiB", (double)filesize / (1024*1024));
-	else if (filesize < 1024)
-		snprintf(downloadsize, sizeof(downloadsize), "%sB", sizeu1(filesize));
-	else
-		snprintf(downloadsize, sizeof(downloadsize), "%.2fKiB", (double)filesize / 1024);
-
-	return downloadsize;
-}
-
 static void ShowDownloadConsentMessage(void)
 {
 	UINT64 totalsize = 0;
@@ -1102,35 +1189,18 @@ static void ShowDownloadConsentMessage(void)
 
 	for (int i = 0; i < fileneedednum; i++)
 	{
-		if (IsFileDownloadable(&fileneeded[i]))
+		fileneeded[i].isdownloadable = IsFileDownloadable(&fileneeded[i]);
+		if (fileneeded[i].isdownloadable)
 			totalsize += fileneeded[i].totalsize;
 	}
     filedownload.totalsize = totalsize;
 
-	const char *downloadsize = GetPrintableFileSize(totalsize);
-
-	if (serverisfull)
-		M_StartMessage(va(M_GetText(
-			"This server is full!\n"
-			"Download of %s of additional\ncontent is required to join.\n"
-			"\n"
-			"You may download server addons,\nand wait for a slot.\n"
-			"\n"
-			"Press ENTER to continue\nor ESC to cancel.\n"
-		), downloadsize), M_ConfirmConnect, MM_EVENTHANDLER);
-	else
-		M_StartMessage(va(M_GetText(
-			"Download of %s of additional\ncontent is required to join.\n"
-			"\n"
-			"Press ENTER to continue\nor ESC to cancel.\n"
-		), downloadsize), M_ConfirmConnect, MM_EVENTHANDLER);
-
+	cl_vs_serverfull = serverisfull;
 	cl_mode = CL_CONFIRMCONNECT;
 	if (S_MusicExists(servmus_3,false,true))
 		ChangeServMusic(servmus_3, true,true);
 	else
 		ChangeServMusic(servmus_2, false,false);
-	curfadevalue = 0;
 }
 
 static const char *GetDirectDownloadFailReason(UINT8 dlstatus)
@@ -1224,19 +1294,12 @@ static boolean CL_FinishedFileList(void)
 	{
 		if (serverisfull)
 		{
-			M_StartMessage(M_GetText(
-				"This server is full!\n"
-				"\n"
-				"You may load server addons (if any), and wait for a slot.\n"
-				"\n"
-				"Press ENTER to continue\nor ESC to cancel.\n\n"
-			), M_ConfirmConnect, MM_EVENTHANDLER);
+			cl_vs_serverfull = true;
 			cl_mode = CL_CONFIRMCONNECT;
 			if (S_MusicExists(servmus_3,false,true))
 				ChangeServMusic(servmus_3, true,true);
 			else
 				ChangeServMusic(servmus_2, false,false);
-			curfadevalue = 0;
 		}
 		else
 			DoLoadFiles();
@@ -1468,6 +1531,13 @@ static void HandleHTTPDownloadFail(void)
 	cl_mode = CL_CHECKFILES;
 }
 
+static void CL_ResetServerView()
+{
+	cl_vs_showaddons = false;
+	cl_vs_sa_scroll = 0;
+	cl_vs_sa_animcount = 0;
+}
+
 /** Called by CL_ConnectToServer
   *
   * \param tmpsave The name of the gamestate file???
@@ -1608,11 +1678,12 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 	// Call it only once by tic
 	if (*oldtic != I_GetTime())
 	{
+		INT32 key = KEY_NULL;
+		key = I_GetKey();
+
 		I_OsPolling();
 
-		if (cl_mode == CL_CONFIRMCONNECT)
-			D_ProcessEvents(); //needed for menu system to receive inputs
-		else
+		if (!(cl_mode == CL_VIEWSERVER || cl_mode == CL_CONFIRMCONNECT))
 		{
 			// my hand has been forced and I am dearly sorry for this awful hack :vomit:
 			for (; eventtail != eventhead; eventtail = (eventtail+1) & (MAXEVENTS-1))
@@ -1621,85 +1692,70 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 					G_MapEventsToControls(&events[eventtail]);
 			}
 		}
-		
-		if (cl_mode == CL_VIEWSERVER)
+
+		if (cl_mode == CL_VIEWSERVER || cl_mode == CL_CONFIRMCONNECT)
 		{
-			if (gamekeydown[KEY_ENTER] || gamekeydown[KEY_JOY1])
-				cl_mode = CL_CHECKFILES;
-			else if (gamekeydown[KEY_ESCAPE] || gamekeydown[KEY_JOY1 + 1])
+			if (key == KEY_ENTER || key == KEY_JOY1)
+			{
+				// CL_VIEWSERVER into CL_CHECKFILES,
+				if (cl_mode == CL_VIEWSERVER)
+				{
+					cl_mode = CL_CHECKFILES;
+					CL_ResetServerView();
+				}
+				// CL_CONFIRMCONNECT starts the downloading
+				else
+					BeginDownload(UseDirectDownloader());
+			}
+			else if (key == KEY_ESCAPE || key == KEY_JOY1+1)
+			{
 				cl_mode = CL_ABORTED;
-
-			// SURELY i can write better code than this...
-			// Im So Sorry guys
-			if ((gamekeydown[KEY_SPACE] || gamekeydown[KEY_JOY1 + 2]) && fileneedednum)
-			{
-				if (!cl_vs_sa_tapped)
-				{
-					cl_vs_showaddons = !cl_vs_showaddons;
-					S_StartSound(NULL, sfx_menu1);
-				}
-				cl_vs_sa_tapped = true;
+				CL_ResetServerView();
 			}
-			else if (!(cl_vs_showaddons && fileneedednum > MAXBIGADDONS))
-				cl_vs_sa_tapped = false;
+
+			if ((key == KEY_SPACE || key == KEY_JOY1+2) && fileneedednum && cl_mode == CL_VIEWSERVER)
+			{
+				cl_vs_showaddons = !cl_vs_showaddons;
+				S_StartSound(NULL, sfx_menu1);
+			}
 			
-			// i never said my C code was GOOD...
-			// maybe some macros could clean this up
-			if (cl_vs_showaddons && fileneedednum > MAXBIGADDONS)
+			INT32 i;
+			INT32 filestoscroll = fileneedednum;
+			// i was originally going to use filedownload.remaining, but
+			// it doesnt seem like thats set right now, so lets just count
+			// how many files we need to download here
+			if (cl_mode == CL_CONFIRMCONNECT && fileneeded)
 			{
-				if (gamekeydown[KEY_DOWNARROW] || gamekeydown[KEY_JOY1 + 12])
-				{
-					if (!cl_vs_sa_tapped || cl_vs_sa_scrolltime >= TICRATE>>1)
-					{
-						INT32 cap = fileneedednum - ADDONSCROLLCAP;
-						if (cl_vs_sa_scroll != cap)
-						{
-							cl_vs_sa_scroll += 1;
-							S_StartSound(NULL, sfx_menu1);
-						}
-						cl_vs_sa_scroll = max(0,min(cl_vs_sa_scroll, cap));
-						if (!cl_vs_sa_tapped) { cl_vs_sa_scrolltime = 0; }
-					}
-					cl_vs_sa_tapped = true;
-					cl_vs_sa_scrolltime++;
-				}
-				else if (gamekeydown[KEY_UPARROW] || gamekeydown[KEY_JOY1 + 11])
-				{
-					if (!cl_vs_sa_tapped || cl_vs_sa_scrolltime >= TICRATE>>1)
-					{
-						if (cl_vs_sa_scroll)
-						{
-							cl_vs_sa_scroll -= 1;
-							S_StartSound(NULL, sfx_menu1);
-						}
-						if (cl_vs_sa_scroll < 0) { cl_vs_sa_scroll = 0; }
-						if (!cl_vs_sa_tapped) { cl_vs_sa_scrolltime = 0; } 
-					}
-					cl_vs_sa_tapped = true;
-					cl_vs_sa_scrolltime++;
-				}
-				else if (!(gamekeydown[KEY_SPACE] || gamekeydown[KEY_JOY1 + 2])) // Bruh
-				{
-					cl_vs_sa_tapped = false;
-					cl_vs_sa_scrolltime = 0;
-				}
-			}
-			else
-			{
-				cl_vs_sa_scroll = 0;
-				cl_vs_sa_scrolltime = 0;
+				for (i = 0; i < fileneedednum; i++)
+					if (!fileneeded[i].isdownloadable)
+						filestoscroll--;
 			}
 
+			if ((cl_vs_showaddons || cl_mode == CL_CONFIRMCONNECT) && filestoscroll > MAXBIGADDONS)
+			{
+				if (key == KEY_DOWNARROW || key == (KEY_JOY1 + 12))
+				{
+					INT32 cap = filestoscroll - ADDONSCROLLCAP;
+					if (cl_vs_sa_scroll != cap)
+					{
+						cl_vs_sa_scroll += 1;
+						S_StartSound(NULL, sfx_menu1);
+					}
+					// clamp just in case
+					cl_vs_sa_scroll = max(0,min(cl_vs_sa_scroll, cap));
+				}
+				else if (key == KEY_UPARROW || key == (KEY_JOY1 + 11))
+				{
+					if (cl_vs_sa_scroll)
+					{
+						cl_vs_sa_scroll -= 1;
+						S_StartSound(NULL, sfx_menu1);
+					}
+					if (cl_vs_sa_scroll < 0) { cl_vs_sa_scroll = 0; }
+				}
+			}
 			if (--cl_vs_sa_animcount <= 0)
 				cl_vs_sa_animcount = 8;
-		}
-		else // Cool
-		{
-			cl_vs_showaddons = false;
-			cl_vs_sa_tapped = false;
-			cl_vs_sa_scroll = 0;
-			cl_vs_sa_scrolltime = 0;
-			cl_vs_sa_animcount = 0;
 		}
 
 		if (gamekeydown[KEY_ESCAPE] || gamekeydown[KEY_JOY1+1] || cl_mode == CL_ABORTED)
@@ -1708,6 +1764,8 @@ static boolean CL_ServerConnectionTicker(const char *tmpsave, tic_t *oldtic, tic
 			M_StartMessage(M_GetText("Network game synchronization aborted.\n\nPress ESC\n"), NULL, MM_NOTHING);
 
 			AbortConnection();
+			CL_ResetServerView();
+			cl_vs_serverfull = false;
 
 			memset(gamekeydown, 0, NUMKEYS);
 			return false;
@@ -1766,6 +1824,7 @@ void CL_ConnectToServer(void)
 	filedownload.current = -1;
 
 	cl_mode = CL_SEARCHING;
+	cl_vs_serverfull = false;
 
 	// Don't get a corrupt savegame error because tmpsave already exists
 	if (FIL_FileExists(tmpsave) && unlink(tmpsave) == -1)

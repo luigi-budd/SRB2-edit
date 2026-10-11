@@ -196,11 +196,17 @@ static void CL_DrawServerTitle(void)
 	V_DrawThinString(12 + 80, ypos+32, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.gametypename));
 
 	// modified server
-	if (fileneedednum > 0)
-		V_DrawThinString(12 + 80, ypos+42, V_ALLOWLOWERCASE|V_ORANGEMAP, va("%i Addons", fileneedednum));
-	else
-		V_DrawThinString(12 + 80, ypos+42, V_ALLOWLOWERCASE|V_YELLOWMAP, "Vanilla");
-	
+	// Dont show this when we're downloading the savegame,
+	// since the only file needed at this time would be the
+	// save file, which would give us an inaccurate addon count.
+	if (cl_mode != CL_DOWNLOADSAVEGAME)
+	{
+		if (fileneedednum > 0)
+			V_DrawThinString(12 + 80, ypos+42, V_ALLOWLOWERCASE|V_ORANGEMAP, va("%i Addon%s", fileneedednum, fileneedednum != 1 ? "s" : ""));
+		else
+			V_DrawThinString(12 + 80, ypos+42, V_ALLOWLOWERCASE|V_YELLOWMAP, "Vanilla");
+	}
+
 	// server type
 	if (serverlist[joinnode].info.flags & SV_DEDICATED)
 		V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+42, V_ALLOWLOWERCASE|V_ORANGEMAP, "Dedicated");

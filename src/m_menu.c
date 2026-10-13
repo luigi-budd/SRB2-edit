@@ -4693,7 +4693,7 @@ static void M_DrawMenuTitle(void)
 		{\
 			INT32 xoffset = (11 - hstep) / 2;\
 			INT32 woffset = hstep + xoffset;\
-			V_DrawFill(x - 1 - xoffset, y + hstep - 2, strwid + woffset, 1, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));\
+			V_DrawFill(x - 1 - xoffset, y + hstep - 1, strwid + woffset, 1, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));\
 		}\
 	}\
 

@@ -74,6 +74,8 @@ INT32 E_PushGlobals(lua_State *L, const char *word)
 			lua_pushnil(L);
 		else if (lua_lumpname[0])
 			lua_pushstring(L, lua_lumpname);
+		else
+			lua_pushnil(L);
 		return 1;
 	}
     return 0;

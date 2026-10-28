@@ -8,6 +8,7 @@
 #include "netcode/d_netfil.h"
 #include "m_menu.h" // MAXSTRINGLENGTH
 #include "w_wad.h"
+#include "fastcmp.h"
 
 extern consvar_t cv_addons_option, cv_addons_folder, cv_addons_md5, cv_addons_showall, cv_addons_search_case, cv_addons_search_type;
 
@@ -41,7 +42,8 @@ lumpinfo_t *getdirectoryfiles(const char *path, UINT16 *nlmp, UINT16 *nfolders);
 
 #define menudepth 20
 
-extern char menupath[1024];
+#define MAXFILEPATH 1024
+extern char menupath[MAXFILEPATH];
 extern size_t menupathindex[menudepth];
 extern size_t menudepthleft;
 

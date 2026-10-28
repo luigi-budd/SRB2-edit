@@ -555,7 +555,7 @@ static int lib_cvRegisterVar(lua_State *L)
 
 	char *addonname = lua_wadname;
 	nameonly(addonname);
-	cvar->addonname = addonname;
+	strncpy(cvar->addonname, addonname, 254);
 
 	cvar->flags |= CV_ALLOWLUA | CV_LUAVAR;
 	// actually time to register it to the console now! Finally!

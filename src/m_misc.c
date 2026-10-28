@@ -596,15 +596,18 @@ void M_LoadJoinedIPs(void)
 //
 
 char configfile[MAX_WADPATH];
+char editconfigfile[MAX_WADPATH];
 
 // ==========================================================================
 //                          CONFIGURATION
 // ==========================================================================
 static boolean gameconfig_loaded = false; // true once config.cfg loaded AND executed
+// archiNiko: now also waits until CV_CLIENT stuff is set (editconfig.cfg)
 
 /** Saves a player's config, possibly to a particular file.
   *
   * \sa Command_LoadConfig_f
+  * \todo editconfig support probably (will do eventually)
   */
 void Command_SaveConfig_f(void)
 {
@@ -619,7 +622,7 @@ void Command_SaveConfig_f(void)
 	strcpy(tmpstr, COM_Argv(1));
 	FIL_ForceExtension(tmpstr, ".cfg");
 
-	M_SaveConfig(tmpstr);
+	M_SaveConfig(tmpstr, false);
 	if (stricmp(COM_Argv(2), "-silent"))
 		CONS_Printf(M_GetText("config saved as %s\n"), configfile);
 }
@@ -627,6 +630,7 @@ void Command_SaveConfig_f(void)
 /** Loads a game config, possibly from a particular file.
   *
   * \sa Command_SaveConfig_f, Command_ChangeConfig_f
+  * \todo editconfig support probably (will do eventually)
   */
 void Command_LoadConfig_f(void)
 {
@@ -685,9 +689,16 @@ void M_FirstLoadConfig(void)
 	if (M_CheckParm("-config") && M_IsNextParm())
 	{
 		strcpy(configfile, M_GetNextParm());
-		CONS_Printf(M_GetText("config file: %s\n"), configfile);
+		CONS_Printf(M_GetText("SRB2 Config file: %s\n"), configfile);
 	}
 
+	// ditto for edit
+	if (M_CheckParm("-editconfig") && M_IsNextParm())
+	{
+		strcpy(editconfigfile, M_GetNextParm());
+		CONS_Printf(M_GetText("SRB2-edit Config file: %s\n"), editconfigfile); // archiNiko: maybe rephrase this?
+	}
+	
 	// load default control
 	G_DefineDefaultControls();
 	G_CopyControls(gamecontrol, gamecontroldefault[gcs_fps], NULL, 0);
@@ -710,6 +721,9 @@ void M_FirstLoadConfig(void)
 	COM_BufInsertText(va("%s \"%d\"\n", cv_execversion.name, EXECVERSION));
 	CV_ToggleExecVersion(false);
 
+	// load config again except for srb2-edit client cvars
+	COM_BufInsertText(va("exec \"%s\"\n", editconfigfile));
+	
 	// make sure I_Quit() will write back the correct config
 	// (do not write back the config if it crash before)
 	gameconfig_loaded = true;
@@ -725,11 +739,13 @@ void M_FirstLoadConfig(void)
 }
 
 /** Saves the game configuration.
-  *
+  * [SRB2-edit] OR edit config
+  * 
   * \sa Command_SaveConfig_f
   */
-void M_SaveConfig(const char *filename)
+void M_SaveConfig(const char *filename, boolean foredit)
 {
+#define THISCONFIG (foredit ? editconfigfile : configfile)
 	FILE *f;
 	char *filepath;
 
@@ -756,7 +772,7 @@ void M_SaveConfig(const char *filename)
 		f = fopen(filepath, "w");
 		// change it only if valid
 		if (f)
-			strcpy(configfile, filepath);
+			strcpy(THISCONFIG, filepath);
 		else
 		{
 			CONS_Alert(CONS_ERROR, M_GetText("Couldn't save game config file %s\n"), filepath);
@@ -765,53 +781,57 @@ void M_SaveConfig(const char *filename)
 	}
 	else
 	{
-		if (!strstr(configfile, ".cfg"))
+		if (!strstr(THISCONFIG, ".cfg"))
 		{
 			CONS_Alert(CONS_NOTICE, M_GetText("Config filename must be .cfg\n"));
 			return;
 		}
 
-		f = fopen(configfile, "w");
+		f = fopen(THISCONFIG, "w");
 		if (!f)
 		{
-			CONS_Alert(CONS_ERROR, M_GetText("Couldn't save game config file %s\n"), configfile);
+			CONS_Alert(CONS_ERROR, M_GetText("Couldn't save game config file %s\n"), THISCONFIG);
 			return;
 		}
 	}
 
 	// header message
-	fprintf(f, "// SRB2 configuration file.\n");
+	fprintf(f, "// SRB2%sconfiguration file.\n", (foredit ? "-edit" : " "));
 
-	// print execversion FIRST, because subsequent consvars need to be filtered
-	// always print current EXECVERSION
-	fprintf(f, "%s \"%d\"\n", cv_execversion.name, EXECVERSION);
+	if (!foredit)
+	{
+		// print execversion FIRST, because subsequent consvars need to be filtered
+		// always print current EXECVERSION
+		fprintf(f, "%s \"%d\"\n", cv_execversion.name, EXECVERSION);
+	}
 
 	// FIXME: save key aliases if ever implemented..
 
-	if (tutorialmode && tutorialgcs)
+	if ((tutorialmode && tutorialgcs) && !foredit)
 	{
 		CV_SetValue(&cv_usemouse, tutorialusemouse);
 		CV_SetValue(&cv_alwaysfreelook, tutorialfreelook);
 		CV_SetValue(&cv_mousemove, tutorialmousemove);
 		CV_SetValue(&cv_analog[0], tutorialanalog);
-		CV_SaveVariables(f);
+		CV_SaveVariables(f, false);
 		CV_Set(&cv_usemouse, cv_usemouse.defaultvalue);
 		CV_Set(&cv_alwaysfreelook, cv_alwaysfreelook.defaultvalue);
 		CV_Set(&cv_mousemove, cv_mousemove.defaultvalue);
 		CV_Set(&cv_analog[0], cv_analog[0].defaultvalue);
 	}
 	else
-		CV_SaveVariables(f);
+		CV_SaveVariables(f, foredit);
 
 	if (!dedicated)
 	{
 		if (tutorialmode && tutorialgcs)
-			G_SaveKeySetting(f, gamecontroldefault[gcs_custom], gamecontrolbis); // using gcs_custom as temp storage
+			G_SaveKeySetting(f, gamecontroldefault[gcs_custom], gamecontrolbis, foredit); // using gcs_custom as temp storage
 		else
-			G_SaveKeySetting(f, gamecontrol, gamecontrolbis);
+			G_SaveKeySetting(f, gamecontrol, gamecontrolbis, foredit);
 	}
 
 	fclose(f);
+#undef THISCONFIG
 }
 
 // ==========================================================================

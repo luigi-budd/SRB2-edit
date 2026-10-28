@@ -5432,7 +5432,7 @@ static void HWR_SetTransformAiming(FTransform *trans, player_t *player, boolean 
 	// 3 = 2d mode only
 	if (cv_glshearing.value == 1 ||
 		(cv_glshearing.value == 2 && R_IsViewpointThirdPerson(player, skybox)) ||
-		(cv_glshearing.value == 3 && !skybox && (twodlevel || (player && !P_MobjWasRemoved(player->mo) && player->mo->flags2 & MF2_TWOD)))
+		(cv_glshearing.value == 3 && (twodlevel || (player && !P_MobjWasRemoved(player->mo) && player->mo->flags2 & MF2_TWOD)))
 	) {
 		fixed_t fixedaiming = AIMINGTODY(aimingangle);
 		trans->viewaiming = FIXED_TO_FLOAT(fixedaiming) * ((float)vid.width / vid.height) / ((float)BASEVIDWIDTH / BASEVIDHEIGHT);
@@ -5884,8 +5884,8 @@ consvar_t cv_glmodelinterpolation = CVAR_INIT ("gr_modelinterpolation", "Sometim
 consvar_t cv_glmodellighting = CVAR_INIT ("gr_modellighting", "Off", CV_SAVE|CV_CALL, CV_OnOff, CV_glmodellighting_OnChange);
 consvar_t cv_glmodeltranslations = CVAR_INIT ("gr_modeltranslations", "On", CV_SAVE|CV_CLIENT, CV_OnOff, NULL);
 
-consvar_t cv_glshearing = CVAR_INIT ("gr_shearing", "Off", CV_SAVE, glshearing_cons_t, NULL);
-consvar_t cv_glspritebillboarding = CVAR_INIT ("gr_spritebillboarding", "Off", CV_SAVE, glsprbillboard_cons_t, NULL);
+consvar_t cv_glshearing = CVAR_INIT ("gr_shearing", "Off", CV_SAVE|CV_CLIENT, glshearing_cons_t, NULL);
+consvar_t cv_glspritebillboarding = CVAR_INIT ("gr_spritebillboarding", "Off", CV_SAVE|CV_CLIENT, glsprbillboard_cons_t, NULL);
 consvar_t cv_glskydome = CVAR_INIT ("gr_skydome", "On", CV_SAVE, CV_OnOff, NULL);
 consvar_t cv_glfakecontrast = CVAR_INIT ("gr_fakecontrast", "Smooth", CV_SAVE, glfakecontrast_cons_t, NULL);
 consvar_t cv_glslopecontrast = CVAR_INIT ("gr_slopecontrast", "Off", CV_SAVE, CV_OnOff, NULL);

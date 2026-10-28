@@ -71,7 +71,8 @@ typedef struct
 	fileneededtype_t type;
 	filedownloadfail_t failed;
 	boolean justdownloaded; // To prevent late fragments from causing an I_Error
-
+	boolean isdownloadable;
+	
 	// Used only for download
 	FILE *file;
 	boolean *receivedfragments;

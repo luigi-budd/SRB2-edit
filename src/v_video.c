@@ -28,6 +28,7 @@
 #include "z_zone.h"
 #include "m_misc.h"
 #include "m_random.h"
+#include "m_menu.h"
 #include "doomstat.h"
 
 #ifdef HWRENDER
@@ -2152,6 +2153,96 @@ void V_DrawPromptBack(INT32 boxheight, INT32 color)
 	for (; buf < deststop; ++buf)
 		*buf = promptbgmap[*buf];
 }
+
+//
+// V_DrawGamepadGlyph
+//
+// Draws a little 4-faced gamepad glyph centered at x,y
+// Can check 4 buttons at once in case more than 1 button needs to be highlighted
+// Pass -1 if a button shouldn't be checked!
+//
+void V_DrawGamepadGlyph(INT32 x, INT32 y, INT32 flags, boolean dpad, INT32 first, INT32 second, INT32 third, INT32 fourth)
+{
+	/*  KEY_JOY1 + 
+		0: a
+		1: b
+		2: x
+		3: y
+
+		KEY_HAT1 +
+		0: dpad up
+		1: dpad down
+		2: dpad left
+		3: dpad right
+	*/
+	const INT32 order[4][2] = {
+		{0, 1}, // bottom
+		{1, 0}, // right
+		{-1,0}, // left
+		{0,-1}  // top
+	};
+	const INT32 xbox2nintendo[4] = { // lut convert
+		1, 0, 3, 2 // B, A, Y, X
+	};
+	const INT32 dpadorder[4][2] = {
+		{0,-1},  // top
+		{0, 1}, // bottom
+		{-1,0}, // left
+		{1, 0} // right
+	};
+#define MYORDER (dpad ? dpadorder : order)
+
+	const INT32 xoffset = 3;
+	const INT32 yoffset = 3;
+	boolean highlighted = false;
+	INT32 i;
+
+#define SWAPTONINTENDO(but) if (but != -1) {but = xbox2nintendo[but];}
+	if (cv_joynintendo.value && !dpad)
+	{
+		SWAPTONINTENDO(first)
+		SWAPTONINTENDO(second)
+		SWAPTONINTENDO(third)
+		SWAPTONINTENDO(fourth)
+	}
+
+// im assuming passing in the buttons "out of order" will still draw the highlight in the right place but,
+// clearly im looking at the code and that just will not happen
+#define CHECKHIGHLIGHT(but) (i == but)
+	for (i = 0; i < 4; i++) {
+		highlighted = CHECKHIGHLIGHT(first) || CHECKHIGHLIGHT(second) || CHECKHIGHLIGHT(third) || CHECKHIGHLIGHT(fourth);
+
+		V_DrawFill(
+			x + xoffset*MYORDER[i][0] - 1,
+			y + yoffset*MYORDER[i][1],
+			3,3, 26|flags
+		);
+		V_DrawFill(
+			x + xoffset*MYORDER[i][0] - 1,
+			y + yoffset*MYORDER[i][1],
+			2,2, (highlighted ? M_GetMenuColor(MENUHIGHLIGHT, 3) : 21)|flags
+		);
+	}
+
+	// just fill in the center piece for dpads lol
+	if (dpad)
+	{
+		V_DrawFill(x - 2, y,
+			4,2, 21|flags
+		);
+		V_DrawFill(x - 1, y - 1,
+			2,4, 21|flags
+		);
+
+		// fill in the little drop shadow here
+		V_DrawFill(x + 1, y + 2,
+			1,1, 26|flags
+		);
+	}
+}
+#undef MYORDER
+#undef SWAPTONINTENDO
+#undef CHECKHIGHLIGHT
 
 // Gets string colormap, used for 0x80 color codes
 //

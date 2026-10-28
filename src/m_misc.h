@@ -44,6 +44,8 @@ long int M_SavedSize(void);
 
 // the file where game vars and settings are saved
 #define CONFIGFILENAME "config.cfg"
+// cvars with CV_CLIENT (if they have CV_SAVE) go here
+#define EDITCONFIGFILENAME "editconfig.cfg"
 
 // The file where we'll save the last IPs we joined
 #define IPLOGFILE "srb2savedips.txt"
@@ -99,7 +101,7 @@ void Command_ChangeConfig_f(void);
 
 void M_FirstLoadConfig(void);
 // save game config: cvars, aliases..
-void M_SaveConfig(const char *filename);
+void M_SaveConfig(const char *filename, boolean foredit);
 
 INT32 axtoi(const char *hexStg);
 
@@ -157,5 +159,6 @@ void M_ExitFloatDenormalToZero(floatdenormalstate_t previous);
 
 #include "w_wad.h"
 extern char configfile[MAX_WADPATH];
+extern char editconfigfile[MAX_WADPATH];
 
 #endif

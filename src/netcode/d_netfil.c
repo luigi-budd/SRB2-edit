@@ -54,6 +54,7 @@
 #include "../m_menu.h"
 #include "../md5.h"
 #include "../filesrch.h"
+#include "client_connection.h"
 
 #include <errno.h>
 
@@ -264,6 +265,7 @@ void D_ParseFileneeded(INT32 fileneedednum_parm, UINT8 *fileneededstr, UINT16 fi
 		fileneeded[i].type = FILENEEDED_WAD;
 		fileneeded[i].status = FS_NOTCHECKED; // We haven't even started looking for the file yet
 		fileneeded[i].justdownloaded = false;
+		fileneeded[i].isdownloadable = false; // Set this when checking files
 		filestatus = READUINT8(p); // The first byte is the file status
 		fileneeded[i].folder = READUINT8(p); // The second byte is the folder flag
 		fileneeded[i].willsend = (UINT8)(filestatus >> 4);
@@ -286,6 +288,7 @@ void CL_PrepareDownloadSaveGame(const char *tmpsave)
 	fileneeded[0].type = FILENEEDED_SAVEGAME;
 	fileneeded[0].status = FS_REQUESTED;
 	fileneeded[0].justdownloaded = false;
+	fileneeded[0].isdownloadable = true;
 	fileneeded[0].totalsize = UINT32_MAX;
 	fileneeded[0].file = NULL;
 	memset(fileneeded[0].md5sum, 0, 16);
@@ -1061,8 +1064,8 @@ void FileSendTicker(void)
 					fopen(f->id.filename, "rb");
 
 				if (!transfer[i].currentfile)
-					I_Error("File %s does not exist",
-						f->id.filename);
+					I_Error("File %s does not exist (%s)",
+						f->id.filename, strerror(errno));
 
 				fseek(transfer[i].currentfile, 0, SEEK_END);
 				filesize = ftell(transfer[i].currentfile);
@@ -1891,7 +1894,46 @@ filestatus_t findfile(char *filename, const UINT8 *wantedmd5sum, boolean complet
 {
 	filestatus_t homecheck; // store result of last file search
 	boolean badmd5 = false; // store whether md5 was bad from either of the first two searches (if nothing was found in the third)
+	const boolean forcedownload = false; // maybe turn into a cvar for debugging?
 
+	if (forcedownload && cl_mode != CL_SEARCHING)
+	{
+		// psuedo-random
+		return (*wantedmd5sum) & 1 ? FS_MD5SUMBAD : FS_NOTFOUND;
+	}
+
+	{
+		if (cv_addons_option.value == 3 && *cv_addons_folder.string != '\0')
+		{
+			// first, check any custom directory if specified
+			homecheck = filesearch(filename, cv_addons_folder.string, wantedmd5sum, completepath, 10);
+
+			if (homecheck == FS_FOUND) // we found the file, so return that we have :)
+				return FS_FOUND;
+			else if (homecheck == FS_MD5SUMBAD) // file has a bad md5; move on and look for a file with the right md5
+				badmd5 = true;
+			// if not found at all, just move on without doing anything
+		}
+
+		// next, check "DOWNLOAD" directory
+		homecheck = filesearch(filename, "DOWNLOAD", wantedmd5sum, completepath, 10);
+
+		if (homecheck == FS_FOUND) // we found the file, so return that we have :)
+			return FS_FOUND;
+		else if (homecheck == FS_MD5SUMBAD) // file has a bad md5; move on and look for a file with the right md5
+			badmd5 = true;
+		// if not found at all, just move on without doing anything
+
+		// next, check "addons" directory
+		homecheck = filesearch(filename, "addons", wantedmd5sum, completepath, 10);
+
+		if (homecheck == FS_FOUND) // we found the file, so return that we have :)
+			return FS_FOUND;
+		else if (homecheck == FS_MD5SUMBAD) // file has a bad md5; move on and look for a file with the right md5
+			badmd5 = true;
+		// if not found at all, just move on without doing anything
+	}
+	
 	// first, check SRB2's "home" directory
 	homecheck = filesearch(filename, srb2home, wantedmd5sum, completepath, 10);
 

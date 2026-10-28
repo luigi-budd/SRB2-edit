@@ -27,6 +27,10 @@ Sonic Team Junior is in no way affiliated with SEGA or Sonic Team. We do not cla
 
 SRB2-edit is a source mod of Sonic Robo Blast 2 aimed at adding more development/modding tools, and general gameplay and QOL improvements, without getting in the way of netplay and performance.
 
+## What Edit **DOES NOT** do
+
+Edit **cannot** give users any server administrative powers, and any source-mod attempting to force this would cause a synchronization fail for the client. Edit also **cannot** give users a server's admin login, as the server never sends clients any info about passwords, nor brute force a login attempt. Please keep in mind that, as a peer-to-peer game, every SRB2 client will always receive every net event every other client sends, including team and direct chats!
+
 ## Compiling
 
 See [SRB2 Wiki/Source code compiling](http://wiki.srb2.org/wiki/Source_code_compiling)
@@ -44,6 +48,8 @@ You can compile the source code normally (see "Compiling") and put the binary in
 Please refer to `libs/DLL-README.txt` if you need help locating any libraries. *(32-bit builds are under the "i686" folder in `libs/dll-binaries`)*
 
 **NOTE: You will need to be logged into a GitHub account if you want to download from the Actions tab.**
+
+**NOTE: If your browser won't let you download the zip file of the binary, then Lol. You might have to disable your antivirus to download the zip, then reenable it once it is finished. I'm not sure why this happens, but SRB2-edit does not contain malicious code at all, you are free to compile your own binary if you wish to.**
 
 <p align="center">
   <img width="2120" height="930" alt="Z68HSlSh4r" src="https://github.com/user-attachments/assets/8fb3b807-13f3-42cf-a357-56816802dae9" />

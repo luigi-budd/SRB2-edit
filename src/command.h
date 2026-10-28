@@ -128,7 +128,7 @@ typedef enum
 	CV_CHEAT = 2048, // Don't let this be used in multiplayer unless cheats are on.
 	CV_ALLOWLUA = 4096, // Let this be called from Lua
 	CV_LUAVAR = 8192, // Variable was created by Lua.
-	CV_CLIENT = 16384, // Variable is in SRB2-edit, but not Vanilla.
+	CV_CLIENT = 16384, // Variable is in SRB2-edit, but not Vanilla. (or has differing values than in vanilla)
 } cvflags_t;
 
 typedef struct CV_PossibleValue_s
@@ -162,7 +162,7 @@ typedef struct consvar_s //NULL, NULL, 0, NULL, NULL |, 0, NULL, NULL, 0, 0, NUL
 	UINT16 netid; // used internaly : netid for send end receive
 	                      // used only with CV_NETVAR
 	char changed;         // has variable been changed by the user? 0 = no, 1 = yes
-	const char *addonname;
+	char addonname[255];
 	struct consvar_s *next;
 } consvar_t;
 
@@ -224,7 +224,7 @@ void CV_StealthSet(consvar_t *var, const char *value);
 void CV_AddValue(consvar_t *var, INT32 increment);
 
 // write all CV_SAVE variables to config file
-void CV_SaveVariables(FILE *f);
+void CV_SaveVariables(FILE *f, boolean foredit);
 
 // load/save gamesate (load and save option and for network join in game)
 void CV_SaveVars(save_t *p, boolean in_demo);

@@ -1132,7 +1132,7 @@ INT16 ticcmd_oldangleturn[2];
 boolean ticcmd_centerviewdown[2]; // For simple controls, lock the camera behind the player
 mobj_t *ticcmd_ztargetfocus[2]; // Locking onto an object?
 
-#define JOYDECAY(x) (x*63)/100
+#define JOYDECAY (FRACUNIT*63)/100
 static angle_t SnapAngleToFortyFive(angle_t ang)
 {
 	// I prototyped this in Lua first and I know
@@ -1144,13 +1144,18 @@ static angle_t SnapAngleToFortyFive(angle_t ang)
 	// This is here so you can still make little minor
 	// adjustments without full-on moving to the next
 	// 45-degree increment
-	fixed_t nudge = Easing_InOutExpo(
+	fixed_t nudge = Easing_InOutQuint(
 		fang % FRACUNIT, 0, FRACUNIT
 	);
 	fang = FixedFloor(fang);
 
 	// Gotta nudge it by 90 degrees in C for some reason...
 	return FixedAngle(45 * (fang + nudge)) - ANGLE_270;
+}
+
+static fixed_t LerpFixed(fixed_t from, fixed_t to, fixed_t frac)
+{
+	return from + FixedMul(frac, to - from);
 }
 
 void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
@@ -1280,18 +1285,21 @@ void G_BuildTiccmd(ticcmd_t *cmd, INT32 realtics, UINT8 ssplayer)
 		turnright = turnright || (lookjoystickvector.xaxis > 0);
 		turnleft = turnleft || (lookjoystickvector.xaxis < 0);
 	}
-	joyturning[forplayer] = JOYDECAY(joyturning[forplayer]);
-	if (lookjoystickvector.xaxis != 0 && abs(lookjoystickvector.xaxis) >= abs(joyturning[forplayer]))
-		joyturning[forplayer] = lookjoystickvector.xaxis;
+
+	INT32 destturn = 0;
+	if (lookjoystickvector.xaxis != 0) // && abs(lookjoystickvector.xaxis) >= abs(joyturning[forplayer]))
+		destturn = lookjoystickvector.xaxis;
+	joyturning[forplayer] = LerpFixed(joyturning[forplayer], destturn, JOYDECAY);
 	
 	// only the aiming axis gets a deadzonne
 	const INT32 jdeadzone = ((JOYAXISRANGE-1) * cv_digitaldeadzone.value)/32 >> FRACBITS;
 	if (-jdeadzone < lookjoystickvector.yaxis && lookjoystickvector.yaxis < jdeadzone)
 		lookjoystickvector.yaxis = 0;
 
-	joyaimturning[forplayer] = JOYDECAY(joyaimturning[forplayer]);
-	if (lookjoystickvector.yaxis != 0 && abs(lookjoystickvector.yaxis) >= abs(joyaimturning[forplayer]))
-		joyaimturning[forplayer] = lookjoystickvector.yaxis;
+	destturn = 0;
+	if (lookjoystickvector.yaxis != 0) // && abs(lookjoystickvector.yaxis) >= abs(joyaimturning[forplayer]))
+		destturn = lookjoystickvector.yaxis;
+	joyaimturning[forplayer] = LerpFixed(joyaimturning[forplayer], destturn, JOYDECAY);
 
 	forward = side = 0;
 

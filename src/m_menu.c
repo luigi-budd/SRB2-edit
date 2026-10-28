@@ -2454,7 +2454,7 @@ menu_t OP_EraseDataDef = DEFAULTMENUSTYLE(
 // ==========================================================================
 // (there's only a couple anyway)
 
-// Simple helper function for menu coloring.
+// Returns a palette index from the string colormap.
 UINT8 M_GetMenuColor(INT32 colorflag, UINT8 index)
 {
 	UINT8 *colormap = V_GetStringColormap(colorflag);
@@ -2526,6 +2526,8 @@ static UINT8 azure_menu[]	= {175, 171, 145, 173, 253,  27};
 static UINT8 brown_menu[]	= {238, 234, 230, 236,  28,  47};
 static UINT8 rosy_menu[]	= {207, 203, 210, 204, 186,  47};
 // static UINT8 invert_menu[]	= {207, 203, 210, 204, 186,  47};
+
+// Returns a palette index from the handpicked menu colors.
 UINT8 M_GetMenuBGColor(INT32 colorflag, UINT8 index)
 {
 	switch ((colorflag & V_CHARCOLORMASK) >> V_CHARCOLORSHIFT)
@@ -4697,9 +4699,11 @@ static void M_DrawMenuTitle(void)
 
 // checkeri is here so DRAWCHECKEREDBACKGROUND doesn't draw more than once in case of a fallthru.
 #define CHECKEREDINIT \
-	static boolean checkeri = -1;\
+	INT32 hilite = M_GetMenuBGColor(MENUBACKCOLOR, MC_HIGHLIGHT);\
+	static INT32 checkeri = -1;\
 	static boolean seenheader = false;\
 	static menu_t *prevmenu;\
+	INT32 hstep = 0;\
 	if (currentMenu != prevmenu)\
 		seenheader = false;\
 	prevmenu = currentMenu;\
@@ -4713,12 +4717,70 @@ static void M_DrawMenuTitle(void)
 }\
 
 // checks if this item is a text input
+#define ITEMISTEXTINPUT (((currentMenu->menuitems[i].status & IT_TYPE) == IT_CVAR)\
+	&& ((currentMenu->menuitems[i].status & IT_CVARTYPE) == IT_CV_STRING))\
+
 #define CHECKEREDNOTEXTINPUT \
-	if (!(\
-		(((currentMenu->menuitems[i].status & IT_TYPE) == IT_CVAR)\
-		&& ((currentMenu->menuitems[i].status & IT_CVARTYPE) == IT_CV_STRING))\
-		|| nobackgrounds\
-	))\
+	if (!((ITEMISTEXTINPUT) || nobackgrounds))
+
+// Draw a little heading for the text box
+#define TEXTINPUTHEADER \
+	else if (ITEMISTEXTINPUT)\
+	{\
+		INT32 strwid = V_StringWidth(currentMenu->menuitems[i].text, MENUCAPS) + 1;\
+		for (hstep = 0; hstep < 11; hstep++)\
+		{\
+			INT32 xoffset = (11 - hstep) / 2;\
+			INT32 woffset = hstep + xoffset;\
+			V_DrawFill(x - 1 - xoffset, y + hstep - 1, strwid + woffset, 1, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE));\
+		}\
+	}\
+
+static void M_DrawMenuTooltips(boolean scrolling, INT32 selectedtype)
+{
+	const INT32 borderpad = 10;
+	const INT32 toolpad = 50;
+	const INT32 gflags = V_SNAPTOLEFT|V_SNAPTOBOTTOM;
+	static INT32 padlength = 2;
+	INT32 x = borderpad;
+	INT32 y = BASEVIDHEIGHT - borderpad;
+
+	V_DrawFill(x - 6, y - 5, toolpad*padlength + 4, 13, M_GetMenuBGColor(MENUBACKCOLOR, MC_BASE)|gflags);
+	padlength = 2;
+
+	// select
+	V_DrawGamepadGlyph(x,y,gflags, false, 0, -1,-1,-1);
+	V_DrawThinString(x + 7, y - 2, gflags|V_ALLOWLOWERCASE, "Select");
+	x += toolpad;
+	
+	// back
+	V_DrawGamepadGlyph(x,y,gflags, false, 1, -1,-1,-1);
+	V_DrawThinString(x + 7, y - 2, gflags|V_ALLOWLOWERCASE, "Back");
+	x += toolpad;
+
+	// sliders
+	if (selectedtype == IT_CV_SLIDER)
+	{
+		V_DrawGamepadGlyph(x,y,gflags, true, -1,-1, 2,3);
+		V_DrawThinString(x + 7, y - 2, gflags|V_ALLOWLOWERCASE, "Slide");
+		x += toolpad;
+		padlength += 1;
+	}
+
+	// reset
+	// we check manually check these cause theyre sometimes hardcoded
+	if ((currentMenu->menuitems[itemOn].status == IT_CONTROL)
+		|| (currentMenu == &MP_RejoinDef && itemOn >= 2)
+		|| (selectedtype == IT_CV_SLIDER || currentMenu->menuitems[itemOn].status & IT_TYPE == IT_ARROWS)
+	)
+	{
+		V_DrawGamepadGlyph(x,y,gflags, false, -1,-1, 2, -1);
+		V_DrawThinString(x + 7, y - 2, gflags|V_ALLOWLOWERCASE, "Reset");
+		x += toolpad;
+		padlength += 1;
+	}
+
+}
 
 static boolean nogenericbackgrounds = false;
 static boolean forcegenericbackgrounds = false;
@@ -4726,6 +4788,7 @@ static void M_DrawGenericMenu(void)
 {
 	INT32 x, y, i, cursory = 0;
 	CHECKEREDINIT
+	INT32 selectedtype = 0;
 
 	// lol?
 	if (nogenericbackgrounds)
@@ -4786,8 +4849,11 @@ static void M_DrawGenericMenu(void)
 
 				// Dont draw checkered backgrounds for text inputs
 				CHECKEREDNOTEXTINPUT
+				{
 					DRAWCHECKEREDBACKGROUND
-				
+				}
+				TEXTINPUTHEADER
+
 				if ((currentMenu->menuitems[i].status & IT_DISPLAY)==IT_STRING)
 					V_DrawString(x, y, MENUCAPS, currentMenu->menuitems[i].text);
 				else
@@ -4802,14 +4868,26 @@ static void M_DrawGenericMenu(void)
 						{
 							case IT_CV_SLIDER:
 								M_DrawSlider(x, y, cv, (i == itemOn));
+								if (itemOn == i)
+									selectedtype = IT_CV_SLIDER;
 							case IT_CV_NOPRINT: // color use this
 							case IT_CV_INVISSLIDER: // monitor toggles use this
 								break;
 							case IT_CV_STRING:
-								M_DrawTextBox(x, y + 4, MAXSTRINGLENGTH, 1);
-								V_DrawString(x + 8, y + 12, V_ALLOWLOWERCASE, cv->string);
+								y -= 2;
+
+								M_DrawTextBox(x - 6, y + 6, MAXSTRINGLENGTH, 1);
+								// Draw an inset
+								const INT32 insetwid = (MAXSTRINGLENGTH*8+6) - 2;
+								const INT32 insethei = 11;
+								V_DrawFill(x, y + 12, insetwid, 1, hilite);
+								V_DrawFill(x, y + 12 + insethei, insetwid, 1, hilite);
+								V_DrawFill(x, y + 12, 1, insethei, hilite);
+								V_DrawFill(x + insetwid - 1, y + 12, 1, insethei, hilite);
+
+								V_DrawString(x + 3, y + 14, V_ALLOWLOWERCASE, cv->string);
 								if (skullAnimCounter < 4 && i == itemOn)
-									V_DrawCharacter(x + 8 + V_StringWidth(cv->string, 0), y + 12,
+									V_DrawCharacter(x + 3 + V_StringWidth(cv->string, 0), y + 14,
 										'_' | 0x80, false);
 								y += 16;
 								break;
@@ -4885,6 +4963,9 @@ static void M_DrawGenericMenu(void)
 			W_CachePatchName("M_CURSOR", PU_PATCH));
 		V_DrawString(currentMenu->x, cursory, MENUHIGHLIGHT|MENUCAPS, currentMenu->menuitems[itemOn].text);
 	}
+
+	// gamepad tooltips
+	// M_DrawMenuTooltips(false, selectedtype);
 }
 
 const char *PlaystyleNames[4] = {"\x86Strafe\x80", "Manual", "Automatic", "Old Analog??"};
@@ -4990,6 +5071,7 @@ static void M_DrawGenericScrollMenu(void)
 {
 	INT32 x, y, i, max, bottom, tempcentery, cursory = 0;
 	CHECKEREDINIT
+	INT32 selectedtype = 0;
 
 	// DRAW MENU
 	x = currentMenu->x;
@@ -5051,7 +5133,10 @@ static void M_DrawGenericScrollMenu(void)
 			case IT_STRING:
 			case IT_WHITESTRING:
 				CHECKEREDNOTEXTINPUT
+				{
 					DRAWCHECKEREDBACKGROUND
+				}
+				TEXTINPUTHEADER
 
 				if (i != itemOn && (currentMenu->menuitems[i].status & IT_DISPLAY)==IT_STRING)
 					V_DrawString(x, y, MENUCAPS, currentMenu->menuitems[i].text);
@@ -5067,6 +5152,8 @@ static void M_DrawGenericScrollMenu(void)
 						{
 							case IT_CV_SLIDER:
 								M_DrawSlider(x, y, cv, (i == itemOn));
+								if (itemOn == i)
+									selectedtype = IT_CV_SLIDER;
 							case IT_CV_NOPRINT: // color use this
 							case IT_CV_INVISSLIDER: // monitor toggles use this
 								break;
@@ -5074,11 +5161,23 @@ static void M_DrawGenericScrollMenu(void)
 #if 1
 								if (y + 12 > (currentMenu->y + 2*scrollareaheight))
 									break;
-								M_DrawTextBox(x, y + 4, MAXSTRINGLENGTH, 1);
-								V_DrawString(x + 8, y + 12, V_ALLOWLOWERCASE, cv->string);
+
+								y -= 2;
+
+								M_DrawTextBox(x - 6, y + 6, MAXSTRINGLENGTH, 1);
+								// Draw an inset
+								const INT32 insetwid = (MAXSTRINGLENGTH*8+6) - 2;
+								const INT32 insethei = 11;
+								V_DrawFill(x, y + 12, insetwid, 1, hilite);
+								V_DrawFill(x, y + 12 + insethei, insetwid, 1, hilite);
+								V_DrawFill(x, y + 12, 1, insethei, hilite);
+								V_DrawFill(x + insetwid - 1, y + 12, 1, insethei, hilite);
+
+								V_DrawString(x + 3, y + 14, V_ALLOWLOWERCASE, cv->string);
 								if (skullAnimCounter < 4 && i == itemOn)
-									V_DrawCharacter(x + 8 + V_StringWidth(cv->string, 0), y + 12,
+									V_DrawCharacter(x + 3 + V_StringWidth(cv->string, 0), y + 14,
 										'_' | 0x80, false);
+								y += 2;
 #else // cool new string type stuff, not ready for limelight
 								if (i == itemOn)
 								{
@@ -5138,6 +5237,8 @@ static void M_DrawGenericScrollMenu(void)
 	// DRAW THE SKULL CURSOR
 	V_DrawScaledPatch(currentMenu->x - 24, cursory, 0,
 		W_CachePatchName("M_CURSOR", PU_PATCH));
+
+	// M_DrawMenuTooltips(true, selectedtype);
 }
 
 static void M_DrawPauseMenu(void)
@@ -5168,18 +5269,23 @@ static void M_DrawPauseMenu(void)
 			if (renderisnewtic)
 				namescroll++;
 
-			char *addonname = wadfiles[mapwads[gamemap]]->filename;
-			nameonly(addonname);
+			char *addonname = malloc(strlen(wadfiles[mapwads[gamemap - 1]]->filename) + 1);
+			if (addonname != NULL)
+			{
+				strcpy(addonname, wadfiles[mapwads[gamemap - 1]]->filename);
+				nameonly(addonname);
 
-			INT32 len = strlen(addonname);
-			const INT32 boxwidth = ((16*8+6) - (40 - 27)) / 3; // i think characters are 5 pixels wide
+				INT32 len = strlen(addonname);
+				const INT32 boxwidth = ((16*8+6) - (40 - 27)) / 3; // i think characters are 5 pixels wide
 
-			if (len > boxwidth)
-				M_ScrollString(addonname, len, namescrollbuf, boxwidth, namescroll);
-			else
-				strncpy(namescrollbuf, addonname, sizeof(namescrollbuf) - 1);
+				if (len > boxwidth)
+					M_ScrollString(addonname, len, namescrollbuf, boxwidth, namescroll);
+				else
+					strncpy(namescrollbuf, addonname, sizeof(namescrollbuf) - 1);
 
-			V_DrawThinString(40, 38, MENUCAPS|V_20TRANS, namescrollbuf);
+				V_DrawThinString(40, 38, MENUCAPS|V_20TRANS, namescrollbuf);
+				free(addonname);
+			}
 		}
 
 		// Set up the detail boxes.

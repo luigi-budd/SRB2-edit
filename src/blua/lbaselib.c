@@ -280,7 +280,7 @@ static int luaB_dofile (lua_State *L) {
 	snprintf(fullfilename, sizeof(fullfilename), "Lua/%s", filename);
 	lumpnum = W_CheckNumForFullNamePK3(fullfilename, numwadfiles - 1, 0);
 	if (lumpnum == INT16_MAX)
-		luaL_error(L, "can't find script " LUA_QS, fullfilename);
+		luaL_error(L, "can't find script " LUA_QS " in wadfile " LUA_QS, fullfilename, wadfiles[numwadfiles - 1]->filename);
   
 	// should save the old lump name to be restored
 	// after LUA_DoLump, so the parent script wont have
@@ -306,7 +306,7 @@ static int luaB_loadfile (lua_State *L) {
   snprintf(fullfilename, sizeof(fullfilename), "Lua/%s", filename);
   lumpnum = W_CheckNumForFullNamePK3(fullfilename, numwadfiles - 1, 0);
   if (lumpnum == INT16_MAX)
-    luaL_error(L, "can't find script " LUA_QS, fullfilename);
+		luaL_error(L, "can't find script " LUA_QS " in wadfile " LUA_QS, fullfilename, wadfiles[numwadfiles - 1]->filename);
 
   LUA_LoadLump(numwadfiles - 1, lumpnum);
 

@@ -1928,6 +1928,11 @@ INT32 HU_drawPing(INT32 x, INT32 y, UINT32 ping, boolean notext, INT32 flags, IN
 
 	if (ping < UINT32_MAX && (!notext || vid.width >= 640)) // how sad, we're using a shit resolution.
 	{
+		// this is just so the timingout drawer
+		// can draw the text red
+		if (flags & V_ALLOWLOWERCASE)
+			flags |= V_REDMAP;
+		
 		if (!cv_pingmeasurement.value)
 		{
 			const char *pingstr = va("%dms", ping);
@@ -1949,21 +1954,27 @@ INT32 HU_drawPing(INT32 x, INT32 y, UINT32 ping, boolean notext, INT32 flags, IN
 			nudge += V_SmallStringWidth(lagstr,0);
 		}
 	}
-
-	INT32 bar_x = (returnwidth ? x - 8 : x);
-	for (i=0; (i<3); i++) // Draw the ping bar
+	
+	// this is a dumb hack for timingout display to
+	// only draw the text and not the bars
+	if ((flags & V_ALLOWLOWERCASE) == 0)
 	{
-		V_DrawFill(bar_x+2 *(i-1), y+yoffset-4, 2, 8-yoffset, 31|flags);
-		if (i < numbars)
-			V_DrawFill(bar_x+2 *(i-1), y+yoffset-3, 1, 8-yoffset-1, barcolor|flags);
+		INT32 bar_x = (returnwidth ? x - 8 : x);
+		for (i=0; (i<3); i++) // Draw the ping bar
+		{
+			V_DrawFill(bar_x+2 *(i-1), y+yoffset-4, 2, 8-yoffset, 31|flags);
+			if (i < numbars)
+				V_DrawFill(bar_x+2 *(i-1), y+yoffset-3, 1, 8-yoffset-1, barcolor|flags);
 
-		yoffset -= 2;
+			yoffset -= 2;
+		}
+
+		if (ping == UINT32_MAX)
+			V_DrawSmallScaledPatch(x + 4 - nopingicon->width/2, y + 9 - nopingicon->height/2, 0, nopingicon);
 	}
+
 	nudge = max(nudge, 6);
 
-	if (ping == UINT32_MAX)
-		V_DrawSmallScaledPatch(x + 4 - nopingicon->width/2, y + 9 - nopingicon->height/2, 0, nopingicon);
-	
 	return returnwidth ? nudge : 0;
 }
 

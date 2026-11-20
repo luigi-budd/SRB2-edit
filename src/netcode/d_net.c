@@ -47,6 +47,7 @@
 
 #define FORCECLOSE 0x8000
 tic_t connectiontimeout = (10*TICRATE);
+boolean timingout = false;
 
 /// \brief network packet
 doomcom_t *doomcom = NULL;
@@ -507,8 +508,13 @@ void Net_AckTicker(void)
 			if (nodes[i].lasttimeacktosend_sent + ACKTOSENDTIMEOUT < I_GetTime())
 				Net_SendAcks(i);
 
-			if (!(nodes[i].flags & NF_CLOSE)
-				&& nodes[i].lasttimepacketreceived + connectiontimeout < I_GetTime())
+			if (nodes[i].flags & NF_CLOSE)
+				continue;
+			
+			if (client)
+				timingout = (nodes[i].lasttimepacketreceived + TICRATE < I_GetTime());
+			
+			if (nodes[i].lasttimepacketreceived + connectiontimeout < I_GetTime())
 			{
 				Net_ConnectionTimeout(i);
 			}

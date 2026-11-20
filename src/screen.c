@@ -34,6 +34,7 @@
 #include "s_sound.h" // ditto
 #include "g_game.h" // ditto
 #include "p_local.h" // P_AutoPause()
+#include "m_easing.h"
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -575,11 +576,67 @@ void SCR_DisplayTicRate(void)
 	lasttic = ontic;
 }
 
+#define MAXDOTTICS (104 * FRACUNIT)
+#define NUMDOTS (6)
+// this is how ringracers does its endcam Somehow...
+static fixed_t IntervalHelper(fixed_t t, fixed_t d)
+{
+	return FixedDiv(min(t,d), max(d, 1));
+}
+
+static INT32 SCR_DrawTimingOut(INT32 x, INT32 y, INT32 flags)
+{
+	const fixed_t dotsize = 2 * FRACUNIT;
+	const INT32 colorstep = 32 / NUMDOTS;
+	const fixed_t radius = 4 * FRACUNIT;
+	static fixed_t frameselapsed = 0;
+	static fixed_t dots[NUMDOTS] = {
+		// lets say a dot takes like. 40 tics to complete a revolution
+		0, 6*FRACUNIT, 12*FRACUNIT, 18*FRACUNIT, 24*FRACUNIT, 30*FRACUNIT
+	};
+
+	frameselapsed += renderdeltatics;
+	if (frameselapsed < 0) frameselapsed = 0;
+
+	INT32 color = 31;
+	INT32 i;
+
+	// and convert these cause im lazy. Lol.
+	x *= FRACUNIT;
+	y *= FRACUNIT;
+
+	for (i = 0; i < NUMDOTS; i++)
+	{
+		fixed_t frac = IntervalHelper(dots[i], MAXDOTTICS);
+		if (frac >= FRACUNIT / 2)
+			frac = Easing_InOutCubic(frac, 0*FRACUNIT, 360*FRACUNIT);
+		else
+			frac = Easing_InOutQuad(frac, 0, 360*FRACUNIT);
+		angle_t angle = FixedAngle(frac + 2*frameselapsed);
+
+		//angle_t angle = FixedAngle(360 * frac);
+		INT32 xdisp = FixedMul(radius, FINECOSINE(angle >> ANGLETOFINESHIFT));
+		INT32 ydisp = FixedMul(radius, FINESINE(angle >> ANGLETOFINESHIFT));
+
+		V_DrawFixedFill(x + xdisp - FRACUNIT, y + ydisp - FRACUNIT, dotsize, dotsize, color|flags);
+		color -= colorstep;
+
+		dots[i] = (dots[i] + renderdeltatics) % MAXDOTTICS;
+		if (dots[i] < 0) dots[i] = 0;
+	}
+
+	return 8;
+
+}
+#undef MAXDOTTICS
+#undef NUMDOTS
+
 void SCR_DisplayLocalPing(void)
 {
-	hu_pingdraw_nudge = 0;
 	UINT32 ping = playerpingtable[consoleplayer];	// consoleplayer's ping is everyone's ping in a splitnetgame :P
-	if (cv_showping.value == 1 || (cv_showping.value == 2 && servermaxping && ping > servermaxping))	// only show 2 (warning) if our ping is at a bad level
+	hu_pingdraw_nudge = 0;
+
+	if (timingout || cv_showping.value == 1 || (cv_showping.value == 2 && servermaxping && ping > servermaxping))	// only show 2 (warning) if our ping is at a bad level
 	{
 		INT32 dispy = 189;
 		if (!cv_compactinfo.value)
@@ -591,7 +648,15 @@ void SCR_DisplayLocalPing(void)
 			if (cv_tpscounter.value)
 				dispy -= 9;
 
-			HU_drawPing(307, dispy, ping, true, V_SNAPTORIGHT | V_SNAPTOBOTTOM, consoleplayer, false);
+			if (timingout)
+				SCR_DrawTimingOut(307, dispy, V_SNAPTORIGHT|V_SNAPTOBOTTOM);
+			else
+				HU_drawPing(307, dispy, ping, true, V_SNAPTORIGHT | V_SNAPTOBOTTOM, consoleplayer, false);
+		}
+		else if (timingout)
+		{
+			hu_pingdraw_nudge = SCR_DrawTimingOut(BASEVIDWIDTH-1 - 7, dispy + 1, V_SNAPTORIGHT|V_SNAPTOBOTTOM) + 3 + 9;
+			HU_drawPing(BASEVIDWIDTH-1, dispy + 2, ping, true, V_SNAPTORIGHT | V_SNAPTOBOTTOM | V_ALLOWLOWERCASE, consoleplayer, true);
 		}
 		else
 			hu_pingdraw_nudge = HU_drawPing(BASEVIDWIDTH-1, dispy + 2, ping, true, V_SNAPTORIGHT | V_SNAPTOBOTTOM, consoleplayer, true) + 3;

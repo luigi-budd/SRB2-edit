@@ -31,6 +31,7 @@
 #define STATLENGTH (TICRATE*2)
 
 // stat of net
+extern INT32 stattimescounted;
 extern INT32 ticruned, ticmiss;
 extern INT32 getbps, sendbps;
 extern float lostpercent, duppercent, gamelostpercent;

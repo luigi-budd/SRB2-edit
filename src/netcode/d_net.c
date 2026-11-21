@@ -84,6 +84,7 @@ boolean *bannednode = NULL;
 
 // network stats
 static tic_t statstarttic;
+INT43 stattimescounted = 0;
 INT32 getbytes = 0;
 INT64 sendbytes = 0;
 static INT32 retransmit = 0, duppacket = 0;
@@ -123,7 +124,8 @@ boolean Net_GetNetStat(void)
 		getbytes = 0;
 		sendackpacket = getackpacket = duppacket = retransmit = 0;
 		statstarttic = t;
-
+		stattimescounted++;
+		
 		return 1;
 	}
 	return 0;

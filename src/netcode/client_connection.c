@@ -162,10 +162,12 @@ static void DrawOverallProgress(int y)
 	V_DrawRightAlignedString(BASEVIDWIDTH/2+128, y, V_20TRANS|V_ALLOWLOWERCASE, va("%2u/%2u Files ", downloadedfiles+1, totalfiles));
 
 	// estimated time to download
-	if (getbps)
+	if (stattimescounted <= 2)
+		V_DrawRightAlignedThinString(BASEVIDWIDTH/2+128 + 3, y - 13, V_ALLOWLOWERCASE|V_20TRANS|MENUHIGHLIGHT, "Calculating...");
+	else if (getbps)
 	{
 		const char *speed_str;
-		double estsec = (double)totalsize / (double)getbps;
+		double estsec = (double)(totalsize - downloaded) / (double)getbps;
 		
 		if (estsec >= 60.0f)
 		{

@@ -576,8 +576,9 @@ void SCR_DisplayTicRate(void)
 	lasttic = ontic;
 }
 
-#define MAXDOTTICS (104 * FRACUNIT)
-#define NUMDOTS (6)
+#define MAXDOTTICS (58 * FRACUNIT)
+#define DOTOFFSET (MAXDOTTICS / 16)
+#define NUMDOTS (8)
 // this is how ringracers does its endcam Somehow...
 static fixed_t IntervalHelper(fixed_t t, fixed_t d)
 {
@@ -587,46 +588,53 @@ static fixed_t IntervalHelper(fixed_t t, fixed_t d)
 static INT32 SCR_DrawTimingOut(INT32 x, INT32 y, INT32 flags)
 {
 	const fixed_t dotsize = 2 * FRACUNIT;
-	const INT32 colorstep = 32 / NUMDOTS;
+	const INT32 colorstep = 24 / NUMDOTS;
 	const fixed_t radius = 4 * FRACUNIT;
 	static fixed_t frameselapsed = 0;
 	static fixed_t dots[NUMDOTS] = {
-		// lets say a dot takes like. 40 tics to complete a revolution
-		0, 6*FRACUNIT, 12*FRACUNIT, 18*FRACUNIT, 24*FRACUNIT, 30*FRACUNIT
+		0, DOTOFFSET, 2*DOTOFFSET, 3*DOTOFFSET, 4*DOTOFFSET, 5*DOTOFFSET, 6*DOTOFFSET, 7*DOTOFFSET
 	};
+
+	// this is the backdrop color
+	INT32 color = 26;
+	INT32 i, j;
 
 	frameselapsed += renderdeltatics;
 	if (frameselapsed < 0) frameselapsed = 0;
-
-	INT32 color = 31;
-	INT32 i;
 
 	// and convert these cause im lazy. Lol.
 	x *= FRACUNIT;
 	y *= FRACUNIT;
 
-	for (i = 0; i < NUMDOTS; i++)
+	// twice for the background and foreground...
+	// but to be honest what performance are we even losing
+	// by doing this math twice Lol
+	for (j = 1; j >= 0; j--)
 	{
-		fixed_t frac = IntervalHelper(dots[i], MAXDOTTICS);
-		if (frac >= FRACUNIT / 2)
-			frac = Easing_InOutCubic(frac, 0*FRACUNIT, 360*FRACUNIT);
-		else
-			frac = Easing_InOutQuad(frac, 0, 360*FRACUNIT);
-		angle_t angle = FixedAngle(frac + 2*frameselapsed);
+		for (i = 0; i < NUMDOTS; i++)
+		{
+			fixed_t frac = IntervalHelper(dots[i], MAXDOTTICS);
+			if (frac >= FRACUNIT / 2)
+				frac = Easing_InOutCubic(frac, 0, 360*FRACUNIT);
+			else
+				frac = Easing_InOutQuad(frac, 0, 360*FRACUNIT);
+			angle_t angle = FixedAngle(frac + 2*frameselapsed);
 
-		//angle_t angle = FixedAngle(360 * frac);
-		INT32 xdisp = FixedMul(radius, FINECOSINE(angle >> ANGLETOFINESHIFT));
-		INT32 ydisp = FixedMul(radius, FINESINE(angle >> ANGLETOFINESHIFT));
+			INT32 xdisp = FixedMul(radius, FINECOSINE(angle >> ANGLETOFINESHIFT));
+			INT32 ydisp = FixedMul(radius, FINESINE(angle >> ANGLETOFINESHIFT));
 
-		V_DrawFixedFill(x + xdisp - FRACUNIT, y + ydisp - FRACUNIT, dotsize, dotsize, color|flags);
-		color -= colorstep;
-
-		dots[i] = (dots[i] + renderdeltatics) % MAXDOTTICS;
-		if (dots[i] < 0) dots[i] = 0;
+			V_DrawFixedFill(x + xdisp - FRACUNIT, y + ydisp - FRACUNIT, dotsize + j*FRACUNIT, dotsize + j*FRACUNIT, color|flags);
+			if (j == 0) // not backdrop
+			{
+				color = min(color - colorstep, 25);
+				
+				dots[i] = (dots[i] + renderdeltatics) % MAXDOTTICS;
+				if (dots[i] < 0) dots[i] = 0;
+			}
+		}
+		color = colorstep*NUMDOTS;
 	}
-
 	return 8;
-
 }
 #undef MAXDOTTICS
 #undef NUMDOTS

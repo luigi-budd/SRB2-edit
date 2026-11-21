@@ -84,7 +84,7 @@ boolean *bannednode = NULL;
 
 // network stats
 static tic_t statstarttic;
-INT43 stattimescounted = 0;
+INT32 stattimescounted = 0;
 INT32 getbytes = 0;
 INT64 sendbytes = 0;
 static INT32 retransmit = 0, duppacket = 0;

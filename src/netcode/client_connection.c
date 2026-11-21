@@ -160,6 +160,26 @@ static void DrawOverallProgress(int y)
 
 	V_DrawString(BASEVIDWIDTH/2-128, y, V_20TRANS|V_ALLOWLOWERCASE, progress_str);
 	V_DrawRightAlignedString(BASEVIDWIDTH/2+128, y, V_20TRANS|V_ALLOWLOWERCASE, va("%2u/%2u Files ", downloadedfiles+1, totalfiles));
+
+	// estimated time to download
+	if (getbps)
+	{
+		const char *speed_str;
+		double estsec = (double)totalsize / (double)getbps;
+		
+		if (estsec >= 60.0f)
+		{
+			INT32 minutes = (INT32)(estsec / 60.0f);
+			estsec -= (60.0f * minutes);
+			speed_str = va("Finishing in %dm %ds", minutes, (INT32)estsec);
+		}
+		else
+			speed_str = va("Finishing in %ds", (INT32)estsec);
+
+		V_DrawRightAlignedThinString(BASEVIDWIDTH/2+128 + 3, y - 13, V_ALLOWLOWERCASE|MENUHIGHLIGHT, speed_str);
+	}
+	else
+		V_DrawRightAlignedThinString(BASEVIDWIDTH/2+128 + 3, y - 13, V_ALLOWLOWERCASE|V_20TRANS|MENUHIGHLIGHT, "Not downloading...");
 }
 
 // draws the servername, level pic, etc for the server
@@ -787,7 +807,7 @@ static void CL_DrawConnectionStatus(void)
 			}
             DrawFileProgress(file, BASEVIDHEIGHT-46);
 
-            V_DrawCenteredString(BASEVIDWIDTH/2, BASEVIDHEIGHT-16-14, V_ALLOWLOWERCASE|MENUHIGHLIGHT, "Total Progress");
+            V_DrawString(BASEVIDWIDTH/2 - 128 - 3, BASEVIDHEIGHT-16-14, V_ALLOWLOWERCASE|MENUHIGHLIGHT, "Total Progress");
 			DrawOverallProgress(BASEVIDHEIGHT-16);
         }
 		else

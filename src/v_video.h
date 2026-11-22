@@ -194,6 +194,7 @@ void V_DrawFadeFill(INT32 x, INT32 y, INT32 w, INT32 h, INT32 c, UINT16 color, U
 void V_DrawFadeConsBack(INT32 plines);
 void V_DrawPromptBack(INT32 boxheight, INT32 color);
 void V_DrawGamepadGlyph(INT32 x, INT32 y, INT32 flags, boolean dpad, INT32 first, INT32 second, INT32 third, INT32 fourth);
+void V_DrawThrobber(fixed_t x, fixed_t y, INT32 flags, fixed_t dotsize, fixed_t radius);
 UINT8 *V_GetStringColormap(INT32 colorflags);
 const char *V_GetStringColorCode(INT32 colorflags);
 

@@ -34,7 +34,6 @@
 #include "s_sound.h" // ditto
 #include "g_game.h" // ditto
 #include "p_local.h" // P_AutoPause()
-#include "m_easing.h"
 
 #ifdef HWRENDER
 #include "hardware/hw_main.h"
@@ -576,69 +575,6 @@ void SCR_DisplayTicRate(void)
 	lasttic = ontic;
 }
 
-#define MAXDOTTICS (58 * FRACUNIT)
-#define DOTOFFSET (MAXDOTTICS / 16)
-#define NUMDOTS (8)
-// this is how ringracers does its endcam Somehow...
-static fixed_t IntervalHelper(fixed_t t, fixed_t d)
-{
-	return FixedDiv(min(t,d), max(d, 1));
-}
-
-static INT32 SCR_DrawTimingOut(INT32 x, INT32 y, INT32 flags)
-{
-	const fixed_t dotsize = 2 * FRACUNIT;
-	const INT32 colorstep = 24 / NUMDOTS;
-	const fixed_t radius = 4 * FRACUNIT;
-	static fixed_t frameselapsed = 0;
-	static fixed_t dots[NUMDOTS] = {
-		0, DOTOFFSET, 2*DOTOFFSET, 3*DOTOFFSET, 4*DOTOFFSET, 5*DOTOFFSET, 6*DOTOFFSET, 7*DOTOFFSET
-	};
-
-	// this is the backdrop color
-	INT32 color = 26;
-	INT32 i, j;
-
-	frameselapsed += renderdeltatics;
-	if (frameselapsed < 0) frameselapsed = 0;
-
-	// and convert these cause im lazy. Lol.
-	x *= FRACUNIT;
-	y *= FRACUNIT;
-
-	// twice for the background and foreground...
-	// but to be honest what performance are we even losing
-	// by doing this math twice Lol
-	for (j = 1; j >= 0; j--)
-	{
-		for (i = 0; i < NUMDOTS; i++)
-		{
-			fixed_t frac = IntervalHelper(dots[i], MAXDOTTICS);
-			if (frac >= FRACUNIT / 2)
-				frac = Easing_InOutCubic(frac, 0, 360*FRACUNIT);
-			else
-				frac = Easing_InOutQuad(frac, 0, 360*FRACUNIT);
-			angle_t angle = FixedAngle(frac + 2*frameselapsed);
-
-			INT32 xdisp = FixedMul(radius, FINECOSINE(angle >> ANGLETOFINESHIFT));
-			INT32 ydisp = FixedMul(radius, FINESINE(angle >> ANGLETOFINESHIFT));
-
-			V_DrawFixedFill(x + xdisp - FRACUNIT, y + ydisp - FRACUNIT, dotsize + j*FRACUNIT, dotsize + j*FRACUNIT, color|flags);
-			if (j == 0) // not backdrop
-			{
-				color = min(color - colorstep, 25);
-				
-				dots[i] = (dots[i] + renderdeltatics) % MAXDOTTICS;
-				if (dots[i] < 0) dots[i] = 0;
-			}
-		}
-		color = colorstep*NUMDOTS;
-	}
-	return 8;
-}
-#undef MAXDOTTICS
-#undef NUMDOTS
-
 void SCR_DisplayLocalPing(void)
 {
 	UINT32 ping = playerpingtable[consoleplayer];	// consoleplayer's ping is everyone's ping in a splitnetgame :P
@@ -657,14 +593,16 @@ void SCR_DisplayLocalPing(void)
 				dispy -= 9;
 
 			if (timingout)
-				SCR_DrawTimingOut(307, dispy, V_SNAPTORIGHT|V_SNAPTOBOTTOM);
+				V_DrawThrobber(307*FRACUNIT, dispy*FRACUNIT, V_SNAPTORIGHT|V_SNAPTOBOTTOM, 2*FRACUNIT, 4*FRACUNIT);
 			else
 				HU_drawPing(307, dispy, ping, true, V_SNAPTORIGHT | V_SNAPTOBOTTOM, consoleplayer, false);
 		}
 		else if (timingout)
 		{
-			hu_pingdraw_nudge = SCR_DrawTimingOut(BASEVIDWIDTH-1 - 7, dispy + 1, V_SNAPTORIGHT|V_SNAPTOBOTTOM) + 3 + 9;
+			V_DrawThrobber(BASEVIDWIDTH-1 - 7, dispy + 1, V_SNAPTORIGHT|V_SNAPTOBOTTOM, 2*FRACUNIT, 4*FRACUNIT);
 			HU_drawPing(BASEVIDWIDTH-1, dispy + 2, ping, true, V_SNAPTORIGHT | V_SNAPTOBOTTOM | V_ALLOWLOWERCASE, consoleplayer, true);
+			
+			hu_pingdraw_nudge = (8 + 9) + 3;
 		}
 		else
 			hu_pingdraw_nudge = HU_drawPing(BASEVIDWIDTH-1, dispy + 2, ping, true, V_SNAPTORIGHT | V_SNAPTOBOTTOM, consoleplayer, true) + 3;

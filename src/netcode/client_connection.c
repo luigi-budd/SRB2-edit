@@ -204,18 +204,34 @@ static void CL_DrawServerTitle(void)
 	
 	UINT32 ping = (UINT32)serverlist[joinnode].info.time;
 	if (cv_pingmeasurement.value)
+	{
 		V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+2, V_ALLOWLOWERCASE, va("%s%.1f delay",
 			(ping < 128 ? "\x83" : (ping < 256 ? "\x82" : "\x85")),
 			HU_pingMSToDelay(ping)
 		));
+	}
 	else
+	{
 		V_DrawRightAlignedThinString(BASEVIDWIDTH - 12, ypos+2, V_ALLOWLOWERCASE, va("%s%ums",
 			(ping < 128 ? "\x83" : (ping < 256 ? "\x82" : "\x85")),
 			ping
 		));
-	
-	V_DrawThinString(12 + 80, ypos+22, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.maptitle));
-	V_DrawThinString(12 + 80, ypos+32, V_ALLOWLOWERCASE, va("%s", serverlist[joinnode].info.gametypename));
+	}
+
+	char mapname[41] = "\0";
+	strncpy(mapname, serverlist[joinnode].info.maptitle, 31);
+	// Hello, Banpyura!
+	if (serverlist[joinnode].info.iszone)
+	{
+		strcat(mapname, " ZONE");
+	}
+	if (serverlist[joinnode].info.actnum > 0)
+	{
+		strcat(mapname, va(" %d", serverlist[joinnode].info.actnum));
+	}
+
+	V_DrawThinString(12 + 80, ypos+22, V_ALLOWLOWERCASE, mapname);
+	V_DrawThinString(12 + 80, ypos+32, V_ALLOWLOWERCASE, serverlist[joinnode].info.gametypename);
 
 	// modified server
 	// Dont show this when we're downloading the savegame,

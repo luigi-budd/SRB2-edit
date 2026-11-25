@@ -599,7 +599,7 @@ void SCR_DisplayLocalPing(void)
 		}
 		else if (timingout)
 		{
-			V_DrawThrobber(BASEVIDWIDTH-1 - 7, dispy + 1, V_SNAPTORIGHT|V_SNAPTOBOTTOM, 2*FRACUNIT, 4*FRACUNIT);
+			V_DrawThrobber((BASEVIDWIDTH-1 - 7)*FRACUNIT, (dispy + 1)*FRACUNIT, V_SNAPTORIGHT|V_SNAPTOBOTTOM, 2*FRACUNIT, 4*FRACUNIT);
 			HU_drawPing(BASEVIDWIDTH-1, dispy + 2, ping, true, V_SNAPTORIGHT | V_SNAPTOBOTTOM | V_ALLOWLOWERCASE, consoleplayer, true);
 			
 			hu_pingdraw_nudge = (8 + 9) + 3;

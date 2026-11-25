@@ -32,9 +32,31 @@
 // Object place
 #include "m_cheat.h"
 
-#ifdef PARANOIA
 #include "deh_tables.h" // MOBJTYPE_LIST
+
+// this is moved way up here, so countmobjs can use it. Lol
+static const char *MobjTypeName(const mobj_t *mobj)
+{
+	mobjtype_t type;
+	actionf_p1 p1 = mobj->thinker.function;
+
+	if (p1 == (actionf_p1)P_MobjThinker)
+		type = mobj->type;
+#ifdef PARANOIA
+	else if (p1 == (actionf_p1)P_RemoveThinkerDelayed && mobj->thinker.debug_mobjtype != MT_NULL)
+		type = mobj->thinker.debug_mobjtype;
 #endif
+	else
+		return "<Not a mobj>";
+
+	if (type < 0 || type >= NUMMOBJTYPES || (type >= MT_FIRSTFREESLOT && !FREE_MOBJS[type - MT_FIRSTFREESLOT]))
+		return "<Invalid mobj type>";
+	else if (type >= MT_FIRSTFREESLOT)
+		return FREE_MOBJS[type - MT_FIRSTFREESLOT]; // This doesn't include "MT_"...
+	else
+		return MOBJTYPE_LIST[type];
+}
+
 
 tic_t leveltime;
 
@@ -176,21 +198,27 @@ void Command_CountMobjs_f(void)
 
 	CONS_Printf(M_GetText("Count of active objects in level:\n"));
 
+
 	for (i = 0; i < NUMMOBJTYPES; i++)
 	{
 		count = 0;
 
+		char typestring[255] = "\0";
 		for (th = thlist[THINK_MOBJ].next; th != &thlist[THINK_MOBJ]; th = th->next)
 		{
 			if (th->removing)
 				continue;
 
 			if (((mobj_t *)th)->type == i)
+			{
+				if (!count)
+					strncpy(typestring, MobjTypeName((mobj_t *)th), 254);
 				count++;
+			}
 		}
 
 		if (count > 0) // Don't bother displaying if there are none of this type!
-			CONS_Printf(" * %d: %d\n", i, count);
+			CONS_Printf(" x%d \t of %s\n", count, typestring);
 	}
 }
 
@@ -225,26 +253,6 @@ void P_AddThinker(const thinklistnum_t n, thinker_t *thinker)
 }
 
 #ifdef PARANOIA
-static const char *MobjTypeName(const mobj_t *mobj)
-{
-	mobjtype_t type;
-	actionf_p1 p1 = mobj->thinker.function;
-
-	if (p1 == (actionf_p1)P_MobjThinker)
-		type = mobj->type;
-	else if (p1 == (actionf_p1)P_RemoveThinkerDelayed && mobj->thinker.debug_mobjtype != MT_NULL)
-		type = mobj->thinker.debug_mobjtype;
-	else
-		return "<Not a mobj>";
-
-	if (type < 0 || type >= NUMMOBJTYPES || (type >= MT_FIRSTFREESLOT && !FREE_MOBJS[type - MT_FIRSTFREESLOT]))
-		return "<Invalid mobj type>";
-	else if (type >= MT_FIRSTFREESLOT)
-		return FREE_MOBJS[type - MT_FIRSTFREESLOT]; // This doesn't include "MT_"...
-	else
-		return MOBJTYPE_LIST[type];
-}
-
 static const char *MobjThinkerName(const mobj_t *mobj)
 {
 	actionf_p1 p1 = mobj->thinker.function;
